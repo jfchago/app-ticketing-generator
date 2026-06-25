@@ -125,10 +125,7 @@
         "hasGetAll": true,
         "hasGetById": true,
         "hasComments": true,
-        "relatedEntities": [
-          "User",
-          "Comment"
-        ]
+        "relatedEntities": ["User", "Comment"]
       },
       "attributes": [
         {
@@ -341,10 +338,7 @@
         "hasGetAll": false,
         "hasGetById": false,
         "hasComments": true,
-        "relatedEntities": [
-          "Ticket",
-          "User"
-        ]
+        "relatedEntities": ["Ticket", "User"]
       },
       "attributes": [
         {

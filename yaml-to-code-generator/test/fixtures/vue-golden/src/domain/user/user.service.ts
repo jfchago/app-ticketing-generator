@@ -1,9 +1,6 @@
+import type { User } from "./user.types";
 
-
-import type { User } from './user.types';
-
-
-import type { UserRepository } from './user.repository';
+import type { UserRepository } from "./user.repository";
 
 export class UserService {
   repository: UserRepository;
@@ -12,12 +9,7 @@ export class UserService {
     this.repository = repository;
   }
 
-
-
   async loadUsers(): Promise<User[]> {
     return this.repository.loadUsers();
   }
-
-
-
 }

@@ -7,7 +7,7 @@
 
 export interface BehaviorBlock {
   /** Type of behavior block: workflow, event, decision */
-  type: 'workflow' | 'event' | 'decision';
+  type: "workflow" | "event" | "decision";
   /** Optional name derived from the block content */
   name?: string;
   /** Raw source text of the behavior block */
@@ -40,31 +40,43 @@ export class EmbeddedSourceProvider implements BehaviorSourceProvider {
     const blocks: BehaviorBlock[] = [];
 
     // ── Top-level workflow blocks ──
-    const workflowArr = rawYaml['workflows'] as string[] | undefined;
+    const workflowArr = rawYaml["workflows"] as string[] | undefined;
     if (Array.isArray(workflowArr)) {
       for (const raw of workflowArr) {
-        if (typeof raw === 'string' && raw.trim().length > 0) {
-          blocks.push({ type: 'workflow', raw, name: this.guessName(raw, 'workflow') });
+        if (typeof raw === "string" && raw.trim().length > 0) {
+          blocks.push({
+            type: "workflow",
+            raw,
+            name: this.guessName(raw, "workflow"),
+          });
         }
       }
     }
 
     // ── Top-level event blocks ──
-    const eventsArr = rawYaml['events'] as string[] | undefined;
+    const eventsArr = rawYaml["events"] as string[] | undefined;
     if (Array.isArray(eventsArr)) {
       for (const raw of eventsArr) {
-        if (typeof raw === 'string' && raw.trim().length > 0) {
-          blocks.push({ type: 'event', raw, name: this.guessName(raw, 'event') });
+        if (typeof raw === "string" && raw.trim().length > 0) {
+          blocks.push({
+            type: "event",
+            raw,
+            name: this.guessName(raw, "event"),
+          });
         }
       }
     }
 
     // ── Top-level decision blocks ──
-    const decisionsArr = rawYaml['decisions'] as string[] | undefined;
+    const decisionsArr = rawYaml["decisions"] as string[] | undefined;
     if (Array.isArray(decisionsArr)) {
       for (const raw of decisionsArr) {
-        if (typeof raw === 'string' && raw.trim().length > 0) {
-          blocks.push({ type: 'decision', raw, name: this.guessName(raw, 'decision') });
+        if (typeof raw === "string" && raw.trim().length > 0) {
+          blocks.push({
+            type: "decision",
+            raw,
+            name: this.guessName(raw, "decision"),
+          });
         }
       }
     }

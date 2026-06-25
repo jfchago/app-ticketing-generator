@@ -1,6 +1,7 @@
 <%# views/EntityListView.vue.ejs — List view for an entity %>
 <%
 const gen = genEntities?.[entity.name];
+const readAction = gen?.storeActions?.find(a => a.actionCategory === 'read');
 %>
 <script setup lang="ts">
 import { onMounted } from 'vue';
@@ -12,7 +13,11 @@ const store = use<%= entity.namePascal %>Store();
 const router = useRouter();
 
 onMounted(() => {
-  store.load<%= entity.namePascal %>s();
+<% if (readAction) { %>
+  store.<%= readAction.name %>();
+<% } else { %>
+  store.getAll();
+<% } %>
 });
 
 function goToDetail(id: string) {

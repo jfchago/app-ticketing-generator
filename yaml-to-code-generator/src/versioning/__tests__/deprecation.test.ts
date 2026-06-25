@@ -17,7 +17,10 @@ describe("checkDeprecations", () => {
   });
 
   it("returns empty for spec without deprecated features", () => {
-    const spec = { application: { name: "Test", module: "test" }, entities: [] };
+    const spec = {
+      application: { name: "Test", module: "test" },
+      entities: [],
+    };
     expect(checkDeprecations(spec, V1)).toEqual([]);
   });
 
@@ -32,7 +35,11 @@ describe("checkDeprecations", () => {
       replacement: "Use new_field instead",
     });
 
-    const spec = { application: { name: "Test" }, legacy_field: true, entities: [] };
+    const spec = {
+      application: { name: "Test" },
+      legacy_field: true,
+      entities: [],
+    };
     const warnings = checkDeprecations(spec, V2);
     expect(warnings).toHaveLength(1);
     expect(warnings[0].severity).toBe("warning");
@@ -50,7 +57,11 @@ describe("checkDeprecations", () => {
       replacement: "Use new_api instead",
     });
 
-    const spec = { application: { name: "Test" }, old_api: "value", entities: [] };
+    const spec = {
+      application: { name: "Test" },
+      old_api: "value",
+      entities: [],
+    };
     const warnings = checkDeprecations(spec, V3);
     expect(warnings).toHaveLength(1);
     expect(warnings[0].severity).toBe("error");
@@ -68,7 +79,11 @@ describe("checkDeprecations", () => {
       replacement: "Use replacement",
     });
 
-    const spec = { application: { name: "Test" }, future_deprecated: true, entities: [] };
+    const spec = {
+      application: { name: "Test" },
+      future_deprecated: true,
+      entities: [],
+    };
     const warnings = checkDeprecations(spec, V1);
     expect(warnings).toEqual([]);
   });

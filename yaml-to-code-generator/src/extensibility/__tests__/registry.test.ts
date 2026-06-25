@@ -9,7 +9,10 @@ function makeAdapter(name: string, displayName: string): TargetAdapter {
     displayName,
     generatorModulePath: `/generators/${name}/index.ts`,
     generatorNamespace: `yaml2code:${name}`,
-    buildRunOptions(_ir: IR, baseOpts: GenerationOpts): Record<string, unknown> {
+    buildRunOptions(
+      _ir: IR,
+      baseOpts: GenerationOpts,
+    ): Record<string, unknown> {
       return { ...baseOpts };
     },
   };
@@ -37,9 +40,9 @@ describe("TargetRegistry", () => {
 
   it("throws on duplicate registration", () => {
     registry.register(makeAdapter("vue", "Vue 3"));
-    expect(() => registry.register(makeAdapter("vue", "Vue duplicate"))).toThrow(
-      'Target "vue" is already registered.',
-    );
+    expect(() =>
+      registry.register(makeAdapter("vue", "Vue duplicate")),
+    ).toThrow('Target "vue" is already registered.');
   });
 
   it("retrieves registered target", () => {

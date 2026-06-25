@@ -1,4 +1,3 @@
-
 <script setup lang="ts">
 defineProps<{
   item: Record<string, any>;

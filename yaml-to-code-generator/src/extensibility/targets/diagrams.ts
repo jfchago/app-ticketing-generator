@@ -15,7 +15,7 @@ const DIAGRAMS_ADAPTER: TargetAdapter = {
   generatorModulePath: DIAGRAMS_PATH,
   generatorNamespace: "yaml2code:diagrams",
 
-  buildRunOptions(ir: IR, baseOpts: GenerationOpts): Record<string, unknown> {
+  buildRunOptions(_ir: IR, baseOpts: GenerationOpts): Record<string, unknown> {
     return {
       ...baseOpts,
     };
@@ -28,7 +28,7 @@ const DIAGRAMS_ALIAS_ADAPTER: TargetAdapter = {
   generatorModulePath: DIAGRAMS_PATH,
   generatorNamespace: "yaml2code:diagrams",
 
-  buildRunOptions(ir: IR, baseOpts: GenerationOpts): Record<string, unknown> {
+  buildRunOptions(_ir: IR, baseOpts: GenerationOpts): Record<string, unknown> {
     return {
       ...baseOpts,
     };

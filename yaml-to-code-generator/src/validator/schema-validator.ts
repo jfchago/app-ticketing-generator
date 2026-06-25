@@ -2,7 +2,7 @@
 // Validates that the YAML has the correct shape before any further processing.
 // A failing validation means the YAML is malformed, not that it's semantically wrong.
 
-import { z } from 'zod';
+import { z } from "zod";
 
 // --- Zod schemas ---
 
@@ -28,7 +28,7 @@ const cardinality = z.union([z.string(), z.number()]);
 
 const relationshipSchema = z.object({
   name: z.string().min(1),
-  type: z.enum(['one_to_one', 'one_to_many', 'many_to_one', 'many_to_many']),
+  type: z.enum(["one_to_one", "one_to_many", "many_to_one", "many_to_many"]),
   target: z.string().min(1),
   foreign_key: z.string().min(1),
   source_cardinality: cardinality.optional(),
@@ -42,14 +42,19 @@ const ruleSchema = z.object({
   message: z.string().min(1),
 });
 
-const transitionsSchema = z.record(z.string().min(1), z.array(z.string().min(1)));
+const transitionsSchema = z.record(
+  z.string().min(1),
+  z.array(z.string().min(1)),
+);
 
 const entitySchema = z.object({
   name: z.string().min(1),
   table: z.string().min(1).optional(),
   description: z.string().optional(),
-  stereotype: z.string().optional().default('entity'),
-  attributes: z.array(attributeSchema).min(1, "Each entity must have at least one attribute"),
+  stereotype: z.string().optional().default("entity"),
+  attributes: z
+    .array(attributeSchema)
+    .min(1, "Each entity must have at least one attribute"),
   relationships: z.array(relationshipSchema).optional().default([]),
   use_cases: z.array(z.string()).optional().default([]),
   transitions: transitionsSchema.optional(),
@@ -89,10 +94,10 @@ export class SchemaValidationError extends Error {
   constructor(zodError: z.ZodError) {
     const flat = zodError.flatten();
     const issues = Object.entries(flat.fieldErrors)
-      .map(([field, msgs]) => `  ${field}: ${msgs!.join('; ')}`)
-      .join('\n');
+      .map(([field, msgs]) => `  ${field}: ${msgs!.join("; ")}`)
+      .join("\n");
     super(`YAML schema validation failed:\n${issues}`);
-    this.name = 'SchemaValidationError';
+    this.name = "SchemaValidationError";
     this.details = zodError;
   }
 }

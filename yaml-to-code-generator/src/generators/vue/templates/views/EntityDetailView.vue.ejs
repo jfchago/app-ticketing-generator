@@ -1,6 +1,7 @@
 <%# views/EntityDetailView.vue.ejs — Detail view for an entity %>
 <%
 const gen = genEntities?.[entity.name];
+const detailAction = gen?.storeActions?.find(a => a.actionCategory === 'readById');
 %>
 <script setup lang="ts">
 import { onMounted } from 'vue';
@@ -21,7 +22,11 @@ const route = useRoute();
 const router = useRouter();
 
 onMounted(() => {
-  store.load<%= entity.namePascal %>(route.params.id as string);
+<% if (detailAction) { %>
+  store.<%= detailAction.name %>(route.params.id as string);
+<% } else { %>
+  store.getById(route.params.id as string);
+<% } %>
 });
 </script>
 

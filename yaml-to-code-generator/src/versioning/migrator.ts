@@ -14,7 +14,10 @@ export function registerMigration(step: MigrationStep): void {
   }
 }
 
-export function getMigrationSteps(from: DslVersion, to: DslVersion): MigrationStep[] {
+export function getMigrationSteps(
+  from: DslVersion,
+  to: DslVersion,
+): MigrationStep[] {
   const sorted = [...REGISTRY].sort(
     (a, b) => compareVersions(a.from, b.from) - compareVersions(a.to, b.to),
   );
@@ -56,17 +59,17 @@ export function migrateSpec(
     }
   }
 
-  if (
-    compareVersions(fromVersion, toVersion) < 0 &&
-    path.length === 0
-  ) {
+  if (compareVersions(fromVersion, toVersion) < 0 && path.length === 0) {
     path.push(`no-migration-needed::${targetStr}`);
   }
 
   return { spec: current, migrationPath: path };
 }
 
-export function isMigrationIdempotent(label: string, testSpec: unknown): boolean {
+export function isMigrationIdempotent(
+  label: string,
+  testSpec: unknown,
+): boolean {
   const step = REGISTRY.find((s) => s.label === label);
   if (!step) return true;
 

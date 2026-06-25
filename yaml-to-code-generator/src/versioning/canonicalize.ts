@@ -1,5 +1,10 @@
-import type { DslVersion, DeprecationNotice, VersionedSpec } from "./types.js";
-import { CANONICAL_DSL_VERSION, extractVersion, versionsEqual, isVersionOlder, versionToString } from "./resolver.js";
+import type { DslVersion, VersionedSpec } from "./types.js";
+import {
+  CANONICAL_DSL_VERSION,
+  extractVersion,
+  versionsEqual,
+  versionToString,
+} from "./resolver.js";
 import { migrateSpec } from "./migrator.js";
 import { checkDeprecations } from "./deprecation.js";
 
@@ -35,18 +40,25 @@ export function canonicalize(
   };
 }
 
-export function normalizeSpec(spec: Record<string, unknown>): Record<string, unknown> {
+export function normalizeSpec(
+  spec: Record<string, unknown>,
+): Record<string, unknown> {
   const normalized: Record<string, unknown> = {};
 
-  normalized["version"] = spec["version"] ?? versionToString(CANONICAL_DSL_VERSION);
+  normalized["version"] =
+    spec["version"] ?? versionToString(CANONICAL_DSL_VERSION);
 
   if (spec["application"] && typeof spec["application"] === "object") {
     const app = spec["application"] as Record<string, unknown>;
     normalized["application"] = {
       name: app["name"] ?? "Unnamed",
       module: app["module"] ?? "app",
-      ...(app["description"] != null ? { description: app["description"] } : {}),
-      ...(app["basePackage"] != null ? { basePackage: app["basePackage"] } : {}),
+      ...(app["description"] != null
+        ? { description: app["description"] }
+        : {}),
+      ...(app["basePackage"] != null
+        ? { basePackage: app["basePackage"] }
+        : {}),
     };
   }
 
@@ -58,9 +70,10 @@ export function normalizeSpec(spec: Record<string, unknown>): Record<string, unk
         const enumDef = def as Record<string, unknown>;
         normalizedEnums[name] = {
           values: Array.isArray(enumDef["values"]) ? enumDef["values"] : [],
-          labels: enumDef["labels"] && typeof enumDef["labels"] === "object"
-            ? enumDef["labels"] as Record<string, unknown>
-            : {},
+          labels:
+            enumDef["labels"] && typeof enumDef["labels"] === "object"
+              ? (enumDef["labels"] as Record<string, unknown>)
+              : {},
         };
       }
     }
@@ -70,7 +83,9 @@ export function normalizeSpec(spec: Record<string, unknown>): Record<string, unk
   }
 
   if (Array.isArray(spec["entities"])) {
-    normalized["entities"] = (spec["entities"] as Array<Record<string, unknown>>).map(normalizeEntity);
+    normalized["entities"] = (
+      spec["entities"] as Array<Record<string, unknown>>
+    ).map(normalizeEntity);
   } else {
     normalized["entities"] = [];
   }
@@ -90,27 +105,37 @@ export function normalizeSpec(spec: Record<string, unknown>): Record<string, unk
   return normalized;
 }
 
-function normalizeEntity(entity: Record<string, unknown>): Record<string, unknown> {
+function normalizeEntity(
+  entity: Record<string, unknown>,
+): Record<string, unknown> {
   return {
     name: entity["name"] ?? "Unknown",
     ...(entity["table"] != null ? { table: entity["table"] } : {}),
-    ...(entity["description"] != null ? { description: entity["description"] } : {}),
+    ...(entity["description"] != null
+      ? { description: entity["description"] }
+      : {}),
     stereotype: entity["stereotype"] ?? "entity",
     attributes: Array.isArray(entity["attributes"])
-      ? (entity["attributes"] as Array<Record<string, unknown>>).map(normalizeAttribute)
+      ? (entity["attributes"] as Array<Record<string, unknown>>).map(
+          normalizeAttribute,
+        )
       : [],
     relationships: Array.isArray(entity["relationships"])
-      ? (entity["relationships"] as Array<Record<string, unknown>>).map(normalizeRelationship)
+      ? (entity["relationships"] as Array<Record<string, unknown>>).map(
+          normalizeRelationship,
+        )
       : [],
     use_cases: Array.isArray(entity["use_cases"]) ? entity["use_cases"] : [],
-    ...(entity["transitions"] != null ? { transitions: entity["transitions"] } : {}),
-    rules: Array.isArray(entity["rules"])
-      ? entity["rules"]
-      : [],
+    ...(entity["transitions"] != null
+      ? { transitions: entity["transitions"] }
+      : {}),
+    rules: Array.isArray(entity["rules"]) ? entity["rules"] : [],
   };
 }
 
-function normalizeAttribute(attr: Record<string, unknown>): Record<string, unknown> {
+function normalizeAttribute(
+  attr: Record<string, unknown>,
+): Record<string, unknown> {
   return {
     name: attr["name"] ?? "unknown",
     type: attr["type"] ?? "String",
@@ -123,13 +148,19 @@ function normalizeAttribute(attr: Record<string, unknown>): Record<string, unkno
   };
 }
 
-function normalizeRelationship(rel: Record<string, unknown>): Record<string, unknown> {
+function normalizeRelationship(
+  rel: Record<string, unknown>,
+): Record<string, unknown> {
   return {
     name: rel["name"] ?? "unknown",
     type: rel["type"] ?? "many_to_one",
     target: rel["target"] ?? "Unknown",
     foreign_key: rel["foreign_key"] ?? `${rel["name"] ?? "unknown"}_id`,
-    ...(rel["source_cardinality"] != null ? { source_cardinality: rel["source_cardinality"] } : {}),
-    ...(rel["target_cardinality"] != null ? { target_cardinality: rel["target_cardinality"] } : {}),
+    ...(rel["source_cardinality"] != null
+      ? { source_cardinality: rel["source_cardinality"] }
+      : {}),
+    ...(rel["target_cardinality"] != null
+      ? { target_cardinality: rel["target_cardinality"] }
+      : {}),
   };
 }

@@ -2,10 +2,10 @@
 // All target generators (Vue, Spring, Diagrams) extend this class.
 // Provides helper methods for template rendering and file output.
 
-import Generator from 'yeoman-generator';
-import type { IR } from '../../ir/types.js';
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
+import Generator from "yeoman-generator";
+import type { IR } from "../../ir/types.js";
+import { fileURLToPath } from "url";
+import { dirname } from "path";
 
 const _modulePath = dirname(fileURLToPath(import.meta.url));
 
@@ -35,7 +35,10 @@ export class BaseGenerator extends Generator {
   protected dryRun: boolean;
   protected globalContext: Record<string, unknown>;
 
-  constructor(args: string[], opts: BaseGeneratorOptions & Record<string, unknown>) {
+  constructor(
+    args: string[],
+    opts: BaseGeneratorOptions & Record<string, unknown>,
+  ) {
     super(args, { ...opts } as any);
     this.ir = opts.ir as IR;
     this.outputDir = opts.outputDir as string;
@@ -53,9 +56,10 @@ export class BaseGenerator extends Generator {
    * Default: resolves to `generators/{target}/templates/`
    */
   protected determineSourceRoot(): string {
-    const callerPath = new Error().stack?.split('\n')[2]?.match(/\((.*?):\d+:\d+\)/)?.[1]
-      ?? _modulePath;
-    return callerPath.replace(/[/\\][^/\\]+\.\w+$/, '/templates');
+    const callerPath =
+      new Error().stack?.split("\n")[2]?.match(/\((.*?):\d+:\d+\)/)?.[1] ??
+      _modulePath;
+    return callerPath.replace(/[/\\][^/\\]+\.\w+$/, "/templates");
   }
 
   /**
@@ -83,10 +87,7 @@ export class BaseGenerator extends Generator {
   /**
    * Copies a static file verbatim (no EJS rendering).
    */
-  protected copyStatic(
-    templateRelPath: string,
-    outputRelPath: string,
-  ): void {
+  protected copyStatic(templateRelPath: string, outputRelPath: string): void {
     this.fs.copy(
       this.templatePath(templateRelPath),
       this.destinationPath(outputRelPath),
@@ -100,14 +101,14 @@ export class BaseGenerator extends Generator {
    */
   end() {
     if (this.dryRun) {
-      this.log('\n[dry-run] Files staged in memory:');
+      this.log("\n[dry-run] Files staged in memory:");
       const files = this.fs.dump(this.outputDir);
       for (const [filePath, info] of Object.entries(files)) {
-        this.log(`  ${filePath} (${(info.contents ?? '').length} chars)`);
+        this.log(`  ${filePath} (${(info.contents ?? "").length} chars)`);
       }
     } else {
       this.fs.commit();
-      this.log('   Files committed to disk.');
+      this.log("   Files committed to disk.");
     }
   }
 }

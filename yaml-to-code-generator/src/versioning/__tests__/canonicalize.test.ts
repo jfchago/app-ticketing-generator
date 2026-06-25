@@ -94,9 +94,7 @@ describe("normalizeSpec", () => {
   it("preserves existing enum labels", () => {
     const raw: Record<string, unknown> = {
       application: { name: "Test", module: "test" },
-      entities: [
-        { name: "Foo", attributes: [{ name: "id", type: "String" }] },
-      ],
+      entities: [{ name: "Foo", attributes: [{ name: "id", type: "String" }] }],
       enums: {
         Status: { values: ["A", "B"], labels: { A: "Alpha" } },
       },
@@ -111,7 +109,12 @@ describe("normalizeSpec", () => {
   it("normalizes unknown keys away", () => {
     const raw: Record<string, unknown> = {
       application: { name: "Test", module: "test", unknownField: true },
-      entities: [{ name: "Foo", attributes: [{ name: "id", type: "String", extra: "boom" }] }],
+      entities: [
+        {
+          name: "Foo",
+          attributes: [{ name: "id", type: "String", extra: "boom" }],
+        },
+      ],
       enums: {},
       randomKey: "should-be-ignored",
     };
@@ -181,7 +184,14 @@ describe("canonicalize snapshots", () => {
           { name: "id", type: "String", primary: true },
           { name: "name", type: "String" },
         ],
-        relationships: [{ name: "category", target: "Category", type: "many_to_one", foreign_key: "category_id" }],
+        relationships: [
+          {
+            name: "category",
+            target: "Category",
+            type: "many_to_one",
+            foreign_key: "category_id",
+          },
+        ],
       },
       {
         name: "Category",
@@ -189,7 +199,10 @@ describe("canonicalize snapshots", () => {
       },
     ],
     enums: {
-      ItemStatus: { values: ["ACTIVE", "ARCHIVED"], labels: { ACTIVE: "Active" } },
+      ItemStatus: {
+        values: ["ACTIVE", "ARCHIVED"],
+        labels: { ACTIVE: "Active" },
+      },
     },
   };
 

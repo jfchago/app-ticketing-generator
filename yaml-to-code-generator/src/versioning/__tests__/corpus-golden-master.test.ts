@@ -9,11 +9,31 @@ import * as path from "path";
 import { fileURLToPath } from "url";
 
 const _testDir = path.dirname(fileURLToPath(import.meta.url));
-const CORPUS_PATH = path.resolve(_testDir, "../../..", "test/fixtures/corpus/helpdesk-v1.0.yaml");
-const IR_GOLDEN = path.resolve(_testDir, "../../..", "test/fixtures/ir-golden-master.json");
-const SEMANTIC_GOLDEN = path.resolve(_testDir, "../../..", "test/fixtures/semantic-golden-master.json");
-const VUE_GOLDEN_DIR = path.resolve(_testDir, "../../..", "test/fixtures/vue-golden");
-const SPRING_GOLDEN_DIR = path.resolve(_testDir, "../../..", "test/fixtures/spring-golden");
+const CORPUS_PATH = path.resolve(
+  _testDir,
+  "../../..",
+  "test/fixtures/corpus/helpdesk-v1.0.yaml",
+);
+const IR_GOLDEN = path.resolve(
+  _testDir,
+  "../../..",
+  "test/fixtures/ir-golden-master.json",
+);
+const SEMANTIC_GOLDEN = path.resolve(
+  _testDir,
+  "../../..",
+  "test/fixtures/semantic-golden-master.json",
+);
+const VUE_GOLDEN_DIR = path.resolve(
+  _testDir,
+  "../../..",
+  "test/fixtures/vue-golden",
+);
+const SPRING_GOLDEN_DIR = path.resolve(
+  _testDir,
+  "../../..",
+  "test/fixtures/spring-golden",
+);
 
 function collectFiles(dir: string): Map<string, string> {
   const files = new Map<string, string>();
@@ -62,7 +82,10 @@ describe("Corpus Golden Master — Versioned", () => {
     expect(cspec["version"]).toBe("1.0.0");
     expect(cspec["entities"]).toHaveLength(3);
     const enums = cspec["enums"] as Record<string, unknown>;
-    expect(Object.keys(enums).sort()).toEqual(["TicketPriority", "TicketStatus"]);
+    expect(Object.keys(enums).sort()).toEqual([
+      "TicketPriority",
+      "TicketStatus",
+    ]);
   });
 
   it("generates same IR structure as canonical spec", () => {
@@ -82,7 +105,9 @@ describe("Corpus Golden Master — Versioned", () => {
     expect(golden.summary.enums).toBe(2);
     expect(golden.entities).toBeDefined();
     expect(golden.entities.length).toBe(3);
-    const ticket = golden.entities.find((e: { name: string }) => e.name === "Ticket");
+    const ticket = golden.entities.find(
+      (e: { name: string }) => e.name === "Ticket",
+    );
     expect(ticket).toBeDefined();
   });
 
@@ -91,9 +116,11 @@ describe("Corpus Golden Master — Versioned", () => {
     const golden = JSON.parse(fs.readFileSync(SEMANTIC_GOLDEN, "utf-8"));
     expect(golden.entities).toBeDefined();
     expect(Array.isArray(golden.entities)).toBe(true);
-    const ticket = (golden.entities as Array<{ name: string }>).find((e) => e.name === "Ticket");
+    const ticket = (golden.entities as any[]).find(
+      (e: { name: string }) => e.name === "Ticket",
+    ) as any;
     expect(ticket).toBeDefined();
-    expect(ticket.useCaseCount).toBe(8);
+    expect(ticket!.useCaseCount).toBe(8);
   });
 
   it("Vue golden master has all expected files", () => {
@@ -113,17 +140,25 @@ describe("Corpus Golden Master — Versioned", () => {
     const golden = collectFiles(SPRING_GOLDEN_DIR);
     expect(golden.size).toBeGreaterThanOrEqual(30);
     const paths = [...golden.keys()].map((p) => p.replace(/\\/g, "/")).sort();
-    expect(paths.some((p: string) => p.includes("TicketController.java"))).toBe(true);
-    expect(paths.some((p: string) => p.includes("TicketService.java"))).toBe(true);
+    expect(paths.some((p: string) => p.includes("TicketController.java"))).toBe(
+      true,
+    );
+    expect(paths.some((p: string) => p.includes("TicketService.java"))).toBe(
+      true,
+    );
     expect(paths.some((p: string) => p.includes("Ticket.java"))).toBe(true);
-    expect(paths.some((p: string) => p.includes("MiniHelpDeskApplication.java"))).toBe(true);
+    expect(
+      paths.some((p: string) => p.includes("MiniHelpDeskApplication.java")),
+    ).toBe(true);
   });
 
   it("corpus spec round-trips through canonicalize without change", () => {
     const raw = parseYamlFile(CORPUS_PATH);
     const first = canonicalize(raw as Record<string, unknown>);
     const second = canonicalize(first.spec as Record<string, unknown>);
-    expect(versionToString(second.originalVersion)).toBe(versionToString(first.canonicalVersion));
+    expect(versionToString(second.originalVersion)).toBe(
+      versionToString(first.canonicalVersion),
+    );
     expect(second.spec).toEqual(first.spec);
     expect(second.migrated).toBe(false);
   });

@@ -1,6 +1,5 @@
-
 <script setup lang="ts">
-defineProps<{ assigneeId?: string | null; }>();
+defineProps<{ assigneeId?: string | null }>();
 </script>
 
 <template>
@@ -9,6 +8,13 @@ defineProps<{ assigneeId?: string | null; }>();
 </template>
 
 <style scoped>
-.assignee-badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.85em; }
-.unassigned { color: var(--color-muted, #999); }
+.assignee-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.85em;
+}
+.unassigned {
+  color: var(--color-muted, #999);
+}
 </style>

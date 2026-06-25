@@ -1,7 +1,7 @@
 // ir/snapshot.ts — Serialize IR to JSON for observability
 // Produces the format defined in docs/ir/ir-snapshot-format.md
 
-import type { IR, EntityDef, EnumDef } from './types.js';
+import type { IR, EntityDef, EnumDef } from "./types.js";
 
 export interface IRSnapshot {
   meta: {
@@ -77,8 +77,14 @@ export function toIRSnapshot(
   semanticHash: string,
   includeFullIR?: boolean,
 ): IRSnapshot {
-  const totalAttributes = ir.entities.reduce((s, e) => s + e.attributes.length, 0);
-  const totalRelationships = ir.entities.reduce((s, e) => s + e.relationships.length, 0);
+  const totalAttributes = ir.entities.reduce(
+    (s, e) => s + e.attributes.length,
+    0,
+  );
+  const totalRelationships = ir.entities.reduce(
+    (s, e) => s + e.relationships.length,
+    0,
+  );
   const totalUseCases = ir.entities.reduce((s, e) => s + e.useCases.length, 0);
 
   const snapshot: IRSnapshot = {
@@ -125,40 +131,51 @@ function summarizeEntity(entity: EntityDef): EntitySummary {
     table: entity.table,
     stereotype: entity.stereotype,
     attributeCount: entity.attributes.length,
-    attributeNames: entity.attributes.map(a => a.name).sort(),
+    attributeNames: entity.attributes.map((a) => a.name).sort(),
     attributeFieldRoles: Object.fromEntries(
-      entity.attributes.map(a => {
-        const name = a.name.toLowerCase();
-        let role: string | undefined;
-        if (name === 'status') role = 'status';
-        else if (name === 'priority') role = 'priority';
-        else if (name.endsWith('id') && name !== 'id') role = 'assignee';
-        else if (['createdat', 'updatedat'].includes(name)) role = 'timestamp';
-        return [a.name, role];
-      }).filter(([_, v]) => v)
+      entity.attributes
+        .map((a) => {
+          const name = a.name.toLowerCase();
+          let role: string | undefined;
+          if (name === "status") role = "status";
+          else if (name === "priority") role = "priority";
+          else if (name.endsWith("id") && name !== "id") role = "assignee";
+          else if (["createdat", "updatedat"].includes(name))
+            role = "timestamp";
+          return [a.name, role];
+        })
+        .filter(([_, v]) => v),
     ),
     relationshipCount: entity.relationships.length,
-    relationships: entity.relationships.map(r => ({
+    relationships: entity.relationships.map((r) => ({
       name: r.name,
       type: r.type,
       target: r.target,
     })),
     useCaseCount: entity.useCases.length,
-    useCaseNames: entity.useCases.map(u => u.name).sort(),
+    useCaseNames: entity.useCases.map((u) => u.name).sort(),
     useCaseCategories: Object.fromEntries(
-      entity.useCases.filter(u => u.category).map(u => [u.name, u.category])
+      entity.useCases
+        .filter((u) => u.category)
+        .map((u) => [u.name, u.category]),
     ),
     flags: {
-      hasCreate: entity.useCases.some(uc => uc.name === 'create'),
-      hasUpdate: entity.useCases.some(uc => ['update', 'update_status', 'update_priority'].includes(uc.name)),
-      hasDelete: entity.useCases.some(uc => uc.name === 'delete'),
-      hasGetAll: entity.useCases.some(uc => uc.name === 'get_all' || uc.name === 'load_users'),
-      hasGetById: entity.useCases.some(uc => uc.name === 'get_by_id'),
+      hasCreate: entity.useCases.some((uc) => uc.name === "create"),
+      hasUpdate: entity.useCases.some((uc) =>
+        ["update", "update_status", "update_priority"].includes(uc.name),
+      ),
+      hasDelete: entity.useCases.some((uc) => uc.name === "delete"),
+      hasGetAll: entity.useCases.some(
+        (uc) => uc.name === "get_all" || uc.name === "load_users",
+      ),
+      hasGetById: entity.useCases.some((uc) => uc.name === "get_by_id"),
     },
     pkType: entity.primaryKey?.type,
-    transitionKeys: entity.transitions ? Object.keys(entity.transitions) : undefined,
-    ruleNames: entity.entityRules?.map(r => r.name).sort(),
-    eventNames: entity.entityEvents?.map(e => e.name).sort(),
+    transitionKeys: entity.transitions
+      ? Object.keys(entity.transitions)
+      : undefined,
+    ruleNames: entity.entityRules?.map((r) => r.name).sort(),
+    eventNames: entity.entityEvents?.map((e) => e.name).sort(),
   };
 }
 
@@ -177,44 +194,58 @@ export function compareIRSnapshots(
   const diffs: string[] = [];
 
   if (baseline.summary.entities !== current.summary.entities) {
-    diffs.push(`entities: ${baseline.summary.entities} → ${current.summary.entities}`);
+    diffs.push(
+      `entities: ${baseline.summary.entities} → ${current.summary.entities}`,
+    );
   }
   if (baseline.summary.enums !== current.summary.enums) {
     diffs.push(`enums: ${baseline.summary.enums} → ${current.summary.enums}`);
   }
   if (baseline.summary.attributes !== current.summary.attributes) {
-    diffs.push(`attributes: ${baseline.summary.attributes} → ${current.summary.attributes}`);
+    diffs.push(
+      `attributes: ${baseline.summary.attributes} → ${current.summary.attributes}`,
+    );
   }
   if (baseline.summary.relationships !== current.summary.relationships) {
-    diffs.push(`relationships: ${baseline.summary.relationships} → ${current.summary.relationships}`);
+    diffs.push(
+      `relationships: ${baseline.summary.relationships} → ${current.summary.relationships}`,
+    );
   }
   if (baseline.summary.useCases !== current.summary.useCases) {
-    diffs.push(`useCases: ${baseline.summary.useCases} → ${current.summary.useCases}`);
+    diffs.push(
+      `useCases: ${baseline.summary.useCases} → ${current.summary.useCases}`,
+    );
   }
 
   for (const be of baseline.entities) {
-    const ce = current.entities.find(e => e.name === be.name);
+    const ce = current.entities.find((e) => e.name === be.name);
     if (!ce) {
       diffs.push(`entity ${be.name}: removed`);
       continue;
     }
     if (be.attributeCount !== ce.attributeCount) {
-      diffs.push(`entity ${be.name}.attributeCount: ${be.attributeCount} → ${ce.attributeCount}`);
+      diffs.push(
+        `entity ${be.name}.attributeCount: ${be.attributeCount} → ${ce.attributeCount}`,
+      );
     }
     if (be.relationshipCount !== ce.relationshipCount) {
-      diffs.push(`entity ${be.name}.relationshipCount: ${be.relationshipCount} → ${ce.relationshipCount}`);
+      diffs.push(
+        `entity ${be.name}.relationshipCount: ${be.relationshipCount} → ${ce.relationshipCount}`,
+      );
     }
     if (be.useCaseCount !== ce.useCaseCount) {
-      diffs.push(`entity ${be.name}.useCaseCount: ${be.useCaseCount} → ${ce.useCaseCount}`);
+      diffs.push(
+        `entity ${be.name}.useCaseCount: ${be.useCaseCount} → ${ce.useCaseCount}`,
+      );
     }
-    const bUc = be.useCaseNames.sort().join(',');
-    const cUc = ce.useCaseNames.sort().join(',');
+    const bUc = be.useCaseNames.sort().join(",");
+    const cUc = ce.useCaseNames.sort().join(",");
     if (bUc !== cUc) {
       diffs.push(`entity ${be.name}.useCases: [${bUc}] → [${cUc}]`);
     }
   }
   for (const ce of current.entities) {
-    if (!baseline.entities.find(e => e.name === ce.name)) {
+    if (!baseline.entities.find((e) => e.name === ce.name)) {
       diffs.push(`entity ${ce.name}: added`);
     }
   }

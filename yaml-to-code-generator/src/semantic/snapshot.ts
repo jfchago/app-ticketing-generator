@@ -1,7 +1,14 @@
 // semantic/snapshot.ts — Serialize SemanticModel to JSON for observability
 // Produces the format defined in docs/semantic/semantic-snapshot-format.md
 
-import type { SemanticModel, ResolvedEntity, ResolvedEnum, ResolvedWorkflow, ResolvedEvent, ResolvedDecision } from './types.js';
+import type {
+  SemanticModel,
+  ResolvedEntity,
+  ResolvedEnum,
+  ResolvedWorkflow,
+  ResolvedEvent,
+  ResolvedDecision,
+} from "./types.js";
 
 export interface SemanticSnapshot {
   meta: SnapshotMeta;
@@ -133,14 +140,14 @@ export function toSnapshot(model: SemanticModel): SemanticSnapshot {
   const domain = model.domain;
 
   const diagCounts = {
-    error: model.diagnostics.filter(d => d.severity === 'error').length,
-    warning: model.diagnostics.filter(d => d.severity === 'warning').length,
-    info: model.diagnostics.filter(d => d.severity === 'info').length,
+    error: model.diagnostics.filter((d) => d.severity === "error").length,
+    warning: model.diagnostics.filter((d) => d.severity === "warning").length,
+    info: model.diagnostics.filter((d) => d.severity === "info").length,
   };
 
   return {
     meta: {
-      tool: 'yaml2code-semantic',
+      tool: "yaml2code-semantic",
       version: 1,
       timestamp: new Date().toISOString(),
       specPath: model.meta.specPath,
@@ -149,8 +156,14 @@ export function toSnapshot(model: SemanticModel): SemanticSnapshot {
     summary: {
       entities: domain.entities.length,
       enums: domain.enums.length,
-      attributes: domain.entities.reduce((sum, e) => sum + e.attributes.length, 0),
-      relationships: domain.entities.reduce((sum, e) => sum + e.relationships.length, 0),
+      attributes: domain.entities.reduce(
+        (sum, e) => sum + e.attributes.length,
+        0,
+      ),
+      relationships: domain.entities.reduce(
+        (sum, e) => sum + e.relationships.length,
+        0,
+      ),
       useCases: domain.entities.reduce((sum, e) => sum + e.useCases.length, 0),
       workflows: domain.workflows.length,
       events: domain.events.length,
@@ -165,17 +178,38 @@ export function toSnapshot(model: SemanticModel): SemanticSnapshot {
     },
     entities: domain.entities.map(entityToSnapshot),
     enums: domain.enums.map(enumToSnapshot),
-    diagnostics: model.diagnostics.map(d => ({
+    diagnostics: model.diagnostics.map((d) => ({
       code: d.code,
       severity: d.severity,
       message: d.message,
-      location: d.location ? { kind: d.location.kind, name: d.location.name, parent: d.location.parent } : undefined,
-      related: d.related ? { kind: d.related.kind, name: d.related.name, parent: d.related.parent } : undefined,
+      location: d.location
+        ? {
+            kind: d.location.kind,
+            name: d.location.name,
+            parent: d.location.parent,
+          }
+        : undefined,
+      related: d.related
+        ? {
+            kind: d.related.kind,
+            name: d.related.name,
+            parent: d.related.parent,
+          }
+        : undefined,
     })),
     behavior: {
-      workflows: domain.workflows.length > 0 ? domain.workflows.map(workflowToSnapshot) : undefined,
-      events: domain.events.length > 0 ? domain.events.map(eventToSnapshot) : undefined,
-      decisions: domain.decisions.length > 0 ? domain.decisions.map(decisionToSnapshot) : undefined,
+      workflows:
+        domain.workflows.length > 0
+          ? domain.workflows.map(workflowToSnapshot)
+          : undefined,
+      events:
+        domain.events.length > 0
+          ? domain.events.map(eventToSnapshot)
+          : undefined,
+      decisions:
+        domain.decisions.length > 0
+          ? domain.decisions.map(decisionToSnapshot)
+          : undefined,
     },
   };
 }
@@ -201,21 +235,24 @@ function entityToSnapshot(e: ResolvedEntity): EntitySnapshot {
       hasComments: e.hasComments,
       relatedEntities: e.relatedEntities,
     },
-    attributes: e.attributes.map(a => ({
+    attributes: e.attributes.map((a) => ({
       name: a.name,
       type: a.type,
       resolvedType: { kind: a.resolvedType.kind, ref: a.resolvedType.ref },
-      fieldRole: a.fieldRole,
+      fieldRole: a.fieldRole ?? "field",
       required: a.required,
       primary: a.primary,
     })),
-    relationships: e.relationships.map(r => ({
+    relationships: e.relationships.map((r) => ({
       name: r.name,
       target: r.target,
-      resolvedTarget: { kind: r.resolvedTarget.kind, ref: r.resolvedTarget.ref },
+      resolvedTarget: {
+        kind: r.resolvedTarget.kind,
+        ref: r.resolvedTarget.ref,
+      },
       type: r.type,
     })),
-    useCases: e.useCases.map(uc => ({
+    useCases: e.useCases.map((uc) => ({
       name: uc.name,
       methodName: uc.methodName,
       httpMethod: uc.httpMethod,
@@ -232,7 +269,7 @@ function enumToSnapshot(e: ResolvedEnum): EnumSnapshot {
   return {
     name: e.name,
     valueCount: e.values.length,
-    values: e.values.map(v => ({ name: v.name, label: v.label })),
+    values: e.values.map((v) => ({ name: v.name, label: v.label })),
   };
 }
 

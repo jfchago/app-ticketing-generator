@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { canonicalize } from "../canonicalize.js";
-import { parseDslVersion, versionToString } from "../resolver.js";
+import { versionToString } from "../resolver.js";
 
 describe("Versioning integration", () => {
   const validSpec: Record<string, unknown> = {
@@ -54,7 +54,9 @@ describe("Versioning integration", () => {
   it("canonical result is idempotent", () => {
     const first = canonicalize(validSpec);
     const second = canonicalize(first.spec as Record<string, unknown>);
-    expect(versionToString(second.originalVersion)).toBe(versionToString(first.canonicalVersion));
+    expect(versionToString(second.originalVersion)).toBe(
+      versionToString(first.canonicalVersion),
+    );
     expect(second.migrated).toBe(false);
     expect(second.spec).toEqual(first.spec);
   });

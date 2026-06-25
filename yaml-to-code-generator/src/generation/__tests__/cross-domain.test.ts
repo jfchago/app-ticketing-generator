@@ -1,16 +1,20 @@
-import { describe, it, expect } from 'vitest';
-import { parseYamlFile } from '../../parser/yaml-parser.js';
-import { validateSpec } from '../../validator/schema-validator.js';
-import { buildIR } from '../../ir/builder.js';
-import { buildSemanticModelOrThrow } from '../../semantic/index.js';
-import { buildVueGenerationModel } from '../vue/builder.js';
-import { buildSpringGenerationModel } from '../spring/builder.js';
-import * as path from 'path';
-import { fileURLToPath } from 'url';
+import { describe, it, expect } from "vitest";
+import { parseYamlFile } from "../../parser/yaml-parser.js";
+import { validateSpec } from "../../validator/schema-validator.js";
+import { buildIR } from "../../ir/builder.js";
+import { buildSemanticModelOrThrow } from "../../semantic/index.js";
+import { buildVueGenerationModel } from "../vue/builder.js";
+import { buildSpringGenerationModel } from "../spring/builder.js";
+import * as path from "path";
+import { fileURLToPath } from "url";
 
 const _testDir = path.dirname(fileURLToPath(import.meta.url));
-const HELPDESK_PATH = path.resolve(_testDir, '../../..', 'specs/helpdesk.yaml');
-const INVENTORY_PATH = path.resolve(_testDir, '../../..', 'specs/inventory.yaml');
+const HELPDESK_PATH = path.resolve(_testDir, "../../..", "specs/helpdesk.yaml");
+const INVENTORY_PATH = path.resolve(
+  _testDir,
+  "../../..",
+  "specs/inventory.yaml",
+);
 
 function buildModels(specPath: string) {
   const raw = parseYamlFile(specPath);
@@ -22,24 +26,24 @@ function buildModels(specPath: string) {
   return { ir, vueGen, springGen };
 }
 
-describe('Cross-domain generation', () => {
-  it('helpdesk spec produces valid models with 3 entities', () => {
+describe("Cross-domain generation", () => {
+  it("helpdesk spec produces valid models with 3 entities", () => {
     const { ir, vueGen, springGen } = buildModels(HELPDESK_PATH);
     expect(ir.entities.length).toBe(3);
     expect(Object.keys(vueGen.entities).length).toBe(3);
     expect(Object.keys(springGen.entities).length).toBe(3);
   });
 
-  it('inventory spec produces valid models with 2 entities and no errors', () => {
+  it("inventory spec produces valid models with 2 entities and no errors", () => {
     const { ir, vueGen, springGen } = buildModels(INVENTORY_PATH);
     expect(ir.entities.length).toBe(2);
     expect(Object.keys(vueGen.entities).length).toBe(2);
     expect(Object.keys(springGen.entities).length).toBe(2);
   });
 
-  it('inventory Vue model has Product entity with correct properties', () => {
+  it("inventory Vue model has Product entity with correct properties", () => {
     const { vueGen } = buildModels(INVENTORY_PATH);
-    const product = vueGen.entities['Product'];
+    const product = vueGen.entities["Product"];
     expect(product).toBeDefined();
     expect(product.hasCreate).toBe(true);
     expect(product.hasGetAll).toBe(true);
@@ -48,15 +52,15 @@ describe('Cross-domain generation', () => {
     expect(product.formFields.length).toBeGreaterThan(0);
   });
 
-  it('inventory Spring model has Product service methods', () => {
+  it("inventory Spring model has Product service methods", () => {
     const { springGen } = buildModels(INVENTORY_PATH);
-    const product = springGen.entities['Product'];
+    const product = springGen.entities["Product"];
     expect(product.serviceMethods.length).toBeGreaterThanOrEqual(5);
-    const names = product.serviceMethods.map(m => m.name);
-    expect(names).toContain('getAll');
-    expect(names).toContain('getById');
-    expect(names).toContain('create');
-    expect(names).toContain('update');
-    expect(names).toContain('delete');
+    const names = product.serviceMethods.map((m) => m.name);
+    expect(names).toContain("getAll");
+    expect(names).toContain("getById");
+    expect(names).toContain("create");
+    expect(names).toContain("update");
+    expect(names).toContain("delete");
   });
 });

@@ -4,11 +4,7 @@
 import type {
   IR,
   AppInfo,
-  EnumDef,
-  EnumValueDef,
   EntityDef,
-  AttributeDef,
-  RelationshipDef,
   RelationType,
   ActionDef,
   ActionType,
@@ -17,9 +13,7 @@ import type {
   ParticipantDef,
   EventDef,
   DecisionDef,
-} from './types.js';
-import { resolveUseCase } from './use-case-resolver.js';
-import type { ValidatedSpec, ValidatedEntity, ValidatedAttribute, ValidatedRelationship, ValidatedEnum } from '../validator/schema-validator.js';
+} from "./types.js";
 import type {
   BehaviorAST,
   WorkflowAST,
@@ -28,131 +22,31 @@ import type {
   DecisionAST,
   ActionAST,
   ParticipantAST,
-} from '../lang/ast-types.js';
-import type { SemanticModel, ResolvedEntity } from '../semantic/types.js';
+} from "../lang/ast-types.js";
+import type { SemanticModel, ResolvedEntity } from "../semantic/types.js";
 
-const PRIMITIVE_TYPES = new Set(['String', 'Integer', 'Long', 'Float', 'Double', 'Boolean', 'Date', 'DateTime', 'Timestamp']);
+const PRIMITIVE_TYPES = new Set([
+  "String",
+  "Integer",
+  "Long",
+  "Float",
+  "Double",
+  "Boolean",
+  "Date",
+  "DateTime",
+  "Timestamp",
+]);
 const DB_TYPE_MAP: Record<string, string> = {
-  String: 'VARCHAR',
-  Integer: 'INTEGER',
-  Long: 'BIGINT',
-  Float: 'FLOAT',
-  Double: 'DOUBLE',
-  Boolean: 'BOOLEAN',
-  Date: 'DATE',
-  DateTime: 'TIMESTAMP',
-  Timestamp: 'TIMESTAMP',
+  String: "VARCHAR",
+  Integer: "INTEGER",
+  Long: "BIGINT",
+  Float: "FLOAT",
+  Double: "DOUBLE",
+  Boolean: "BOOLEAN",
+  Date: "DATE",
+  DateTime: "TIMESTAMP",
+  Timestamp: "TIMESTAMP",
 };
-
-function buildAppInfo(spec: ValidatedSpec): AppInfo {
-  const name = spec.application.name;
-  return {
-    name,
-    module: spec.application.module,
-    description: spec.application.description,
-    basePackage: spec.application.basePackage ?? `com.${spec.application.module}`,
-    appClassName: name.replace(/[^a-zA-Z0-9]+/g, ''),
-  };
-}
-
-function buildEnums(enums: Record<string, ValidatedEnum>): EnumDef[] {
-  return Object.entries(enums).map(([name, def]) => ({
-    name,
-    namePascal: name,
-    nameCamel: camelCase(name),
-    values: buildEnumValues(def),
-  }));
-}
-
-function buildEnumValues(def: ValidatedEnum): EnumValueDef[] {
-  return def.values.map((value) => ({
-    name: value,
-    label: (def.labels as Record<string, string>)?.[value] ?? value,
-  }));
-}
-
-function buildEntity(
-  raw: ValidatedEntity,
-  entityNames: Set<string>,
-  enumNames: Set<string>,
-): EntityDef {
-  const useCases = (raw.use_cases ?? []).map((uc) => resolveUseCase(uc));
-  const attributes = buildAttributes(raw.attributes, entityNames, enumNames);
-  const relationships = buildRelationships(raw.relationships ?? []);
-  const primaryKey = attributes.find((a) => a.primary);
-
-  return {
-    name: raw.name,
-    nameCamel: camelCase(raw.name),
-    namePascal: raw.name,
-    nameKebab: kebabCase(raw.name),
-    nameSnake: snakeCase(raw.name),
-    table: raw.table ?? raw.name.toLowerCase(),
-    description: raw.description ?? '',
-    stereotype: raw.stereotype ?? 'entity',
-    attributes,
-    relationships,
-    useCases,
-    hasCreate: useCases.some((uc) => uc.name === 'create'),
-    hasUpdate: useCases.some((uc) => ['update', 'update_status', 'update_priority'].includes(uc.name)),
-    hasDelete: useCases.some((uc) => uc.name === 'delete'),
-    hasGetAll: useCases.some((uc) => uc.name === 'get_all' || uc.name === 'load_users'),
-    hasGetById: useCases.some((uc) => uc.name === 'get_by_id'),
-    primaryKey,
-    transitions: (raw as any).transitions,
-    entityRules: ((raw as any).rules ?? []).map((r: any) => ({
-      name: r.name,
-      namePascal: pascalCase(r.name),
-      nameCamel: camelCase(r.name),
-      on: r.on,
-      guard: r.guard,
-      message: r.message,
-    })),
-  };
-}
-
-function buildAttributes(
-  rawAttrs: ValidatedAttribute[],
-  entityNames: Set<string>,
-  enumNames: Set<string>,
-): AttributeDef[] {
-  return rawAttrs.map((attr) => {
-    const isPrimitive = PRIMITIVE_TYPES.has(attr.type);
-    const isEnum = enumNames.has(attr.type);
-    const isEntityRef = entityNames.has(attr.type);
-    const isCamel = attr.name !== camelCase(attr.name);
-
-    return {
-      name: attr.name,
-      namePascal: isCamel ? pascalCase(attr.name) : capitalize(attr.name),
-      type: attr.type,
-      tsType: mapToTSType(attr.type, attr.required, isEnum, isEntityRef),
-      required: attr.required ?? false,
-      primary: attr.primary ?? false,
-      defaultValue: attr.default !== undefined ? String(attr.default) : undefined,
-      isEnum,
-      isEntityRef,
-      isPrimitive,
-      length: attr.length,
-      column: attr.column ?? attr.name,
-      nullable: !(attr.required ?? false),
-      unique: attr.unique ?? false,
-    };
-  });
-}
-
-function buildRelationships(rawRels: ValidatedRelationship[]): RelationshipDef[] {
-  return rawRels.map((rel) => ({
-    name: rel.name,
-    namePascal: pascalCase(rel.name),
-    type: rel.type as RelationType,
-    target: rel.target,
-    targetPascal: rel.target,
-    foreignKey: rel.foreign_key,
-    sourceCardinality: rel.source_cardinality !== undefined ? String(rel.source_cardinality) : '0..*',
-    targetCardinality: rel.target_cardinality !== undefined ? String(rel.target_cardinality) : '1',
-  }));
-}
 
 function mapToTSType(
   type: string,
@@ -161,15 +55,15 @@ function mapToTSType(
   isEntityRef: boolean,
 ): string {
   const primitiveMap: Record<string, string> = {
-    String: 'string',
-    Integer: 'number',
-    Long: 'number',
-    Float: 'number',
-    Double: 'number',
-    Boolean: 'boolean',
-    Date: 'string',
-    DateTime: 'string',
-    Timestamp: 'string',
+    String: "string",
+    Integer: "number",
+    Long: "number",
+    Float: "number",
+    Double: "number",
+    Boolean: "boolean",
+    Date: "string",
+    DateTime: "string",
+    Timestamp: "string",
   };
 
   // eslint-ignore-line
@@ -179,7 +73,7 @@ function mapToTSType(
   } else if (isEnum || isEntityRef) {
     tsType = type;
   } else {
-    tsType = 'unknown';
+    tsType = "unknown";
   }
 
   if (!required) {
@@ -200,25 +94,7 @@ function pascalCase(str: string): string {
   return str
     .split(/[-_\s]+/)
     .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
-    .join('');
-}
-
-function capitalize(str: string): string {
-  return str.charAt(0).toUpperCase() + str.slice(1);
-}
-
-function kebabCase(str: string): string {
-  return str
-    .replace(/([a-z])([A-Z])/g, '$1-$2')
-    .replace(/[\s_]+/g, '-')
-    .toLowerCase();
-}
-
-function snakeCase(str: string): string {
-  return str
-    .replace(/([a-z])([A-Z])/g, '$1_$2')
-    .replace(/[\s-]+/g, '_')
-    .toLowerCase();
+    .join("");
 }
 
 // ── Behavioral IR Builder (v2) ───────────────────────────────────────
@@ -248,10 +124,10 @@ export function extendIRWithBehavior(
 
   for (const ast of asts) {
     switch (ast.kind) {
-      case 'Workflow':
+      case "Workflow":
         workflows.push(workflowASTToIR(ast));
         break;
-      case 'Event': {
+      case "Event": {
         const ev = eventASTToIR(ast);
         const entityName = entityMap.get(ast.name);
         if (entityName && entityByName.has(entityName)) {
@@ -263,7 +139,7 @@ export function extendIRWithBehavior(
         }
         break;
       }
-      case 'Decision':
+      case "Decision":
         topDecisions.push(decisionASTToIR(ast));
         break;
     }
@@ -365,13 +241,13 @@ export function buildIR(model: SemanticModel): IR {
 
   return {
     application: buildAppInfoFromSemantic(domain),
-    enums: domain.enums.map(e => ({
+    enums: domain.enums.map((e) => ({
       name: e.name,
       namePascal: e.namePascal,
       nameCamel: e.nameCamel,
-      values: e.values.map(v => ({ name: v.name, label: v.label })),
+      values: e.values.map((v) => ({ name: v.name, label: v.label })),
     })),
-    entities: domain.entities.map(e => buildEntityFromSemantic(e)),
+    entities: domain.entities.map((e) => buildEntityFromSemantic(e)),
     buildFeatures: {
       hasStateMachine: domain.buildFeatures.hasStateMachine,
       hasEvents: domain.buildFeatures.hasEvents,
@@ -380,69 +256,85 @@ export function buildIR(model: SemanticModel): IR {
       hasValidation: domain.buildFeatures.hasValidation,
       hasRules: domain.buildFeatures.hasRules,
     },
-    workflows: domain.workflows.length > 0 ? domain.workflows.map(w => ({
-      name: w.name,
-      namePascal: w.namePascal,
-      nameCamel: w.nameCamel,
-      participants: w.participants.map(p => ({ role: p.role as any, name: p.name })),
-      steps: w.steps.map(s => ({
-        id: s.id,
-        name: s.name,
-        label: s.label,
-        type: s.type as any,
-        actorName: s.actorName,
-        actions: s.actions.map(a => ({
-          type: a.type as ActionType,
-          target: a.target,
-          params: a.params as Record<string, string>,
-          resultVariable: a.resultVariable,
-        })),
-        transitions: s.transitions.map(t => ({
-          targetStep: t.targetStep,
-          condition: t.condition,
-          label: t.label,
-          isDefault: t.isDefault,
-        })),
-        timerExpression: s.timerExpression,
-        errorHandlers: s.errorHandlers.map(h => ({
-          errorType: h.errorType,
-          targetStep: h.targetStep,
-        })),
-        deadline: s.deadline,
-        escalation: s.escalation,
-      })),
-      startStep: w.startStep,
-      endSteps: w.endSteps,
-    })) : undefined,
-    events: domain.events.length > 0 ? domain.events.map(ev => ({
-      name: ev.name,
-      namePascal: ev.namePascal,
-      nameCamel: ev.nameCamel,
-      source: ev.source,
-      payload: ev.payload.map(f => ({ name: f.name, type: f.type, required: f.required })),
-      handlers: ev.handlers,
-    })) : undefined,
-    decisions: domain.decisions.length > 0 ? domain.decisions.map(dc => ({
-      name: dc.name,
-      namePascal: dc.namePascal,
-      nameCamel: dc.nameCamel,
-      input: dc.input,
-      cases: dc.cases.map(c => ({
-        condition: c.condition,
-        actions: c.actions.map(a => ({
-          type: a.type as ActionType,
-          target: a.target,
-          params: a.params as Record<string, string>,
-          resultVariable: a.resultVariable,
-        })),
-      })),
-      defaultActions: dc.defaultActions.map(a => ({
-        type: a.type as ActionType,
-        target: a.target,
-        params: a.params as Record<string, string>,
-        resultVariable: a.resultVariable,
-      })),
-    })) : undefined,
+    workflows:
+      domain.workflows.length > 0
+        ? domain.workflows.map((w) => ({
+            name: w.name,
+            namePascal: w.namePascal,
+            nameCamel: w.nameCamel,
+            participants: w.participants.map((p) => ({
+              role: p.role as any,
+              name: p.name,
+            })),
+            steps: w.steps.map((s) => ({
+              id: s.id,
+              name: s.name,
+              label: s.label,
+              type: s.type as any,
+              actorName: s.actorName,
+              actions: s.actions.map((a) => ({
+                type: a.type as ActionType,
+                target: a.target,
+                params: a.params as Record<string, string>,
+                resultVariable: a.resultVariable,
+              })),
+              transitions: s.transitions.map((t) => ({
+                targetStep: t.targetStep,
+                condition: t.condition,
+                label: t.label,
+                isDefault: t.isDefault,
+              })),
+              timerExpression: s.timerExpression,
+              errorHandlers: s.errorHandlers.map((h) => ({
+                errorType: h.errorType,
+                targetStep: h.targetStep,
+              })),
+              deadline: s.deadline,
+              escalation: s.escalation,
+            })),
+            startStep: w.startStep,
+            endSteps: w.endSteps,
+          }))
+        : undefined,
+    events:
+      domain.events.length > 0
+        ? domain.events.map((ev) => ({
+            name: ev.name,
+            namePascal: ev.namePascal,
+            nameCamel: ev.nameCamel,
+            source: ev.source,
+            payload: ev.payload.map((f) => ({
+              name: f.name,
+              type: f.type,
+              required: f.required,
+            })),
+            handlers: ev.handlers,
+          }))
+        : undefined,
+    decisions:
+      domain.decisions.length > 0
+        ? domain.decisions.map((dc) => ({
+            name: dc.name,
+            namePascal: dc.namePascal,
+            nameCamel: dc.nameCamel,
+            input: dc.input,
+            cases: dc.cases.map((c) => ({
+              condition: c.condition,
+              actions: c.actions.map((a) => ({
+                type: a.type as ActionType,
+                target: a.target,
+                params: a.params as Record<string, string>,
+                resultVariable: a.resultVariable,
+              })),
+            })),
+            defaultActions: dc.defaultActions.map((a) => ({
+              type: a.type as ActionType,
+              target: a.target,
+              params: a.params as Record<string, string>,
+              resultVariable: a.resultVariable,
+            })),
+          }))
+        : undefined,
   };
 }
 
@@ -466,23 +358,23 @@ function buildEntityFromSemantic(e: ResolvedEntity): EntityDef {
     table: e.table,
     description: e.description,
     stereotype: e.stereotype,
-    attributes: e.attributes.map(a => ({
+    attributes: e.attributes.map((a) => ({
       name: a.name,
       namePascal: a.namePascal,
       type: a.type,
       required: a.required,
       primary: a.primary,
       defaultValue: a.defaultValue,
-      isEnum: a.resolvedType.kind === 'enum',
-      isEntityRef: a.resolvedType.kind === 'entity',
-      isPrimitive: a.resolvedType.kind === 'primitive',
+      isEnum: a.resolvedType.kind === "enum",
+      isEntityRef: a.resolvedType.kind === "entity",
+      isPrimitive: a.resolvedType.kind === "primitive",
       length: a.length,
       column: a.column,
       nullable: a.nullable,
       unique: a.unique,
       tsType: a.tsType,
     })),
-    relationships: e.relationships.map(r => ({
+    relationships: e.relationships.map((r) => ({
       name: r.name,
       namePascal: r.namePascal,
       type: r.type as RelationType,
@@ -492,7 +384,7 @@ function buildEntityFromSemantic(e: ResolvedEntity): EntityDef {
       sourceCardinality: r.sourceCardinality,
       targetCardinality: r.targetCardinality,
     })),
-    useCases: e.useCases.map(uc => ({
+    useCases: e.useCases.map((uc) => ({
       name: uc.name,
       methodName: uc.methodName,
       httpMethod: uc.httpMethod as any,
@@ -502,8 +394,17 @@ function buildEntityFromSemantic(e: ResolvedEntity): EntityDef {
       pathSuffix: uc.pathSuffix,
       actionLabel: uc.actionLabel,
     })),
+    hasCreate: e.useCases.some((uc) => uc.name === "create"),
+    hasUpdate: e.useCases.some((uc) =>
+      ["update", "update_status", "update_priority"].includes(uc.name),
+    ),
+    hasDelete: e.useCases.some((uc) => uc.name === "delete"),
+    hasGetAll: e.useCases.some(
+      (uc) => uc.name === "get_all" || uc.name === "load_users",
+    ),
+    hasGetById: e.useCases.some((uc) => uc.name === "get_by_id"),
     transitions: e.transitions,
-    entityRules: e.entityRules.map(r => ({
+    entityRules: e.entityRules.map((r) => ({
       name: r.name,
       namePascal: r.namePascal,
       nameCamel: r.nameCamel,
@@ -511,7 +412,7 @@ function buildEntityFromSemantic(e: ResolvedEntity): EntityDef {
       guard: r.guard,
       message: r.message,
     })),
-    entityEvents: e.entityEvents.map(ev => ({
+    entityEvents: e.entityEvents.map((ev) => ({
       name: ev.name,
       namePascal: ev.namePascal,
       nameCamel: ev.nameCamel,
@@ -519,19 +420,27 @@ function buildEntityFromSemantic(e: ResolvedEntity): EntityDef {
       payload: ev.payload,
       handlers: ev.handlers,
     })),
-    primaryKey: e.primaryKey ? {
-      name: e.primaryKey.name,
-      namePascal: e.primaryKey.namePascal,
-      type: e.primaryKey.type,
-      required: e.primaryKey.required,
-      primary: true,
-      isEnum: false,
-      isEntityRef: false,
-      isPrimitive: e.primaryKey.resolvedType.kind === 'primitive',
-      length: e.primaryKey.length,
-      column: e.primaryKey.column,
-      nullable: false,
-      unique: false,
-    } : undefined,
+    primaryKey: e.primaryKey
+      ? {
+          name: e.primaryKey.name,
+          namePascal: e.primaryKey.namePascal,
+          type: e.primaryKey.type,
+          required: e.primaryKey.required,
+          primary: true,
+          tsType: mapToTSType(
+            e.primaryKey.type,
+            e.primaryKey.required,
+            false,
+            false,
+          ),
+          isEnum: false,
+          isEntityRef: false,
+          isPrimitive: e.primaryKey.resolvedType.kind === "primitive",
+          length: e.primaryKey.length,
+          column: e.primaryKey.column,
+          nullable: false,
+          unique: false,
+        }
+      : undefined,
   };
 }

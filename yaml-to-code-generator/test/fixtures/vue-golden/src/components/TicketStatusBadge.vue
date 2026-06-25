@@ -1,12 +1,19 @@
-
 <script setup lang="ts">
-defineProps<{ status: string; }>();
+defineProps<{ status: string }>();
 </script>
 
 <template>
-  <span class="status-badge" :class="'status-' + status.toLowerCase()">{{ status }}</span>
+  <span class="status-badge" :class="'status-' + status.toLowerCase()">{{
+    status
+  }}</span>
 </template>
 
 <style scoped>
-.status-badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.85em; font-weight: 600; }
+.status-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.85em;
+  font-weight: 600;
+}
 </style>

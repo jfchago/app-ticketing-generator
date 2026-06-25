@@ -9,7 +9,10 @@ function makeAdapter(name: string, displayName: string): TargetAdapter {
     displayName,
     generatorModulePath: `/generators/${name}/index.ts`,
     generatorNamespace: `yaml2code:${name}`,
-    buildRunOptions(_ir: IR, baseOpts: GenerationOpts): Record<string, unknown> {
+    buildRunOptions(
+      _ir: IR,
+      baseOpts: GenerationOpts,
+    ): Record<string, unknown> {
       return { ...baseOpts, [`${name}Gen`]: {}, genEntities: {} };
     },
   };

@@ -6,9 +6,7 @@ export class TargetRegistry {
 
   register(adapter: TargetAdapter): void {
     if (this._targets.has(adapter.name)) {
-      throw new Error(
-        `Target "${adapter.name}" is already registered.`,
-      );
+      throw new Error(`Target "${adapter.name}" is already registered.`);
     }
     this._targets.set(adapter.name, adapter);
     this._registrations.push({

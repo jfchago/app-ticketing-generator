@@ -2,7 +2,11 @@
 // Projection of IR into Vue/TypeScript-specific rendering data.
 // Templates consume this instead of computing from raw IR.
 
-import type { GeneratedEntity, GeneratedEnum, GenerationModel } from '../common.js';
+import type {
+  GeneratedEntity,
+  GeneratedEnum,
+  GenerationModel,
+} from "../common.js";
 
 export interface VueGenerationModel extends GenerationModel {
   entities: { [name: string]: VueGeneratedEntity };

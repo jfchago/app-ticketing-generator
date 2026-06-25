@@ -8,9 +8,6 @@ import { useRouter } from 'vue-router';
 import { use<%= entity.namePascal %>Store } from '../stores/<%= entity.nameCamel %>.store';
 import <%= entity.namePascal %>Form from '../components/<%= entity.namePascal %>Form.vue';
 import type { <%= entity.namePascal %> } from '../domain/<%= entity.nameCamel %>/<%= entity.nameCamel %>.types';
-<% gen.enumAttributes.forEach(attr => { %>
-import type { <%= attr.type %> } from '../domain/<%= entity.nameCamel %>/<%= entity.nameCamel %>.types';
-<% }); %>
 
 const store = use<%= entity.namePascal %>Store();
 const router = useRouter();
@@ -18,8 +15,8 @@ const router = useRouter();
 async function handleSubmit(data: Partial<<%= entity.namePascal %>>) {
   try {
 <% if (createAction) { %>
-    const result = await store.<%= createAction.name %>(<% createAction.params.forEach((p, i) => { %><%= i > 0 ? ', ' : '' %>data.<%= p.name %> ?? ''<% }); %>);
-    router.push('/<%= gen.statePropertyName %>/' + result.id);
+    const result = await store.<%= createAction.name %>(data as <%- createAction.params[0]?.type %>);
+    router.push('/<%= gen.statePropertyName %>/' + result?.id);
 <% } else { %>
     await store.create<%= entity.namePascal %>(data as Omit<<%= entity.namePascal %>, 'id' | 'createdAt'>);
     router.push('/<%= gen.statePropertyName %>');

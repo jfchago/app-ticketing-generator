@@ -31,12 +31,7 @@
       "table": "users",
       "stereotype": "entity",
       "attributeCount": 4,
-      "attributeNames": [
-        "avatar",
-        "id",
-        "name",
-        "role"
-      ],
+      "attributeNames": ["avatar", "id", "name", "role"],
       "attributeFieldRoles": {
         "id": "id",
         "name": "field",
@@ -46,9 +41,7 @@
       "relationshipCount": 0,
       "relationships": [],
       "useCaseCount": 1,
-      "useCaseNames": [
-        "load_users"
-      ],
+      "useCaseNames": ["load_users"],
       "useCaseCategories": {
         "load_users": "read"
       },
@@ -131,12 +124,7 @@
         "hasGetById": true
       },
       "pkType": "String",
-      "transitionKeys": [
-        "OPEN",
-        "IN_PROGRESS",
-        "RESOLVED",
-        "CLOSED"
-      ],
+      "transitionKeys": ["OPEN", "IN_PROGRESS", "RESOLVED", "CLOSED"],
       "ruleNames": [
         "PrioridadValida",
         "RequiereComentarioParaCerrar",
@@ -150,13 +138,7 @@
       "table": "comments",
       "stereotype": "entity",
       "attributeCount": 5,
-      "attributeNames": [
-        "authorId",
-        "createdAt",
-        "id",
-        "text",
-        "ticketId"
-      ],
+      "attributeNames": ["authorId", "createdAt", "id", "text", "ticketId"],
       "attributeFieldRoles": {
         "id": "id",
         "ticketId": "assignee",
@@ -178,9 +160,7 @@
         }
       ],
       "useCaseCount": 1,
-      "useCaseNames": [
-        "add_comment"
-      ],
+      "useCaseNames": ["add_comment"],
       "useCaseCategories": {
         "add_comment": "action"
       },

@@ -2,7 +2,11 @@ import type { DslVersion } from "./types.js";
 
 const VERSION_REGEX = /^v?(\d+)\.(\d+)\.(\d+)$/;
 
-export const CANONICAL_DSL_VERSION: DslVersion = { major: 1, minor: 0, patch: 0 };
+export const CANONICAL_DSL_VERSION: DslVersion = {
+  major: 1,
+  minor: 0,
+  patch: 0,
+};
 
 export const DEFAULT_DSL_VERSION: DslVersion = { major: 1, minor: 0, patch: 0 };
 
@@ -26,7 +30,10 @@ export function compareVersions(a: DslVersion, b: DslVersion): number {
   return a.patch - b.patch;
 }
 
-export function isVersionOlder(version: DslVersion, reference: DslVersion): boolean {
+export function isVersionOlder(
+  version: DslVersion,
+  reference: DslVersion,
+): boolean {
   return compareVersions(version, reference) < 0;
 }
 

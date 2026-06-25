@@ -21,7 +21,11 @@ describe("parseDslVersion", () => {
   });
 
   it("trims whitespace", () => {
-    expect(parseDslVersion("  1.2.3  ")).toEqual({ major: 1, minor: 2, patch: 3 });
+    expect(parseDslVersion("  1.2.3  ")).toEqual({
+      major: 1,
+      minor: 2,
+      patch: 3,
+    });
   });
 
   it("returns null for invalid strings", () => {
@@ -42,78 +46,106 @@ describe("versionToString", () => {
 
 describe("compareVersions", () => {
   it("returns 0 for equal versions", () => {
-    expect(compareVersions(
-      { major: 1, minor: 0, patch: 0 },
-      { major: 1, minor: 0, patch: 0 },
-    )).toBe(0);
+    expect(
+      compareVersions(
+        { major: 1, minor: 0, patch: 0 },
+        { major: 1, minor: 0, patch: 0 },
+      ),
+    ).toBe(0);
   });
 
   it("returns negative when a < b", () => {
-    expect(compareVersions(
-      { major: 1, minor: 0, patch: 0 },
-      { major: 2, minor: 0, patch: 0 },
-    )).toBeLessThan(0);
-    expect(compareVersions(
-      { major: 1, minor: 0, patch: 0 },
-      { major: 1, minor: 1, patch: 0 },
-    )).toBeLessThan(0);
-    expect(compareVersions(
-      { major: 1, minor: 1, patch: 0 },
-      { major: 1, minor: 1, patch: 1 },
-    )).toBeLessThan(0);
+    expect(
+      compareVersions(
+        { major: 1, minor: 0, patch: 0 },
+        { major: 2, minor: 0, patch: 0 },
+      ),
+    ).toBeLessThan(0);
+    expect(
+      compareVersions(
+        { major: 1, minor: 0, patch: 0 },
+        { major: 1, minor: 1, patch: 0 },
+      ),
+    ).toBeLessThan(0);
+    expect(
+      compareVersions(
+        { major: 1, minor: 1, patch: 0 },
+        { major: 1, minor: 1, patch: 1 },
+      ),
+    ).toBeLessThan(0);
   });
 
   it("returns positive when a > b", () => {
-    expect(compareVersions(
-      { major: 2, minor: 0, patch: 0 },
-      { major: 1, minor: 0, patch: 0 },
-    )).toBeGreaterThan(0);
+    expect(
+      compareVersions(
+        { major: 2, minor: 0, patch: 0 },
+        { major: 1, minor: 0, patch: 0 },
+      ),
+    ).toBeGreaterThan(0);
   });
 });
 
 describe("isVersionOlder", () => {
   it("detects older versions", () => {
-    expect(isVersionOlder(
-      { major: 1, minor: 0, patch: 0 },
-      { major: 2, minor: 0, patch: 0 },
-    )).toBe(true);
+    expect(
+      isVersionOlder(
+        { major: 1, minor: 0, patch: 0 },
+        { major: 2, minor: 0, patch: 0 },
+      ),
+    ).toBe(true);
   });
 
   it("returns false for same or newer versions", () => {
-    expect(isVersionOlder(
-      { major: 2, minor: 0, patch: 0 },
-      { major: 1, minor: 0, patch: 0 },
-    )).toBe(false);
-    expect(isVersionOlder(
-      { major: 1, minor: 0, patch: 0 },
-      { major: 1, minor: 0, patch: 0 },
-    )).toBe(false);
+    expect(
+      isVersionOlder(
+        { major: 2, minor: 0, patch: 0 },
+        { major: 1, minor: 0, patch: 0 },
+      ),
+    ).toBe(false);
+    expect(
+      isVersionOlder(
+        { major: 1, minor: 0, patch: 0 },
+        { major: 1, minor: 0, patch: 0 },
+      ),
+    ).toBe(false);
   });
 });
 
 describe("versionsEqual", () => {
   it("returns true for equal versions", () => {
-    expect(versionsEqual(
-      { major: 1, minor: 0, patch: 0 },
-      { major: 1, minor: 0, patch: 0 },
-    )).toBe(true);
+    expect(
+      versionsEqual(
+        { major: 1, minor: 0, patch: 0 },
+        { major: 1, minor: 0, patch: 0 },
+      ),
+    ).toBe(true);
   });
 
   it("returns false for different versions", () => {
-    expect(versionsEqual(
-      { major: 1, minor: 0, patch: 0 },
-      { major: 1, minor: 0, patch: 1 },
-    )).toBe(false);
+    expect(
+      versionsEqual(
+        { major: 1, minor: 0, patch: 0 },
+        { major: 1, minor: 0, patch: 1 },
+      ),
+    ).toBe(false);
   });
 });
 
 describe("extractVersion", () => {
   it("reads version string field", () => {
-    expect(extractVersion({ version: "2.0.0" })).toEqual({ major: 2, minor: 0, patch: 0 });
+    expect(extractVersion({ version: "2.0.0" })).toEqual({
+      major: 2,
+      minor: 0,
+      patch: 0,
+    });
   });
 
   it("reads numeric version field", () => {
-    expect(extractVersion({ version: 3 })).toEqual({ major: 3, minor: 0, patch: 0 });
+    expect(extractVersion({ version: 3 })).toEqual({
+      major: 3,
+      minor: 0,
+      patch: 0,
+    });
   });
 
   it("returns default for missing version", () => {
@@ -121,7 +153,9 @@ describe("extractVersion", () => {
   });
 
   it("returns default for invalid version string", () => {
-    expect(extractVersion({ version: "not-a-version" })).toEqual(DEFAULT_DSL_VERSION);
+    expect(extractVersion({ version: "not-a-version" })).toEqual(
+      DEFAULT_DSL_VERSION,
+    );
   });
 
   it("returns default for null version", () => {

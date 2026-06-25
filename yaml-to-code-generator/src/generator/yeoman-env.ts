@@ -2,8 +2,8 @@
 // yeoman-environment v6 lacks full TypeScript declarations,
 // so we provide a minimal typed wrapper.
 
-import { createEnv } from 'yeoman-environment';
-import type Generator from 'yeoman-generator';
+import { createEnv } from "yeoman-environment";
+import type Generator from "yeoman-generator";
 
 interface TypedEnvironment {
   registerStub(

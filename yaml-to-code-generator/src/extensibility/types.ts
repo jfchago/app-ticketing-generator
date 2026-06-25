@@ -10,6 +10,13 @@ export interface GenerationOpts {
   buildTool?: BuildTool;
 }
 
+export interface TargetRegistration {
+  name: string;
+  displayName: string;
+  adapter: TargetAdapter;
+  registeredAt: string;
+}
+
 export interface TargetAdapter {
   readonly name: string;
   readonly displayName: string;

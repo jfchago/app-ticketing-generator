@@ -192,161 +192,161 @@ entities:
 workflows:
   # Workflow principal: creación, asignación, resolución, escalamiento y cierre
   - 'workflow GestionTicket {
-       actor Usuario;
-       actor Admin;
-       actor Tecnico;
-       actor Supervisor;
-       start -> ValidarTicket;
-       step ValidarTicket: "Validar datos del ticket" {
-         Usuario does crearTicket;
-         if prioridadUrgente {
-           System does notificarAdmin;
-           Admin does asignarPrioritario;
-         } else {
-           System does encolarTicket;
-         }
-       }
-       step AsignarTecnico: "Asignar a técnico disponible" {
-         Admin does asignarTecnico;
-         System does notificarAsignacion;
-         after 4h {
-           System does notificarAdmin;
-           Admin does reasignar;
-         }
-       }
-       step Investigar: "Investigar el problema" {
-         Tecnico does investigar;
-         if necesitaInfo {
-           System does solicitarInfo;
-         }
-       }
-       step EsperarRespuesta: "Esperar respuesta del usuario" {
-         await UsuarioResponde;
-       }
-       step Resolver: "Resolver el ticket" {
-         Tecnico does resolver;
-         System does notificarResolucion;
-         after 48h {
-           System does recordarUsuario;
-         }
-       }
-       step VerificarCierre: "Usuario verifica la resolución" {
-         if usuarioConforme {
-           Usuario does cerrarTicket;
-           System does notificarCierre;
-         } else {
-           Usuario does reabrirTicket;
-           System does notificarReapertura;
-         }
-       }
-       step Escalar: "Escalar a supervisor si no se cierra" {
-         after 72h {
-           System does notificarSupervisor;
-           Supervisor does revisarTicket;
-         }
-       }
-       end Escalar;
-     }'
+    actor Usuario;
+    actor Admin;
+    actor Tecnico;
+    actor Supervisor;
+    start -> ValidarTicket;
+    step ValidarTicket: "Validar datos del ticket" {
+    Usuario does crearTicket;
+    if prioridadUrgente {
+    System does notificarAdmin;
+    Admin does asignarPrioritario;
+    } else {
+    System does encolarTicket;
+    }
+    }
+    step AsignarTecnico: "Asignar a técnico disponible" {
+    Admin does asignarTecnico;
+    System does notificarAsignacion;
+    after 4h {
+    System does notificarAdmin;
+    Admin does reasignar;
+    }
+    }
+    step Investigar: "Investigar el problema" {
+    Tecnico does investigar;
+    if necesitaInfo {
+    System does solicitarInfo;
+    }
+    }
+    step EsperarRespuesta: "Esperar respuesta del usuario" {
+    await UsuarioResponde;
+    }
+    step Resolver: "Resolver el ticket" {
+    Tecnico does resolver;
+    System does notificarResolucion;
+    after 48h {
+    System does recordarUsuario;
+    }
+    }
+    step VerificarCierre: "Usuario verifica la resolución" {
+    if usuarioConforme {
+    Usuario does cerrarTicket;
+    System does notificarCierre;
+    } else {
+    Usuario does reabrirTicket;
+    System does notificarReapertura;
+    }
+    }
+    step Escalar: "Escalar a supervisor si no se cierra" {
+    after 72h {
+    System does notificarSupervisor;
+    Supervisor does revisarTicket;
+    }
+    }
+    end Escalar;
+    }'
   # Workflow de aprobación con tarea humana y timeout
   - 'workflow SolicitudCambio {
-       actor Cliente;
-       actor Manager;
-       start -> Solicitar;
-       step Solicitar: "Cliente solicita un cambio" {
-         Cliente does enviarSolicitud;
-         System does notificarManager;
-       }
-       step Revisar: "Manager revisa la solicitud" {
-         await ManagerAprueba;
-         after 24h {
-           System does escalarRecordatorio;
-         }
-         if aprobada {
-           System does notificarAprobacion;
-           Cliente does confirmar;
-         } else {
-           System does notificarRechazo;
-           Cliente does revisarFeedback;
-         }
-       }
-       end Revisar;
-     }'
+    actor Cliente;
+    actor Manager;
+    start -> Solicitar;
+    step Solicitar: "Cliente solicita un cambio" {
+    Cliente does enviarSolicitud;
+    System does notificarManager;
+    }
+    step Revisar: "Manager revisa la solicitud" {
+    await ManagerAprueba;
+    after 24h {
+    System does escalarRecordatorio;
+    }
+    if aprobada {
+    System does notificarAprobacion;
+    Cliente does confirmar;
+    } else {
+    System does notificarRechazo;
+    Cliente does revisarFeedback;
+    }
+    }
+    end Revisar;
+    }'
   # Workflow de auto-cierre por inactividad
   - 'workflow AutoCierre {
-       actor Sistema;
-       start -> EsperarActividad;
-       step EsperarActividad: "Esperar actividad del usuario" {
-         after 7d {
-           Sistema does notificarUsuario;
-           Sistema does cerrarTicket;
-         }
-         await UsuarioResponde;
-         Sistema does mantenerAbierto;
-       }
-       end EsperarActividad;
-     }'
+    actor Sistema;
+    start -> EsperarActividad;
+    step EsperarActividad: "Esperar actividad del usuario" {
+    after 7d {
+    Sistema does notificarUsuario;
+    Sistema does cerrarTicket;
+    }
+    await UsuarioResponde;
+    Sistema does mantenerAbierto;
+    }
+    end EsperarActividad;
+    }'
 
 # ── Events (top-level) ─────────────────────────────────────────────
 # Eventos entre componentes + eventos usados por await en workflows
 
 events:
-  - 'event TicketCreado {
-       source: Ticket;
-       payload {
-         id: String;
-         titulo: String;
-         prioridad: String;
-       }
-       handlers: [ DashboardService, EmailService ];
-     }'
-  - 'event TicketAsignado {
-       source: Ticket;
-       payload {
-         id: String;
-         asignadoId: String;
-         asignadoNombre: String;
-       }
-       handlers: [ EmailService ];
-     }'
-  - 'event TicketCerrado {
-       source: Ticket;
-       payload {
-         id: String;
-       }
-       handlers: [ DashboardService ];
-     }'
-  - 'event UsuarioResponde {
-       source: Ticket;
-       payload {
-         id: String;
-         respuesta: String;
-       }
-       handlers: [ WorkflowOrchestrator ];
-     }'
-  - 'event ManagerAprueba {
-       source: Ticket;
-       payload {
-         id: String;
-         resultado: String;
-       }
-       handlers: [ WorkflowOrchestrator ];
-     }'
+  - "event TicketCreado {
+    source: Ticket;
+    payload {
+    id: String;
+    titulo: String;
+    prioridad: String;
+    }
+    handlers: [ DashboardService, EmailService ];
+    }"
+  - "event TicketAsignado {
+    source: Ticket;
+    payload {
+    id: String;
+    asignadoId: String;
+    asignadoNombre: String;
+    }
+    handlers: [ EmailService ];
+    }"
+  - "event TicketCerrado {
+    source: Ticket;
+    payload {
+    id: String;
+    }
+    handlers: [ DashboardService ];
+    }"
+  - "event UsuarioResponde {
+    source: Ticket;
+    payload {
+    id: String;
+    respuesta: String;
+    }
+    handlers: [ WorkflowOrchestrator ];
+    }"
+  - "event ManagerAprueba {
+    source: Ticket;
+    payload {
+    id: String;
+    resultado: String;
+    }
+    handlers: [ WorkflowOrchestrator ];
+    }"
 
 # ── Decisions (top-level) ──────────────────────────────────────────
 # Reglas de decisión
 
 decisions:
-  - 'decision PrioridadTicket {
-       input: Ticket;
-       when Urgente {
-         System does notificarAdmin;
-         System does asignarPrioritario;
-       }
-       when Alta {
-         System does notificarAdmin;
-         System does asignarSiguiente;
-       }
-       else {
-         System does asignarSiguiente;
-       }
-     }'
+  - "decision PrioridadTicket {
+    input: Ticket;
+    when Urgente {
+    System does notificarAdmin;
+    System does asignarPrioritario;
+    }
+    when Alta {
+    System does notificarAdmin;
+    System does asignarSiguiente;
+    }
+    else {
+    System does asignarSiguiente;
+    }
+    }"
