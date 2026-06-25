@@ -1,0 +1,35 @@
+<%# event/Event.java.ejs — Event class (one per event type) %>
+<% const srcEntity = ir.entities.find(e => e.name === event.source);
+   const entityType = srcEntity ? srcEntity.namePascal : null; %>
+package <%= ir.application.basePackage %>.event;
+
+<% if (entityType) { %>import <%= ir.application.basePackage %>.entity.<%= entityType %>;
+<% } %>import lombok.Getter;
+import org.springframework.context.ApplicationEvent;
+
+@Getter
+public class <%= event.name %>Event extends ApplicationEvent {
+<% if (entityType) { %>
+    private final <%= entityType %> entity;
+<% } else { %>
+    private final String entityId;
+<% for (const field of event.payload) { %>
+    private final <%= field.type %> <%= field.name %>;
+<% } %>
+<% } %>
+
+<% if (entityType) { %>
+    public <%= event.name %>Event(Object source, <%= entityType %> entity) {
+        super(source);
+        this.entity = entity;
+    }
+<% } else { %>
+    public <%= event.name %>Event(Object source, String entityId<% for (const field of event.payload) { %>, <%= field.type %> <%= field.name %><% } %>) {
+        super(source);
+        this.entityId = entityId;
+<% for (const field of event.payload) { %>
+        this.<%= field.name %> = <%= field.name %>;
+<% } %>
+    }
+<% } %>
+}

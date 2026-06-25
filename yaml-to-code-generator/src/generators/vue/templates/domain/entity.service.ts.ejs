@@ -1,0 +1,32 @@
+<%# domain/entity.service.ts.ejs — Service class (thin pass-through) %>
+<% const gen = genEntities?.[entity.name]; %>
+import type { <%= entity.namePascal %> } from './<%= entity.nameCamel %>.types';
+<% if (gen?.enumAttributes?.length) { for (const ea of gen.enumAttributes) { %>
+import type { <%= entity.namePascal %><%= ea.namePascal %> } from './<%= entity.nameCamel %>.types';
+<% } } %>
+<% if (gen?.hasCommentSupport && gen?.commentEntity) { %>
+import type { <%= gen.commentEntity.namePascal %> } from '../<%= gen.commentEntity.nameCamel %>/<%= gen.commentEntity.nameCamel %>.types';
+<% } %>
+import type { <%= entity.namePascal %>Repository } from './<%= entity.nameCamel %>.repository';
+
+export class <%= entity.namePascal %>Service {
+  repository: <%= entity.namePascal %>Repository;
+
+  constructor(repository: <%= entity.namePascal %>Repository) {
+    this.repository = repository;
+  }
+<% for (const uc of entity.useCases) { %>
+<%   const ucGen = gen?.useCases?.[uc.name]; if (!ucGen) continue; %>
+<%   if (uc.httpMethod === 'GET' && !uc.needsId) { %>
+  async <%= uc.methodName %>(): Promise<<%- ucGen.methodSignature.returnType %>> {
+    return this.repository.<%= uc.methodName %>();
+  }
+<%   } else { %>
+<%     const paramNames = (ucGen.methodSignature.params.match(/(\w+)\s*:/g) ?? []).map(m => m.replace(':', '').trim()); %>
+  async <%= uc.methodName %>(<%- ucGen.methodSignature.params %>): Promise<<%- ucGen.methodSignature.returnType %>> {
+    return this.repository.<%= uc.methodName %>(<%= paramNames.join(', ') %>);
+  }
+<%   } %>
+<% } %>
+
+}

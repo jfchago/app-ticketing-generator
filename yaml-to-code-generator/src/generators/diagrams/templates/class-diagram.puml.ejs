@@ -1,0 +1,54 @@
+<%# class-diagram.puml.ejs — PlantUML class diagram with constraints, stereotypes, and methods %>
+@startuml <%= ir.application.module %>-class-diagram
+!theme plain
+skinparam classBackgroundColor #FEFEFE
+skinparam classBorderColor #666666
+
+title <%= ir.application.name %> — Domain Model
+
+' ── Enums ──
+<% for (const enumDef of ir.enums) { %>
+enum <%= enumDef.namePascal %> {
+<% for (const val of enumDef.values) { %>
+  <%= val.name %>
+<% } %>
+}
+<% } %>
+
+' ── Entities ──
+<% for (const entity of ir.entities) { %>
+<% const stereoLabel = entity.stereotype === 'aggregate_root' ? 'AggregateRoot' : entity.stereotype === 'value_object' ? 'ValueObject' : 'Entity'; %>
+<% const stereoColor = entity.stereotype === 'aggregate_root' ? 'orange' : entity.stereotype === 'value_object' ? 'blue' : 'green'; %>
+class <%= entity.namePascal %> << (S,<%= stereoColor %>) <%= stereoLabel %> >> {
+<% for (const attr of entity.attributes) { %>
+  {field}<% if (attr.primary) { %> <<PK>> <% } %> <%= attr.name %> : <%= attr.type %><% if (!attr.nullable) { %> {not null}<% } %><% if (attr.unique) { %> {unique}<% } %>
+<% } %>
+<% if (entity.useCases.length > 0) { %>
+  --
+<% for (const uc of entity.useCases) { %>
+  + <%= uc.methodName %>() : <%= entity.namePascal %>DTO<%- ['get_all', 'load_users'].includes(uc.name) ? '[]' : '' %>
+<% } %>
+<% } %>
+}
+
+<% } %>
+
+' ── Relationships ──
+<% for (const entity of ir.entities) { %>
+<% for (const rel of entity.relationships) { %>
+<% if (rel.type === 'one_to_many') { %>
+<%= entity.namePascal %> *-- "<%= rel.targetCardinality %>" <%= rel.targetPascal %> : <%= rel.name %>
+<% } else { %>
+<%= entity.namePascal %> --> "<%= rel.targetCardinality %>" <%= rel.targetPascal %> : <%= rel.name %>
+<% } %>
+<% } %>
+<% } %>
+
+' ── Entity → Enum associations ──
+<% for (const entity of ir.entities) { %>
+<% for (const attr of entity.attributes) { if (attr.isEnum) { %>
+<%= entity.namePascal %> --> <%= attr.type %>
+<% } } %>
+<% } %>
+
+@enduml

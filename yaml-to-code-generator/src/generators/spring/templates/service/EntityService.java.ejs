@@ -1,0 +1,83 @@
+<%# service/EntityService.java.ejs — Business logic service layer %><%
+const gen = genEntities?.[entity.name];
+if (!gen || gen.serviceMethods.length === 0) { return; }
+const hasCommentSupport = gen.serviceMethods.some(m => m.returnType === 'CommentDTO');
+const hasTransitions = Object.keys(gen.transitions).length > 0;
+const hasAddComment = entity.useCases?.some(uc => uc.name === 'add_comment');
+%>
+package <%= ir.application.basePackage %>.service;
+
+import <%= ir.application.basePackage %>.dto.<%= entity.namePascal %>DTO;
+import <%= ir.application.basePackage %>.dto.<%= entity.namePascal %>Mapper;
+import <%= ir.application.basePackage %>.entity.<%= entity.namePascal %>;
+import <%= ir.application.basePackage %>.repository.<%= entity.namePascal %>Repository;
+<% for (const attr of entity.attributes.filter(a => a.isEnum)) { %>
+import <%= ir.application.basePackage %>.entity.<%= attr.type %>;
+<% } %>
+<% if (hasCommentSupport) { %>
+import <%= ir.application.basePackage %>.repository.CommentRepository;
+import <%= ir.application.basePackage %>.dto.CommentMapper;
+import <%= ir.application.basePackage %>.dto.CommentDTO;
+<% } %>
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+<% if (gen.emitsEvents) { %>
+import org.springframework.context.ApplicationEventPublisher;
+<% if (ir.events) {
+  const matchingEvents = ir.events.filter(ev => ev.namePascal.startsWith(entity.namePascal));
+  for (const ev of matchingEvents) { %>
+import <%= ir.application.basePackage %>.event.<%= ev.namePascal %>EventPublisher;
+<% } } } %>
+import java.util.List;
+<% if (hasAddComment) { %>
+import java.util.UUID;
+import java.time.LocalDateTime;
+<% } %>
+
+@Service
+@RequiredArgsConstructor
+public class <%= entity.namePascal %>Service {
+
+    private final <%= entity.namePascal %>Repository <%= entity.nameCamel %>Repository;
+<% if (hasCommentSupport) { %>
+    private final CommentRepository commentRepository;
+<% } %>
+<% const usesMapper = gen.serviceMethods.some(m => m.returnType.endsWith('DTO')); %>
+<% if (usesMapper) { %>
+    private final <%= entity.namePascal %>Mapper <%= entity.nameCamel %>Mapper;
+<% } %>
+<% if (hasCommentSupport) { %>
+    private final CommentMapper commentMapper;
+<% } %>
+<% if (gen.emitsEvents && ir.events) {
+  const matchingEvents = ir.events.filter(ev => ev.namePascal.startsWith(entity.namePascal));
+  if (matchingEvents.length > 0) {
+    for (const ev of matchingEvents) { %>
+    private final <%= ev.namePascal %>EventPublisher <%= ev.nameCamel %>EventPublisher;
+<%   } } else { %>
+    private final ApplicationEventPublisher eventPublisher;
+<% } } %>
+
+<% for (const m of gen.serviceMethods) { %>
+<% for (const ann of m.annotations) { %>
+    <%= ann %>
+<% } %>
+    public <%- m.returnType %> <%= m.name %>(<%- m.params %>) {
+        <%- m.body %>
+    }
+
+<% } %>
+<% if (hasTransitions) { %>
+    private static final java.util.Map<String, java.util.Set<String>> VALID_TRANSITIONS = java.util.Map.ofEntries(
+<% const entries = Object.entries(gen.transitions); for (let i = 0; i < entries.length; i++) { const [from, to] = entries[i]; %>
+        java.util.Map.entry("<%= from %>", java.util.Set.of(<%- to.map(s => `"${s}"`).join(', ') %>))<%= i < entries.length - 1 ? ',' : '' %>
+<% } %>
+    );
+
+    private boolean canTransition(String from, String to) {
+        java.util.Set<String> allowed = VALID_TRANSITIONS.get(from);
+        return allowed != null && allowed.contains(to);
+    }
+<% } %>
+}

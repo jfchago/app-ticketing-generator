@@ -1,0 +1,30 @@
+<% const gen = genEntities?.[entity.name]; -%>
+<%-`// ${entity.nameCamel}.types.ts — Generated from helpdesk.yaml`%>
+<% for (const enumDef of ir.enums) {
+  if (!entity.attributes.some(a => a.isEnum && a.type === enumDef.namePascal)) continue; -%>
+export type <%= enumDef.namePascal %> = <%_ const vals = enumDef.values; for (let i = 0; i < vals.length; i++) { _%>'<%= vals[i].name %>'<%= i < vals.length - 1 ? ' | ' : '' %><%_ } _%>;
+
+export const <%= enumDef.namePascal %>_LABELS: Record<<%= enumDef.namePascal %>, string> = {
+<% for (const val of enumDef.values) { -%>
+  '<%= val.name %>': '<%= val.label %>',
+<% } -%>
+};
+<% } -%>
+
+export interface <%= entity.namePascal %> {
+<% for (const attr of entity.attributes) { -%>
+  <%= attr.name %>: <%= attr.tsType %>;
+<% } -%>
+<% for (const rel of entity.relationships) { -%>
+<% if (rel.type === 'one_to_many') { -%>
+  <%= rel.name %>: <%= rel.targetPascal %>[];
+<% } -%>
+<% } -%>
+}
+<% if (gen?.hasCommentSupport && gen?.commentEntity) { -%>
+export interface <%= gen.commentEntity.namePascal %> {
+  id: string;
+  text: string;
+  createdAt: string;
+}
+<% } -%>

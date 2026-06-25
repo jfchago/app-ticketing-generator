@@ -1,0 +1,14 @@
+<%# enum/Enum.java.ejs — Java enum %>
+<% if (enumDef) { %>
+package <%= ir.application.basePackage %>.entity;
+
+public enum <%= enumDef.namePascal %> {
+<% for (const value of enumDef.values) { %>
+<% if (value !== enumDef.values[enumDef.values.length - 1]) { %>
+    <%= value.name %>,
+<% } else { %>
+    <%= value.name %>
+<% } %>
+<% } %>
+}
+<% } %>

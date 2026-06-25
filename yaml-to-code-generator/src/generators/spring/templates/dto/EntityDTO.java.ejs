@@ -1,0 +1,25 @@
+<%# dto/EntityDTO.java.ejs — DTO for API layer %><% const gen = genEntities?.[entity.name]; %>
+package <%= ir.application.basePackage %>.dto;
+
+import lombok.Data;
+<% for (const attr of entity.attributes) { if (gen.attributeTypes[attr.name].isEnum && !attr.primary) { %>
+import <%= ir.application.basePackage %>.entity.<%= gen.attributeTypes[attr.name].javaType %>;
+<% } } %>
+<% if (Object.values(gen.attributeTypes).some(t => t.javaType === 'LocalDateTime')) { %>
+import java.time.LocalDateTime;
+<% } %>
+<% if (gen.oneToManyRelations.length > 0) { %>
+import java.util.List;
+<% } %>
+
+@Data
+public class <%= entity.namePascal %>DTO {
+<% for (const attr of entity.attributes) { %>
+    private <%= gen.attributeTypes[attr.name].javaType %> <%= attr.name %>;
+<% } %>
+<% for (const rel of entity.relationships) { %>
+<% if (gen.oneToManyRelations.some(r => r.name === rel.name)) { %>
+    private List<<%= rel.targetPascal %>DTO> <%= rel.name %>;
+<% } %>
+<% } %>
+}

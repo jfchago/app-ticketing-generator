@@ -1,0 +1,78 @@
+<%# workflow/WorkflowOrchestrator.java.ejs — Workflow orchestrator service %>
+package <%= ir.application.basePackage %>.service.workflow;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
+@Service
+@RequiredArgsConstructor
+@Slf4j
+public class <%= workflow.name %>Orchestrator {
+
+    private final Map<String, String> workflowStates = new ConcurrentHashMap<>();
+
+    @Transactional
+    public void start(String entityId) {
+        workflowStates.put(entityId, "<%= workflow.startStep %>");
+        log.info("Workflow '{}' started for entity '{}'", "<%= workflow.name %>", entityId);
+        executeStep(entityId, "<%= workflow.startStep %>");
+    }
+
+    @Transactional
+    public void executeStep(String entityId, String stepId) {
+        log.info("Executing step '{}' for entity '{}'", stepId, entityId);
+        switch (stepId) {
+<% for (const step of workflow.steps) { %>
+            case "<%= step.id %>":
+                handle<%= step.name.charAt(0).toUpperCase() + step.name.slice(1) %>Step(entityId);
+                break;
+<% } %>
+            default:
+                throw new IllegalArgumentException("Unknown step: " + stepId);
+        }
+    }
+
+<% for (const step of workflow.steps) { %>
+    private void handle<%= step.name.charAt(0).toUpperCase() + step.name.slice(1) %>Step(String entityId) {
+        log.debug("Handling step '{}' for entity '{}'", "<%= step.id %>", entityId);
+<% for (const action of step.actions) { %>
+        dispatchAction("<%= action.params.verb || action.target || action.type %>"<%- action.params.actor ? `, "${action.params.actor}"` : '' %>);
+<% } %>
+<% if (step.timerExpression) { %>
+        scheduleNextStep(entityId, "<%= step.timerExpression %>");
+<% } %>
+        moveToNextStep(entityId, "<%= step.id %>");
+    }
+
+<% } %>
+    private void dispatchAction(String action, String... actor) {
+        log.info("Action: {} {}", action, actor.length > 0 ? "(by " + actor[0] + ")" : "");
+    }
+
+    private void moveToNextStep(String entityId, String currentStep) {
+        List<String> stepOrder = List.of(<%- workflow.steps.map(s => `"${s.id}"`).join(', ') %>);
+        int idx = stepOrder.indexOf(currentStep);
+        if (idx >= 0 && idx < stepOrder.size() - 1) {
+            String nextStep = stepOrder.get(idx + 1);
+            workflowStates.put(entityId, nextStep);
+            executeStep(entityId, nextStep);
+        } else {
+            workflowStates.put(entityId, "COMPLETED");
+            log.info("Workflow '{}' completed for entity '{}'", "<%= workflow.name %>", entityId);
+        }
+    }
+
+    private void scheduleNextStep(String entityId, String duration) {
+        log.info("Scheduling next step for '{}' after {}", entityId, duration);
+    }
+
+    public String getCurrentStep(String entityId) {
+        return workflowStates.getOrDefault(entityId, "NOT_STARTED");
+    }
+}

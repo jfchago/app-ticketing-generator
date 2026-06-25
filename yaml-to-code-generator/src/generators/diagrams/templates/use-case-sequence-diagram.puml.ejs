@@ -1,0 +1,172 @@
+<%# use-case-sequence-diagram.puml.ejs — Sequence diagram per use case showing full Controller→Service→Repository→Database flow %>
+<%
+  const firstActor = (ir.workflows ?? []).flatMap(w => (w.participants ?? []).map(p => p.name))[0] ?? 'User';
+  const uc = useCase;
+  const entityName = entity.namePascal;
+  const entityCamel = entity.nameCamel;
+  const table = entity.table;
+  const pkType = entity.primaryKey?.type ?? 'String';
+  const hasUnique = entity.attributes.some(a => a.unique);
+  const hasStateMachine = !!entity.stateMachine;
+  const hasRules = (entity.entityRules?.length ?? 0) > 0;
+  const hasOneToMany = entity.relationships.some(r => r.type === 'one_to_many');
+  const commentRel = entity.relationships.find(
+    r => r.type === 'one_to_many' && ir.entities.some(e => e.name === r.target && e.attributes.some(a => a.name === 'text'))
+  );
+  const commentEntity = commentRel ? ir.entities.find(e => e.name === commentRel.target) : undefined;
+%>
+@startuml <%= entityCamel %>-<%= uc.name %>-sequence-diagram
+!theme plain
+title <%= entityName %> — <%= uc.actionLabel %> Sequence
+
+actor "<%= firstActor %>" as Actor
+participant "<%= entityName %>Controller" as Controller
+participant "<%= entityName %>Service" as Service
+participant "<%= entityName %>Repository" as Repo
+database "DB" as DB
+
+== <%= uc.httpMethod %> /api/<%= entity.nameKebab %>s<%= uc.pathSuffix %> ==
+
+<% if (uc.name === 'get_all' || uc.name === 'load_users') { -%>
+Actor -> Controller : <%= uc.httpMethod %> /api/<%= entity.nameKebab %>s<%= uc.pathSuffix %>
+activate Controller
+Controller -> Service : <%= uc.methodName %>()
+activate Service
+<% if (uc.name === 'get_all') { -%>
+Service -> Repo : findAllByOrderByCreatedAtDesc()
+Repo -> DB : SELECT * FROM <%= table %> ORDER BY created_at DESC
+<% } else { -%>
+Service -> Repo : findAll()
+Repo -> DB : SELECT * FROM <%= table %>
+<% } -%>
+DB --> Repo : List<<%= entityName %>>
+Repo --> Service : List<<%= entityName %>>
+<% if (hasOneToMany) { -%>
+Service -> Service : initializeLazyCollections(entity)
+<% } -%>
+Service --> Controller : 200 OK List<<%= entityName %>DTO>
+deactivate Service
+Controller --> Actor : 200 OK [<%= entity.nameKebab %>s]
+deactivate Controller
+
+<% } else if (uc.name === 'get_by_id') { -%>
+Actor -> Controller : GET /api/<%= entity.nameKebab %>s/{id}
+activate Controller
+Controller -> Service : <%= uc.methodName %>(id)
+activate Service
+Service -> Repo : findById(id)
+Repo -> DB : SELECT * FROM <%= table %> WHERE id = ?
+DB --> Repo : <%= entityName %>
+Repo --> Service : Optional<<%= entityName %>>
+Service --> Controller : 200 OK <%= entityName %>DTO
+deactivate Service
+Controller --> Actor : 200 OK [<%= entityName %>]
+deactivate Controller
+
+<% } else if (uc.name === 'create') { -%>
+Actor -> Controller : POST /api/<%= entity.nameKebab %>s
+activate Controller
+Controller -> Service : <%= uc.methodName %>(dto)
+activate Service
+<% if (hasRules) { -%>
+alt rule checks pass
+<% } -%>
+Service -> Repo : save(entity)
+Repo -> DB : INSERT INTO <%= table %> (id, ...)
+DB --> Repo : <%= entityName %>
+Repo --> Service : <%= entityName %>
+Service --> Controller : 201 Created <%= entityName %>DTO
+deactivate Service
+Controller --> Actor : 201 Created [<%= entityName %>]
+<% if (hasRules) { -%>
+else rule fails
+Controller --> Actor : 400 Bad Request
+end
+<% } -%>
+deactivate Controller
+
+<% } else if (uc.name === 'update_status') { -%>
+Actor -> Controller : PATCH /api/<%= entity.nameKebab %>s/{id}/status
+activate Controller
+Controller -> Service : <%= uc.methodName %>(id, status)
+activate Service
+<% if (hasRules) { -%>
+alt rule checks pass
+<% } -%>
+<% if (hasStateMachine) { -%>
+alt transition valid
+<% } -%>
+Service -> Repo : findById(id)
+Repo -> DB : SELECT * FROM <%= table %> WHERE id = ?
+DB --> Repo : <%= entityName %>
+Repo --> Service : Optional<<%= entityName %>>
+Service -> Repo : save(entity)
+Repo -> DB : UPDATE <%= table %> SET status = ?
+DB --> Repo : <%= entityName %>
+Repo --> Service : <%= entityName %>
+Service --> Controller : 200 OK <%= entityName %>DTO
+deactivate Service
+Controller --> Actor : 200 OK [<%= entityName %>]
+<% if (hasStateMachine) { -%>
+else invalid transition
+Controller --> Actor : 400 Bad Request
+end
+<% } -%>
+<% if (hasRules) { -%>
+else rule fails
+Controller --> Actor : 400 Bad Request
+end
+<% } -%>
+deactivate Controller
+
+<% } else if (uc.name === 'update_priority' || uc.name === 'assign_user' || uc.name === 'unassign_user') { -%>
+Actor -> Controller : <%= uc.httpMethod %> /api/<%= entity.nameKebab %>s/<%= uc.pathSuffix %>
+activate Controller
+Controller -> Service : <%= uc.methodName %>(id<%= uc.name === 'assign_user' ? ', ' + 'userId' : '' %>)
+activate Service
+Service -> Repo : findById(id)
+Repo -> DB : SELECT * FROM <%= table %> WHERE id = ?
+DB --> Repo : <%= entityName %>
+Repo --> Service : Optional<<%= entityName %>>
+Service -> Repo : save(entity)
+Repo -> DB : UPDATE <%= table %> SET ...
+DB --> Repo : <%= entityName %>
+Repo --> Service : <%= entityName %>
+Service --> Controller : 200 OK <%= entityName %>DTO
+deactivate Service
+Controller --> Actor : 200 OK [<%= entityName %>]
+deactivate Controller
+
+<% } else if (uc.name === 'add_comment' && commentEntity) { -%>
+Actor -> Controller : POST /api/<%= entity.nameKebab %>s/{id}/comments
+activate Controller
+Controller -> Service : <%= uc.methodName %>(id, text)
+activate Service
+Service -> Repo : findById(id)
+Repo -> DB : SELECT * FROM <%= table %> WHERE id = ?
+DB --> Repo : <%= entityName %>
+Repo --> Service : Optional<<%= entityName %>>
+Service -> <%= commentEntity.name %>Repository : save(comment)
+<%= commentEntity.name %>Repository -> DB : INSERT INTO <%= commentEntity.table %> (id, text, ...)
+DB --> <%= commentEntity.name %>Repository : <%= commentEntity.namePascal %>
+<%= commentEntity.name %>Repository --> Service : <%= commentEntity.namePascal %>
+Service --> Controller : 201 Created <%= commentEntity.namePascal %>DTO
+deactivate Service
+Controller --> Actor : 201 Created [comment]
+deactivate Controller
+
+<% } else { -%>
+Actor -> Controller : <%= uc.httpMethod %> /api/<%= entity.nameKebab %>s<%= uc.pathSuffix %>
+activate Controller
+Controller -> Service : <%= uc.methodName %>(<%= uc.needsId ? 'id' : '' %>)
+activate Service
+Service -> Repo : process()
+Repo -> DB : [query]
+DB --> Repo : [result]
+Repo --> Service : [result]
+Service --> Controller : 200 OK
+deactivate Service
+Controller --> Actor : 200 OK
+deactivate Controller
+<% } -%>
+@enduml

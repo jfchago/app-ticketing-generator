@@ -1,0 +1,21 @@
+<%# event/EventListener.java.ejs — @EventListener methods for all events %><% const allEvents = [...(ir.events || []), ...ir.entities.flatMap(e => e.entityEvents || [])]; if (allEvents.length > 0) { -%>
+package <%= ir.application.basePackage %>.event;
+
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.event.EventListener;
+import org.springframework.stereotype.Component;
+
+@Slf4j
+@Component
+public class <%= ir.application.appClassName %>EventListener {
+
+<% for (const ev of allEvents) { -%>
+    @EventListener
+    public void on<%= ev.namePascal %>(<%= ev.namePascal %>Event event) {
+        log.info("Event received: {}", "<%= ev.name %>");
+        log.debug("  source: {}", event.getSource());
+    }
+
+<% } -%>
+}
+<% } -%>

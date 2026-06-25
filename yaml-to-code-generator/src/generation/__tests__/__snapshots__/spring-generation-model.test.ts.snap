@@ -1,0 +1,191 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Spring Generation Model > sanitized model matches snapshot 1`] = `
+{
+  "entities": {
+    "Comment": {
+      "attributeTypeNames": [
+        "id",
+        "ticketId",
+        "text",
+        "authorId",
+        "createdAt",
+      ],
+      "attributeTypes": {
+        "authorId": {
+          "isEnum": false,
+          "javaType": "String",
+        },
+        "createdAt": {
+          "isEnum": false,
+          "javaType": "LocalDateTime",
+        },
+        "id": {
+          "isEnum": false,
+          "javaType": "String",
+        },
+        "text": {
+          "isEnum": false,
+          "javaType": "String",
+        },
+        "ticketId": {
+          "isEnum": false,
+          "javaType": "String",
+        },
+      },
+      "emitsEvents": false,
+      "endpointCount": 1,
+      "eventPublisherCount": 0,
+      "hasCreatedAt": true,
+      "hasUpdatedAt": false,
+      "manyToOneRelationCount": 2,
+      "oneToManyRelationCount": 0,
+      "pkJavaType": "String",
+      "repositoryMethodCount": 0,
+      "ruleCheckCount": 0,
+      "serviceMethodCount": 1,
+      "serviceMethodNames": [
+        "addComment",
+      ],
+      "transitionKeys": [],
+    },
+    "Ticket": {
+      "attributeTypeNames": [
+        "id",
+        "title",
+        "description",
+        "status",
+        "priority",
+        "assigneeId",
+        "createdAt",
+        "updatedAt",
+      ],
+      "attributeTypes": {
+        "assigneeId": {
+          "isEnum": false,
+          "javaType": "String",
+        },
+        "createdAt": {
+          "isEnum": false,
+          "javaType": "LocalDateTime",
+        },
+        "description": {
+          "isEnum": false,
+          "javaType": "String",
+        },
+        "id": {
+          "isEnum": false,
+          "javaType": "String",
+        },
+        "priority": {
+          "isEnum": true,
+          "javaType": "TicketPriority",
+        },
+        "status": {
+          "isEnum": true,
+          "javaType": "TicketStatus",
+        },
+        "title": {
+          "isEnum": false,
+          "javaType": "String",
+        },
+        "updatedAt": {
+          "isEnum": false,
+          "javaType": "LocalDateTime",
+        },
+      },
+      "emitsEvents": false,
+      "endpointCount": 8,
+      "eventPublisherCount": 0,
+      "hasCreatedAt": true,
+      "hasUpdatedAt": true,
+      "manyToOneRelationCount": 1,
+      "oneToManyRelationCount": 1,
+      "pkJavaType": "String",
+      "repositoryMethodCount": 1,
+      "ruleCheckCount": 3,
+      "serviceMethodCount": 8,
+      "serviceMethodNames": [
+        "getAll",
+        "getById",
+        "create",
+        "updateStatus",
+        "updatePriority",
+        "assignUser",
+        "unassignUser",
+        "addComment",
+      ],
+      "transitionKeys": [
+        "OPEN",
+        "IN_PROGRESS",
+        "RESOLVED",
+        "CLOSED",
+      ],
+    },
+    "User": {
+      "attributeTypeNames": [
+        "id",
+        "name",
+        "avatar",
+        "role",
+      ],
+      "attributeTypes": {
+        "avatar": {
+          "isEnum": false,
+          "javaType": "String",
+        },
+        "id": {
+          "isEnum": false,
+          "javaType": "String",
+        },
+        "name": {
+          "isEnum": false,
+          "javaType": "String",
+        },
+        "role": {
+          "isEnum": false,
+          "javaType": "String",
+        },
+      },
+      "emitsEvents": false,
+      "endpointCount": 1,
+      "eventPublisherCount": 0,
+      "hasCreatedAt": false,
+      "hasUpdatedAt": false,
+      "manyToOneRelationCount": 0,
+      "oneToManyRelationCount": 0,
+      "pkJavaType": "String",
+      "repositoryMethodCount": 0,
+      "ruleCheckCount": 0,
+      "serviceMethodCount": 1,
+      "serviceMethodNames": [
+        "loadUsers",
+      ],
+      "transitionKeys": [],
+    },
+  },
+  "entityNames": [
+    "User",
+    "Ticket",
+    "Comment",
+  ],
+  "enums": [
+    {
+      "name": "TicketStatus",
+      "valueCount": 4,
+    },
+    {
+      "name": "TicketPriority",
+      "valueCount": 4,
+    },
+  ],
+  "features": {
+    "hasDecisions": false,
+    "hasEvents": false,
+    "hasRules": true,
+    "hasStateMachine": true,
+    "hasValidation": true,
+    "hasWorkflows": false,
+  },
+}
+`;

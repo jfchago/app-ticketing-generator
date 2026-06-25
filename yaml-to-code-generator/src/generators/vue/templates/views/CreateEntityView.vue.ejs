@@ -1,0 +1,44 @@
+<%# views/CreateEntityView.vue.ejs — Create form wrapper view %>
+<%
+const gen = genEntities?.[entity.name];
+const createAction = gen?.storeActions?.find(a => a.actionCategory === 'create' || a.name.toLowerCase().startsWith('create'));
+%>
+<script setup lang="ts">
+import { useRouter } from 'vue-router';
+import { use<%= entity.namePascal %>Store } from '../stores/<%= entity.nameCamel %>.store';
+import <%= entity.namePascal %>Form from '../components/<%= entity.namePascal %>Form.vue';
+import type { <%= entity.namePascal %> } from '../domain/<%= entity.nameCamel %>/<%= entity.nameCamel %>.types';
+<% gen.enumAttributes.forEach(attr => { %>
+import type { <%= attr.type %> } from '../domain/<%= entity.nameCamel %>/<%= entity.nameCamel %>.types';
+<% }); %>
+
+const store = use<%= entity.namePascal %>Store();
+const router = useRouter();
+
+async function handleSubmit(data: Partial<<%= entity.namePascal %>>) {
+  try {
+<% if (createAction) { %>
+    const result = await store.<%= createAction.name %>(<% createAction.params.forEach((p, i) => { %><%= i > 0 ? ', ' : '' %>data.<%= p.name %> ?? ''<% }); %>);
+    router.push('/<%= gen.statePropertyName %>/' + result.id);
+<% } else { %>
+    await store.create<%= entity.namePascal %>(data as Omit<<%= entity.namePascal %>, 'id' | 'createdAt'>);
+    router.push('/<%= gen.statePropertyName %>');
+<% } %>
+  } catch (e) {
+    console.error('Failed to create', e);
+  }
+}
+</script>
+
+<template>
+  <div class="create-view">
+    <button @click="router.back()" class="btn-back">← Back</button>
+    <h1>Create <%= entity.namePascal %></h1>
+    <<%= entity.namePascal %>Form @submit="handleSubmit" />
+  </div>
+</template>
+
+<style scoped>
+.create-view { max-width: 600px; margin: 0 auto; padding: 20px; }
+.btn-back { padding: 8px 16px; background: transparent; border: 1px solid var(--color-border, #ddd); border-radius: 4px; cursor: pointer; margin-bottom: 16px; }
+</style>

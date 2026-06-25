@@ -1,0 +1,28 @@
+<%# event/EventPublisher.java.ejs — Spring event publisher (one per event type) %>
+<% const srcEntity = ir.entities.find(e => e.name === event.source);
+   const entityType = srcEntity ? srcEntity.namePascal : null; %>
+package <%= ir.application.basePackage %>.event;
+
+<% if (entityType) { %>import <%= ir.application.basePackage %>.entity.<%= entityType %>;
+<% } %>import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Component;
+
+@Component
+@RequiredArgsConstructor
+public class <%= event.name %>EventPublisher {
+
+    private final ApplicationEventPublisher eventPublisher;
+
+<% if (entityType) { %>
+    public void publish(<%= entityType %> entity) {
+        <%= event.name %>Event event = new <%= event.name %>Event(this, entity);
+        eventPublisher.publishEvent(event);
+    }
+<% } else { %>
+    public void publish(String entityId<% for (const field of event.payload) { %>, <%= field.type %> <%= field.name %><% } %>) {
+        <%= event.name %>Event event = new <%= event.name %>Event(this, entityId<% for (const field of event.payload) { %>, <%= field.name %><% } %>);
+        eventPublisher.publishEvent(event);
+    }
+<% } %>
+}

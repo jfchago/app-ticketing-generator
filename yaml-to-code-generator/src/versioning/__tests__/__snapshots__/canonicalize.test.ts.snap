@@ -1,0 +1,90 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`canonicalize snapshots > snapshot: full canonicalized spec structure 1`] = `
+{
+  "application": {
+    "module": "snap",
+    "name": "Snapshot App",
+  },
+  "entities": [
+    {
+      "attributes": [
+        {
+          "name": "id",
+          "primary": true,
+          "required": true,
+          "type": "String",
+          "unique": false,
+        },
+        {
+          "name": "name",
+          "primary": false,
+          "required": true,
+          "type": "String",
+          "unique": false,
+        },
+      ],
+      "name": "Item",
+      "relationships": [
+        {
+          "foreign_key": "category_id",
+          "name": "category",
+          "target": "Category",
+          "type": "many_to_one",
+        },
+      ],
+      "rules": [],
+      "stereotype": "entity",
+      "use_cases": [],
+    },
+    {
+      "attributes": [
+        {
+          "name": "id",
+          "primary": true,
+          "required": true,
+          "type": "String",
+          "unique": false,
+        },
+      ],
+      "name": "Category",
+      "relationships": [],
+      "rules": [],
+      "stereotype": "entity",
+      "use_cases": [],
+    },
+  ],
+  "enums": {
+    "ItemStatus": {
+      "labels": {
+        "ACTIVE": "Active",
+      },
+      "values": [
+        "ACTIVE",
+        "ARCHIVED",
+      ],
+    },
+  },
+  "version": "1.0.0",
+}
+`;
+
+exports[`canonicalize snapshots > snapshot: version info for full spec 1`] = `
+{
+  "version": {
+    "canonical": {
+      "major": 1,
+      "minor": 0,
+      "patch": 0,
+    },
+    "migrated": false,
+    "migrationPath": [],
+    "original": {
+      "major": 1,
+      "minor": 0,
+      "patch": 0,
+    },
+  },
+  "warnings": [],
+}
+`;

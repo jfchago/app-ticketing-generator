@@ -1,0 +1,10 @@
+<%# shared/enums.ts.ejs — Generates TypeScript enums from IR %>
+<% for (const enumDef of ir.enums) { %>
+export type <%= enumDef.namePascal %> = <%_ const vals = enumDef.values; for (let i = 0; i < vals.length; i++) { _%>'<%= vals[i].name %>'<%= i < vals.length - 1 ? ' | ' : '' %><%_ } _%>;
+
+export const <%= enumDef.namePascal %>_LABELS: Record<<%= enumDef.namePascal %>, string> = {
+<% for (const val of enumDef.values) { %>
+  '<%= val.name %>': '<%= val.label %>',
+<% } %>
+};
+<% } %>

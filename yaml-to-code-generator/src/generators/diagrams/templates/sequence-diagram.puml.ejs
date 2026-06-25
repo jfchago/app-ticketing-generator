@@ -1,0 +1,49 @@
+<%# sequence-diagram.puml.ejs — PlantUML sequence diagram with actors, conditions, and timers %>
+@startuml <%= workflow.name %>-sequence-diagram
+!theme plain
+title <%= workflow.name %> — Interaction Sequence
+
+<% for (const p of workflow.participants) { -%>
+actor "<%= p.name %>" as <%= p.name %> << <%= p.role %> >>
+<% } -%>
+participant System
+
+== <%= workflow.name %> ==
+
+<% for (const step of workflow.steps) { -%>
+<% if (step.type === 'gateway') { -%>
+alt [<%= step.label ?? step.id %>]
+<% } else if (step.transitions.length > 1 || step.transitions.some(t => t.condition)) { -%>
+alt [<%= step.label ?? step.id %>]
+<% for (const t of step.transitions.filter(ti => !ti.isDefault)) { -%>
+<%- '  ' %>alt <%= t.condition ? '[' + t.condition + ']' : '' %>
+<% for (const action of step.actions) { -%>
+<%- '  ' %><%= action.params?.actor ?? step.actorName ?? 'System' %> -> <%= action.params?.actor === 'System' ? (action.target ?? 'System') : 'System' %> : <%= action.params?.verb ?? action.type %>
+<%- '  ' %>activate <%= action.params?.actor ?? step.actorName ?? 'System' %>
+<%- '  ' %>deactivate <%= action.params?.actor ?? step.actorName ?? 'System' %>
+<% } -%>
+<%- '  ' %>end
+<% } -%>
+<% const defaultT = step.transitions.find(t => t.isDefault); if (defaultT) { -%>
+<%- '  ' %>else [<%= defaultT.condition ?? 'default' %>]
+<% for (const action of step.actions) { -%>
+<%- '  ' %><%= action.params?.actor ?? step.actorName ?? 'System' %> -> <%= action.target ?? 'System' %> : <%= action.params?.verb ?? action.type %>
+<%- '  ' %>activate <%= action.params?.actor ?? step.actorName ?? 'System' %>
+<%- '  ' %>deactivate <%= action.params?.actor ?? step.actorName ?? 'System' %>
+<% } -%>
+<%- '  ' %>end
+<% } -%>
+end
+<% } else { -%>
+group <%= step.label ?? step.id %>
+<% for (const action of step.actions) { -%>
+<%= action.params?.actor ?? step.actorName ?? 'System' %> -> <%= action.target ?? 'System' %> : <%= action.params?.verb ?? action.type %>
+<% } -%>
+<% if (step.timerExpression) { -%>
+... after <%= step.timerExpression %> ...
+<% } -%>
+end
+<% } -%>
+<% } -%>
+
+@enduml

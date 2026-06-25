@@ -1,0 +1,47 @@
+<%-`// ${decision.nameCamel}.decision.ts — ${decision.name} decision tree`%>
+// Generated from behavior DSL
+
+export type <%= decision.namePascal %>Input = Record<string, unknown>;
+
+export interface <%= decision.namePascal %>Result {
+  matched: boolean;
+  actions: string[];
+}
+
+<% for (const c of decision.cases) { -%>
+export function <%= decision.nameCamel %>When<%= c.condition %>(
+  input: <%= decision.namePascal %>Input,
+): <%= decision.namePascal %>Result | null {
+  const match = input['<%= c.condition %>'] === true;
+  if (!match) return null;
+  return {
+    matched: true,
+    actions: [
+    <% for (const action of c.actions) { -%>
+      '<%= action.params.verb || action.target || action.type %>',
+    <% } -%>
+    ],
+  };
+}
+
+<% } -%>
+export function <%= decision.nameCamel %>Default(): <%= decision.namePascal %>Result {
+  return {
+    matched: true,
+    actions: [
+<% for (const action of decision.defaultActions) { -%>
+      '<%= action.params.verb || action.target || action.type %>',
+<% } -%>
+    ],
+  };
+}
+
+export function evaluate<%= decision.namePascal %>(
+  input: <%= decision.namePascal %>Input,
+): <%= decision.namePascal %>Result {
+<% for (const c of decision.cases) { -%>
+  const case<%= c.condition %> = <%= decision.nameCamel %>When<%= c.condition %>(input);
+  if (case<%= c.condition %>) return case<%= c.condition %>;
+<% } -%>
+  return <%= decision.nameCamel %>Default();
+}

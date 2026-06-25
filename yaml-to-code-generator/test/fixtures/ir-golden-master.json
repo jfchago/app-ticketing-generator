@@ -1,0 +1,245 @@
+{
+  "meta": {
+    "tool": "yaml2code-ir",
+    "version": 1,
+    "timestamp": "2026-06-24T08:27:17.469Z",
+    "specPath": "specs/helpdesk.yaml",
+    "semanticHash": "test-fixture"
+  },
+  "summary": {
+    "entities": 3,
+    "enums": 2,
+    "attributes": 17,
+    "relationships": 4,
+    "useCases": 10,
+    "workflows": 0,
+    "events": 0,
+    "decisions": 0,
+    "flags": {
+      "hasStateMachine": true,
+      "hasEvents": false,
+      "hasWorkflows": false,
+      "hasDecisions": false,
+      "hasValidation": true,
+      "hasRules": true
+    }
+  },
+  "entities": [
+    {
+      "name": "User",
+      "nameCamel": "user",
+      "table": "users",
+      "stereotype": "entity",
+      "attributeCount": 4,
+      "attributeNames": [
+        "avatar",
+        "id",
+        "name",
+        "role"
+      ],
+      "attributeFieldRoles": {
+        "id": "id",
+        "name": "field",
+        "avatar": "field",
+        "role": "field"
+      },
+      "relationshipCount": 0,
+      "relationships": [],
+      "useCaseCount": 1,
+      "useCaseNames": [
+        "load_users"
+      ],
+      "useCaseCategories": {
+        "load_users": "read"
+      },
+      "flags": {
+        "hasCreate": false,
+        "hasUpdate": false,
+        "hasDelete": false,
+        "hasGetAll": true,
+        "hasGetById": false
+      },
+      "pkType": "String",
+      "ruleNames": [],
+      "eventNames": []
+    },
+    {
+      "name": "Ticket",
+      "nameCamel": "ticket",
+      "table": "tickets",
+      "stereotype": "aggregate_root",
+      "attributeCount": 8,
+      "attributeNames": [
+        "assigneeId",
+        "createdAt",
+        "description",
+        "id",
+        "priority",
+        "status",
+        "title",
+        "updatedAt"
+      ],
+      "attributeFieldRoles": {
+        "id": "id",
+        "title": "text",
+        "description": "text",
+        "status": "status",
+        "priority": "priority",
+        "assigneeId": "assignee",
+        "createdAt": "timestamp",
+        "updatedAt": "timestamp"
+      },
+      "relationshipCount": 2,
+      "relationships": [
+        {
+          "name": "assignee",
+          "type": "many_to_one",
+          "target": "User"
+        },
+        {
+          "name": "comments",
+          "type": "one_to_many",
+          "target": "Comment"
+        }
+      ],
+      "useCaseCount": 8,
+      "useCaseNames": [
+        "add_comment",
+        "assign_user",
+        "create",
+        "get_all",
+        "get_by_id",
+        "unassign_user",
+        "update_priority",
+        "update_status"
+      ],
+      "useCaseCategories": {
+        "get_all": "read",
+        "get_by_id": "read",
+        "create": "create",
+        "update_status": "update",
+        "update_priority": "update",
+        "assign_user": "action",
+        "unassign_user": "delete",
+        "add_comment": "action"
+      },
+      "flags": {
+        "hasCreate": true,
+        "hasUpdate": true,
+        "hasDelete": true,
+        "hasGetAll": true,
+        "hasGetById": true
+      },
+      "pkType": "String",
+      "transitionKeys": [
+        "OPEN",
+        "IN_PROGRESS",
+        "RESOLVED",
+        "CLOSED"
+      ],
+      "ruleNames": [
+        "PrioridadValida",
+        "RequiereComentarioParaCerrar",
+        "TituloObligatorio"
+      ],
+      "eventNames": []
+    },
+    {
+      "name": "Comment",
+      "nameCamel": "comment",
+      "table": "comments",
+      "stereotype": "entity",
+      "attributeCount": 5,
+      "attributeNames": [
+        "authorId",
+        "createdAt",
+        "id",
+        "text",
+        "ticketId"
+      ],
+      "attributeFieldRoles": {
+        "id": "id",
+        "ticketId": "assignee",
+        "text": "text",
+        "authorId": "assignee",
+        "createdAt": "timestamp"
+      },
+      "relationshipCount": 2,
+      "relationships": [
+        {
+          "name": "ticket",
+          "type": "many_to_one",
+          "target": "Ticket"
+        },
+        {
+          "name": "author",
+          "type": "many_to_one",
+          "target": "User"
+        }
+      ],
+      "useCaseCount": 1,
+      "useCaseNames": [
+        "add_comment"
+      ],
+      "useCaseCategories": {
+        "add_comment": "action"
+      },
+      "flags": {
+        "hasCreate": false,
+        "hasUpdate": false,
+        "hasDelete": false,
+        "hasGetAll": false,
+        "hasGetById": false
+      },
+      "pkType": "String",
+      "ruleNames": [],
+      "eventNames": []
+    }
+  ],
+  "enums": [
+    {
+      "name": "TicketStatus",
+      "nameCamel": "ticketStatus",
+      "values": [
+        {
+          "name": "OPEN",
+          "label": "Abierta"
+        },
+        {
+          "name": "IN_PROGRESS",
+          "label": "En curso"
+        },
+        {
+          "name": "RESOLVED",
+          "label": "Resuelta"
+        },
+        {
+          "name": "CLOSED",
+          "label": "Cerrada"
+        }
+      ]
+    },
+    {
+      "name": "TicketPriority",
+      "nameCamel": "ticketPriority",
+      "values": [
+        {
+          "name": "LOW",
+          "label": "Baja"
+        },
+        {
+          "name": "MEDIUM",
+          "label": "Media"
+        },
+        {
+          "name": "HIGH",
+          "label": "Alta"
+        },
+        {
+          "name": "URGENT",
+          "label": "Urgente"
+        }
+      ]
+    }
+  ]
+}

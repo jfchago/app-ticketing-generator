@@ -1,0 +1,7 @@
+<%# shared/api-client.ts.ejs — Axios HTTP client for Spring backend %>
+import axios from 'axios';
+
+export const apiClient = axios.create({
+  baseURL: '/api',
+  headers: { 'Content-Type': 'application/json' },
+});

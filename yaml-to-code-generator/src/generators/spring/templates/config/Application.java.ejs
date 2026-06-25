@@ -1,0 +1,13 @@
+<%# config/Application.java.ejs — Spring Boot main class %>
+package <%= ir.application.basePackage %>;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class <%= ir.application.appClassName %>Application {
+
+    public static void main(String[] args) {
+        SpringApplication.run(<%= ir.application.appClassName %>Application.class, args);
+    }
+}

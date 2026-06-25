@@ -1,0 +1,60 @@
+<%# config/DataInitializer.java.ejs — Seeds test data into H2 at startup %>
+<%
+const userEntity = ir.entities.find(e => e.useCases.some(u => u.name === 'load_users'));
+const mainEntity = ir.entities.find(e => e.relationships.some(r => r.type === 'one_to_many'));
+const commentEntity = mainEntity ? ir.entities.find(e => e.name === mainEntity.relationships.find(r => r.type === 'one_to_many')?.target) : undefined;
+%>package <%= ir.application.basePackage %>.config;
+
+<% if (userEntity) { %>
+import <%= ir.application.basePackage %>.entity.User;
+import <%= ir.application.basePackage %>.repository.UserRepository;
+<% } %>
+<% if (mainEntity) { %>
+import <%= ir.application.basePackage %>.entity.<%= mainEntity.namePascal %>;
+import <%= ir.application.basePackage %>.repository.<%= mainEntity.namePascal %>Repository;
+<% } %>
+<% if (commentEntity) { %>
+import <%= ir.application.basePackage %>.entity.Comment;
+import <%= ir.application.basePackage %>.repository.CommentRepository;
+<% } %>
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.stereotype.Component;
+import java.time.LocalDateTime;
+
+@Component
+public class DataInitializer implements CommandLineRunner {
+
+<% if (userEntity) { %>
+    private final UserRepository userRepository;
+<% } %>
+<% if (mainEntity) { %>
+    private final <%= mainEntity.namePascal %>Repository <%= mainEntity.nameCamel %>Repository;
+<% } %>
+<% if (commentEntity) { %>
+    private final CommentRepository commentRepository;
+<% } %>
+
+    public DataInitializer(<% if (userEntity) { %>UserRepository userRepository<% } %><% if (mainEntity) { %><%= userEntity ? ', ' : '' %><%= mainEntity.namePascal %>Repository <%= mainEntity.nameCamel %>Repository<% } %><% if (commentEntity) { %>, CommentRepository commentRepository<% } %>) {
+<% if (userEntity) { %>
+        this.userRepository = userRepository;
+<% } %>
+<% if (mainEntity) { %>
+        this.<%= mainEntity.nameCamel %>Repository = <%= mainEntity.nameCamel %>Repository;
+<% } %>
+<% if (commentEntity) { %>
+        this.commentRepository = commentRepository;
+<% } %>
+    }
+
+    @Override
+    public void run(String... args) {
+        if (<% if (userEntity) { %>userRepository.count() > 0<% } else { %>true<% } %>) return;
+
+<% if (userEntity) { %>
+        User u = new User();
+        u.setId("user-1");
+        u.setName("Admin");
+        userRepository.save(u);
+<% } %>
+    }
+}

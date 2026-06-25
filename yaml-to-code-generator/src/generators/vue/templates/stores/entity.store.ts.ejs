@@ -1,0 +1,49 @@
+<%
+const gen = genEntities?.[entity.name];
+const stateList = gen?.statePropertyName || 'items';
+const stateSelected = gen?.selectedPropertyName || 'current';
+-%>import { defineStore } from 'pinia';
+import type { <%= entity.namePascal %> } from '../domain/<%= entity.nameCamel %>/<%= entity.nameCamel %>.types';
+<% if (gen?.enumAttributes?.length) { for (const ea of gen.enumAttributes) { %>
+import type { <%= entity.namePascal %><%= ea.namePascal %> } from '../domain/<%= entity.nameCamel %>/<%= entity.nameCamel %>.types';
+<% } } %>
+<% if (gen?.hasCommentSupport && gen?.commentEntity) { %>
+import type { <%= gen.commentEntity.namePascal %> } from '../domain/<%= gen.commentEntity.nameCamel %>/<%= gen.commentEntity.nameCamel %>.types';
+<% } %>
+import { <%= entity.namePascal %>Service } from '../domain/<%= entity.nameCamel %>/<%= entity.nameCamel %>.service';
+import { <%= entity.namePascal %>RepositoryImpl } from '../infrastructure/repositories/<%= entity.nameCamel %>.repository.impl';
+
+const service = new <%= entity.namePascal %>Service(new <%= entity.namePascal %>RepositoryImpl());
+
+<% if (gen?.transitions && Object.keys(gen.transitions).length > 0) { -%>
+const VALID_TRANSITIONS: Record<string, string[]> = {
+<% for (const [from, to] of Object.entries(gen.transitions)) { %>
+  '<%= from %>': [<%- to.map(s => `'${s}'`).join(', ') %>],
+<% } %>
+};
+<% } -%>
+
+interface <%= entity.namePascal %>State {
+  <%= stateList %>: <%= entity.namePascal %>[];
+  <%= stateSelected %>: <%= entity.namePascal %> | null;
+  loading: boolean;
+  error: string | null;
+}
+
+export const use<%= entity.namePascal %>Store = defineStore('<%= entity.nameCamel %>', {
+  state: (): <%= entity.namePascal %>State => ({
+    <%= stateList %>: [],
+    <%= stateSelected %>: null,
+    loading: false,
+    error: null
+  }),
+
+  actions: {
+<% for (const action of (gen?.storeActions || [])) { %>
+    async <%= action.name %>(<%- action.params.map(p => `${p.name}: ${p.type}`).join(', ') %>) {
+      <%- action.body %>
+    },
+
+<% } %>
+  }
+});

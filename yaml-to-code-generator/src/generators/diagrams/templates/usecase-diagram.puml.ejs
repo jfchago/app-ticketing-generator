@@ -1,0 +1,31 @@
+<%# usecase-diagram.puml.ejs — PlantUML use case diagram with actors, HTTP methods, and connections %>
+<%
+  const workflowActors = new Set((ir.workflows ?? []).flatMap(w => (w.participants ?? []).map(p => p.name)));
+  const actors = workflowActors.size > 0 ? [...workflowActors] : ['User'];
+%>
+@startuml <%= ir.application.module %>-usecase-diagram
+!theme plain
+title <%= ir.application.name %> — Use Cases
+
+left to right direction
+
+' ── Actors ──
+<% for (const actor of actors) { %>
+actor "<%= actor %>" as <%= actor %>
+<% } %>
+
+rectangle "<%= ir.application.name %>" {
+<% for (const entity of ir.entities) { %>
+  note as <%= entity.namePascal %>_Note
+    <%= entity.description %>
+  end note
+<% for (const uc of entity.useCases) { %>
+  usecase "<%= uc.httpMethod %> /api/<%= entity.nameKebab %>s<%= uc.pathSuffix %>" as UC_<%= entity.namePascal %>_<%= uc.namePascal %>
+  <% for (const actor of actors) { %>
+  <%= actor %> --> UC_<%= entity.namePascal %>_<%= uc.namePascal %>
+  <% } %>
+<% } %>
+<% } %>
+}
+
+@enduml

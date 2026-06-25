@@ -1,0 +1,48 @@
+<%# activity-diagram.puml.ejs — PlantUML activity diagram with swimlanes, decisions, and timers %>
+@startuml <%= workflow.name %>-activity-diagram
+!theme plain
+title <%= workflow.name %> — Activity Flow
+
+start
+<% let prevActor = ''; %>
+<% for (const step of workflow.steps) { -%>
+<% if (step.actorName && step.actorName !== prevActor) { -%>
+|#<%= step.actorName %>|
+<% prevActor = step.actorName; } -%>
+<% if (step.type === 'gateway') { -%>
+if (<%= step.label ?? step.id %>) then
+<% } else if (step.type === 'timer') { -%>
+:⏱ <%= step.label ?? step.id %><% if (step.timerExpression) { %> (<%= step.timerExpression %>)<% } %>;
+<% } else if (step.transitions.length > 1 || step.transitions.some(t => t.condition)) { -%>
+if (<%= step.label ?? step.id %>) then
+<% for (const t of step.transitions.filter(ti => !ti.isDefault)) { -%>
+  -> <%= t.condition ? '[' + t.condition + '] ' : '' %>: <%= t.label ?? t.targetStep %>;
+<% if (workflow.endSteps.includes(t.targetStep)) { -%>
+  -> stop
+<% } -%>
+<% } -%>
+<% if (step.transitions.some(t => t.isDefault)) { -%>
+else (<%= step.transitions.find(t => t.isDefault)?.label ?? 'default' %>)
+  -> :<%= step.transitions.find(t => t.isDefault)?.targetStep ?? 'end' %>;
+<% if (workflow.endSteps.includes(step.transitions.find(t => t.isDefault)?.targetStep ?? '')) { -%>
+  -> stop
+<% } -%>
+<% } -%>
+endif
+<% } else { -%>
+:<%= step.label ?? step.id %>;
+<% } -%>
+<% for (const action of step.actions) { -%>
+:<%= action.type %><%= action.target ? ' ' + action.target : '' %>;
+<% } -%>
+<% if (step.type !== 'gateway' && !(step.transitions.length > 1 || step.transitions.some(t => t.condition))) { -%>
+<% if (workflow.endSteps.includes(step.id)) { %>
+stop
+<% } -%>
+<% } -%>
+<% if (step.timerExpression && step.type !== 'timer') { -%>
+:... after <%= step.timerExpression %> ...;
+<% } -%>
+<% } -%>
+
+@enduml

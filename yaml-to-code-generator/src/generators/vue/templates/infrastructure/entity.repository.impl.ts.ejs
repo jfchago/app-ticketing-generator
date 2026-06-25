@@ -1,0 +1,48 @@
+<%# infrastructure/entity.repository.impl.ts.ejs — Repository implementation (calls Spring backend via axios) -%>
+<%
+const gen = genEntities?.[entity.name];
+-%>
+import type { <%= entity.namePascal %> } from '../../domain/<%= entity.nameCamel %>/<%= entity.nameCamel %>.types';
+<% if (gen?.enumAttributes?.length) { -%>
+import type { <%= gen.enumAttributes.map(a => a.type).join(', ') %> } from '../../domain/<%= entity.nameCamel %>/<%= entity.nameCamel %>.types';
+<% } -%>
+<% if (gen?.hasCommentSupport && gen.commentEntity && gen.commentEntity.nameCamel !== entity.nameCamel) { -%>
+
+import type { Comment } from '../../domain/<%= gen.commentEntity.nameCamel %>/<%= gen.commentEntity.nameCamel %>.types';
+<% } -%>
+
+import type { <%= entity.namePascal %>Repository } from '../../domain/<%= entity.nameCamel %>/<%= entity.nameCamel %>.repository';
+import { apiClient } from '../api-client';
+
+export class <%= entity.namePascal %>RepositoryImpl implements <%= entity.namePascal %>Repository {
+<%
+const useCases = entity.useCases;
+for (let _i = 0; _i < useCases.length; _i++) {
+  const uc = useCases[_i];
+  const ucGen = gen?.useCases?.[uc.name];
+  if (!ucGen) continue;
+  const httpMethod = uc.httpMethod.toLowerCase();
+  const isVoid = ucGen.methodSignature.returnType === 'void';
+  const params = ucGen.methodSignature.params;
+  const returnType = ucGen.methodSignature.returnType;
+  const paramNames = ucGen.storeAction.paramNames;
+  const path = ucGen.apiCall.path;
+  const bodyNames = paramNames.filter(p => !path.includes('$' + '{' + p + '}'));
+  const needsInterpolation = path.includes('$' + '{');
+-%>
+  async <%= uc.methodName %>(<%- params %>): Promise<<%= returnType %>> {
+<% if (isVoid) { -%>
+    await apiClient.<%= httpMethod %>(<%- needsInterpolation ? '`' : "'" %><%- path %><%- needsInterpolation ? '`' : "'" %><% if (uc.needsPayload) { %>, { <%= bodyNames.join(', ') %> }<% } %>);
+<% } else { -%>
+    const { data: responseData } = await apiClient.<%= httpMethod %><<%= returnType %>>(<%- needsInterpolation ? '`' : "'" %><%- path %><%- needsInterpolation ? '`' : "'" %><% if (uc.needsPayload) { %>, <%
+      if (bodyNames.length === 1 && bodyNames[0] === 'data') { %>data<%
+      } else { %>{ <%= bodyNames.join(', ') %> }<% }
+    %><% } %>);
+    return responseData;
+<% } -%>
+  }
+<% if (_i < useCases.length - 1) { -%>
+
+<% } -%>
+<% } -%>
+}

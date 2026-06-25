@@ -1,0 +1,93 @@
+<%# controller/EntityController.java.ejs — REST controller %><%
+const gen = genEntities?.[entity.name];
+if (!gen || gen.endpoints.length === 0) { return; }
+
+const needsMap = gen.endpoints.some(ep => ep.needsMap);
+const needsList = gen.endpoints.some(ep => ep.returnType.startsWith('List<'));
+const needsHttpStatus = gen.serviceMethods.some(m => m.name === 'create' || m.name === 'addComment');
+%>
+package <%= ir.application.basePackage %>.controller;
+
+import <%= ir.application.basePackage %>.dto.<%= entity.namePascal %>DTO;
+import <%= ir.application.basePackage %>.service.<%= entity.namePascal %>Service;
+<% for (const attr of entity.attributes.filter(a => a.isEnum)) { %>
+import <%= ir.application.basePackage %>.entity.<%= attr.type %>;
+<% } %>
+<% if (gen.serviceMethods.some(m => m.name === 'addComment')) { %>
+import <%= ir.application.basePackage %>.dto.CommentDTO;
+<% } %>
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+<% if (needsHttpStatus) { %>
+import org.springframework.http.HttpStatus;
+<% } %>
+<% if (needsList) { %>
+import java.util.List;
+<% } %>
+<% if (needsMap) { %>
+import java.util.Map;
+<% } %>
+
+@RestController
+@RequestMapping("/api/<%= entity.nameKebab %>s")
+@RequiredArgsConstructor
+public class <%= entity.namePascal %>Controller {
+
+    private final <%= entity.namePascal %>Service <%= entity.nameCamel %>Service;
+
+<% for (let i = 0; i < entity.useCases.length; i++) { const uc = entity.useCases[i]; const ep = gen.endpoints[i]; %>
+<% if (uc.httpMethod === 'GET') { %>
+    <%= ep.annotation %><% if (ep.path) { %>("<%- ep.path %>")<% } %>
+    public ResponseEntity<<%- ep.returnType %>> <%= uc.methodName %>(<%- ep.params %>) {
+        <%- ep.body || `return ResponseEntity.ok(${entity.nameCamel}Service.${uc.methodName}());` %>
+    }
+
+<% } else if (uc.httpMethod === 'POST') { %>
+    <%= ep.annotation %><% if (ep.path) { %>("<%- ep.path %>")<% } %>
+    public ResponseEntity<<%- ep.returnType %>> <%= uc.methodName %>(<%- ep.params %>) {
+<%   if (ep.needsMap) { %>
+        String bodyValue = body.get("<%= uc.methodName === 'addComment' ? 'text' : '' %>");
+        return ResponseEntity.status(HttpStatus.CREATED).body(<%= entity.nameCamel %>Service.<%= uc.methodName %>(id, bodyValue));
+<%   } else { %>
+        <%= entity.namePascal %>DTO created = <%= entity.nameCamel %>Service.<%= uc.methodName %>(dto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(created);
+<%   } %>
+    }
+
+<% } else if (uc.httpMethod === 'PATCH') { %>
+    <%= ep.annotation %><% if (ep.path) { %>("<%- ep.path %>")<% } %>
+    public ResponseEntity<<%- ep.returnType %>> <%= uc.methodName %>(
+            @PathVariable <%= gen.pkJavaType %> id,
+            @RequestBody Map<String, String> body) {
+<%   const statusEnum = entity.attributes.find(a => a.isEnum && a.name === 'status'); %>
+<%   const priorityEnum = entity.attributes.find(a => a.isEnum && a.name === 'priority'); %>
+<%   if (statusEnum && uc.methodName === 'updateStatus') { %>
+        <%= statusEnum.type %> status = <%= statusEnum.type %>.valueOf(body.get("status"));
+        return ResponseEntity.ok(<%= entity.nameCamel %>Service.<%= uc.methodName %>(id, status));
+<%   } else if (priorityEnum && uc.methodName === 'updatePriority') { %>
+        <%= priorityEnum.type %> priority = <%= priorityEnum.type %>.valueOf(body.get("priority"));
+        return ResponseEntity.ok(<%= entity.nameCamel %>Service.<%= uc.methodName %>(id, priority));
+<%   } else { %>
+        return ResponseEntity.ok(<%= entity.nameCamel %>Service.<%= uc.methodName %>(id, body));
+<%   } %>
+    }
+
+<% } else if (uc.httpMethod === 'PUT') { %>
+    <%= ep.annotation %><% if (ep.path) { %>("<%- ep.path %>")<% } %>
+    public ResponseEntity<<%- ep.returnType %>> <%= uc.methodName %>(
+            @PathVariable <%= gen.pkJavaType %> id,
+            @RequestBody Map<String, String> body) {
+        String val = body.get("<%= uc.methodName === 'assignUser' ? 'userId' : 'value' %>");
+        return ResponseEntity.ok(<%= entity.nameCamel %>Service.<%= uc.methodName %>(id, val));
+    }
+
+<% } else if (uc.httpMethod === 'DELETE') { %>
+    <%= ep.annotation %><% if (ep.path) { %>("<%- ep.path %>")<% } %>
+    public ResponseEntity<<%- ep.returnType %>> <%= uc.methodName %>(@PathVariable <%= gen.pkJavaType %> id) {
+        return ResponseEntity.ok(<%= entity.nameCamel %>Service.<%= uc.methodName %>(id));
+    }
+
+<% } %>
+<% } %>
+}

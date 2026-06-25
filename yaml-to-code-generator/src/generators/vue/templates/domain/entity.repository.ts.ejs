@@ -1,0 +1,19 @@
+<%
+const gen = genEntities?.[entity.name];
+-%><%-`// ${entity.nameCamel}.repository.ts — Generated from helpdesk.yaml`%>
+import type { <%= entity.namePascal %> } from './<%= entity.nameCamel %>.types';
+<% if (gen?.enumAttributes?.length) { -%>
+import type { <%= gen.enumAttributes.map(a => a.type).join(', ') %> } from './<%= entity.nameCamel %>.types';
+<% } -%>
+<% if (gen?.hasCommentSupport && gen.commentEntity && gen.commentEntity.nameCamel !== entity.nameCamel) { -%>
+import type { Comment } from '../<%= gen.commentEntity.nameCamel %>/<%= gen.commentEntity.nameCamel %>.types';
+<% } -%>
+
+export interface <%= entity.namePascal %>Repository {
+<% for (const uc of entity.useCases) {
+  const ucGen = gen?.useCases?.[uc.name];
+  if (!ucGen) continue;
+-%>
+  <%= uc.methodName %>(<%- ucGen.methodSignature.params %>): Promise<<%- ucGen.methodSignature.returnType %>>;
+<% } -%>
+}

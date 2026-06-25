@@ -1,0 +1,125 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Vue Generation Model > sanitized model matches snapshot 1`] = `
+{
+  "entities": {
+    "Comment": {
+      "componentFlags": {
+        "shouldRenderAssigneeBadge": false,
+        "shouldRenderCard": false,
+        "shouldRenderForm": false,
+        "shouldRenderPriorityBadge": false,
+        "shouldRenderStatusBadge": false,
+      },
+      "displayFieldCount": 4,
+      "enumAttributeCount": 0,
+      "formFieldCount": 3,
+      "hasAssignee": false,
+      "hasCommentSupport": false,
+      "ruleCheckCount": 0,
+      "selectedPropertyName": "current",
+      "statePropertyName": "comments",
+      "storeActionCount": 1,
+      "transitionKeys": [],
+      "useCaseCategories": {
+        "add_comment": "comment",
+      },
+      "useCaseNames": [
+        "add_comment",
+      ],
+    },
+    "Ticket": {
+      "componentFlags": {
+        "shouldRenderAssigneeBadge": true,
+        "shouldRenderCard": true,
+        "shouldRenderForm": true,
+        "shouldRenderPriorityBadge": true,
+        "shouldRenderStatusBadge": true,
+      },
+      "displayFieldCount": 7,
+      "enumAttributeCount": 2,
+      "formFieldCount": 5,
+      "hasAssignee": true,
+      "hasCommentSupport": true,
+      "ruleCheckCount": 3,
+      "selectedPropertyName": "current",
+      "statePropertyName": "tickets",
+      "storeActionCount": 8,
+      "transitionKeys": [
+        "OPEN",
+        "IN_PROGRESS",
+        "RESOLVED",
+        "CLOSED",
+      ],
+      "useCaseCategories": {
+        "add_comment": "comment",
+        "assign_user": "assign",
+        "create": "create",
+        "get_all": "read",
+        "get_by_id": "readById",
+        "unassign_user": "unassign",
+        "update_priority": "updatePriority",
+        "update_status": "updateStatus",
+      },
+      "useCaseNames": [
+        "get_all",
+        "get_by_id",
+        "create",
+        "update_status",
+        "update_priority",
+        "assign_user",
+        "unassign_user",
+        "add_comment",
+      ],
+    },
+    "User": {
+      "componentFlags": {
+        "shouldRenderAssigneeBadge": false,
+        "shouldRenderCard": true,
+        "shouldRenderForm": false,
+        "shouldRenderPriorityBadge": false,
+        "shouldRenderStatusBadge": false,
+      },
+      "displayFieldCount": 3,
+      "enumAttributeCount": 0,
+      "formFieldCount": 3,
+      "hasAssignee": false,
+      "hasCommentSupport": false,
+      "ruleCheckCount": 0,
+      "selectedPropertyName": "current",
+      "statePropertyName": "users",
+      "storeActionCount": 1,
+      "transitionKeys": [],
+      "useCaseCategories": {
+        "load_users": "read",
+      },
+      "useCaseNames": [
+        "load_users",
+      ],
+    },
+  },
+  "entityNames": [
+    "User",
+    "Ticket",
+    "Comment",
+  ],
+  "enums": [
+    {
+      "name": "TicketStatus",
+      "valueCount": 4,
+    },
+    {
+      "name": "TicketPriority",
+      "valueCount": 4,
+    },
+  ],
+  "features": {
+    "hasDecisions": false,
+    "hasEvents": false,
+    "hasRules": true,
+    "hasStateMachine": true,
+    "hasValidation": true,
+    "hasWorkflows": false,
+  },
+}
+`;

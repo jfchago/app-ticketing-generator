@@ -1,0 +1,99 @@
+<%# entity/Entity.java.ejs — JPA Entity with Lombok %><% const gen = genEntities?.[entity.name]; %>
+package <%= ir.application.basePackage %>.entity;
+
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+<% if (gen.manyToOneRelations.length > 0) { %>
+<% } %>
+<% if (gen.hasCreate) { %>
+import lombok.Builder;
+<% } %>
+<% if (Object.values(gen.attributeTypes).some(t => t.javaType === 'LocalDateTime')) { %>
+import java.time.LocalDateTime;
+<% } %>
+<% if (gen.pkJavaType === 'String') { %>
+import java.util.UUID;
+<% } %>
+<% if (gen.oneToManyRelations.length > 0) { %>
+import java.util.ArrayList;
+import java.util.List;
+<% } %>
+<% const fkNames = new Set(gen.manyToOneRelations.map(r => r.foreignKey)); %>
+
+@Entity
+@Table(name = "<%= entity.table %>")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+<% if (gen.hasCreate) { %>@Builder
+<% } %>
+public class <%= entity.namePascal %> {
+
+<% for (const attr of entity.attributes) { %>
+<% if (attr.primary) { %>
+    @Id
+<% } %>
+<% const isFk = fkNames.has(attr.name); %>
+<% if (attr.column && attr.column !== attr.name) { %>
+    @Column(name = "<%= attr.column %>"<%= attr.length ? ', length = ' + attr.length : '' %><%= !attr.nullable ? ', nullable = false' : '' %><%= isFk ? ', insertable = false, updatable = false' : '' %><%= attr.unique ? ', unique = true' : '' %>)
+<% } else if (!attr.primary) { %>
+<%
+  const jpa = gen.attributeTypes[attr.name].jpaAnnotation;
+  const jpaPairs = {};
+  for (const p of jpa.split(', ')) {
+    const eq = p.indexOf(' = ');
+    if (eq >= 0) jpaPairs[p.substring(0, eq)] = p.substring(eq + 3);
+  }
+  const colParts = [];
+  if (jpaPairs.nullable === 'false') colParts.push('nullable = false');
+  if (jpaPairs.length) colParts.push('length = ' + jpaPairs.length);
+  if (isFk) { colParts.push('insertable = false'); colParts.push('updatable = false'); }
+  if (jpaPairs.unique) colParts.push('unique = true');
+%>
+<% if (colParts.length > 0) { %>
+    @Column(<%= colParts.join(', ') %>)
+<% } %>
+<% } %>
+<% if (gen.attributeTypes[attr.name].javaType === 'LocalDateTime') { %>
+    private LocalDateTime <%= attr.name %>;
+<% } else if (gen.attributeTypes[attr.name].isEnum) { %>
+    @Enumerated(EnumType.STRING)
+    private <%= gen.attributeTypes[attr.name].javaType %> <%= attr.name %>;
+<% } else if (gen.attributeTypes[attr.name].javaType === 'Boolean') { %>
+    private Boolean <%= attr.name %>;
+<% } else if (gen.attributeTypes[attr.name].javaType === 'Long') { %>
+    private Long <%= attr.name %>;
+<% } else { %>
+    private String <%= attr.name %>;
+<% } %>
+
+<% } %>
+<% for (const rel of entity.relationships) { %>
+<% if (gen.manyToOneRelations.some(r => r.name === rel.name)) { %>
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "<%= rel.foreignKey %>")
+    private <%= rel.targetPascal %> <%= rel.name %>;
+
+<% } else if (gen.oneToManyRelations.some(r => r.name === rel.name)) { %>
+    @OneToMany(mappedBy = "<%= entity.nameCamel %>", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<<%= rel.targetPascal %>> <%= rel.name %> = new ArrayList<>();
+
+<% } %>
+<% } %>
+<% if (gen.pkJavaType === 'String' || gen.hasCreatedAt) { %>
+    @PrePersist
+    protected void onCreate() {
+<% if (gen.pkJavaType === 'String') { %>
+        if (this.<%= entity.primaryKey.name %> == null) {
+            this.<%= entity.primaryKey.name %> = UUID.randomUUID().toString();
+        }
+<% } %>
+<% if (gen.hasCreatedAt) { %>
+        this.createdAt = LocalDateTime.now();
+<% } %>
+    }
+<% } %>
+}

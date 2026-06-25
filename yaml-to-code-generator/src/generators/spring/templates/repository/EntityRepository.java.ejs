@@ -1,0 +1,19 @@
+<%# repository/EntityRepository.java.ejs — Spring Data JPA Repository %><% const gen = genEntities?.[entity.name]; %>
+package <%= ir.application.basePackage %>.repository;
+
+import <%= ir.application.basePackage %>.entity.<%= entity.namePascal %>;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+<% if (gen.repositoryMethods.length > 0) { %>
+import java.util.List;
+<% } %>
+
+@Repository
+public interface <%= entity.namePascal %>Repository extends JpaRepository<<%= entity.namePascal %>, <%= gen.pkJavaType %>> {
+<% for (const m of gen.repositoryMethods) { %>
+    <%- m.signature %>;
+<% } %>
+<% for (const attr of entity.attributes.filter(a => a.unique)) { %>
+    boolean existsBy<%= attr.namePascal %>(<%= gen.attributeTypes[attr.name].javaType %> <%= attr.name %>);
+<% } %>
+}

@@ -1,0 +1,488 @@
+{
+  "meta": {
+    "tool": "yaml2code-semantic",
+    "version": 1,
+    "timestamp": "2026-06-24T08:52:09.046Z",
+    "specName": "Mini HelpDesk"
+  },
+  "summary": {
+    "entities": 3,
+    "enums": 2,
+    "attributes": 17,
+    "relationships": 4,
+    "useCases": 10,
+    "workflows": 0,
+    "events": 0,
+    "decisions": 0,
+    "diagnostics": {
+      "error": 0,
+      "warning": 0,
+      "info": 0
+    },
+    "flags": {
+      "hasStateMachine": true,
+      "hasEvents": false,
+      "hasWorkflows": false,
+      "hasDecisions": false
+    }
+  },
+  "entities": [
+    {
+      "name": "User",
+      "nameCamel": "user",
+      "namePascal": "User",
+      "stereotype": "entity",
+      "table": "users",
+      "pkAttribute": "id",
+      "pkType": "String",
+      "attributeCount": 4,
+      "relationshipCount": 0,
+      "useCaseCount": 1,
+      "flags": {
+        "hasCreate": false,
+        "hasUpdate": false,
+        "hasDelete": false,
+        "hasGetAll": true,
+        "hasGetById": false,
+        "hasComments": false,
+        "relatedEntities": []
+      },
+      "attributes": [
+        {
+          "name": "id",
+          "type": "String",
+          "resolvedType": {
+            "kind": "primitive",
+            "ref": "String"
+          },
+          "fieldRole": "id",
+          "required": true,
+          "primary": true
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "resolvedType": {
+            "kind": "primitive",
+            "ref": "String"
+          },
+          "fieldRole": "field",
+          "required": true,
+          "primary": false
+        },
+        {
+          "name": "avatar",
+          "type": "String",
+          "resolvedType": {
+            "kind": "primitive",
+            "ref": "String"
+          },
+          "fieldRole": "field",
+          "required": false,
+          "primary": false
+        },
+        {
+          "name": "role",
+          "type": "String",
+          "resolvedType": {
+            "kind": "primitive",
+            "ref": "String"
+          },
+          "fieldRole": "field",
+          "required": true,
+          "primary": false
+        }
+      ],
+      "relationships": [],
+      "useCases": [
+        {
+          "name": "load_users",
+          "methodName": "loadUsers",
+          "httpMethod": "GET",
+          "category": "read",
+          "pathSuffix": "",
+          "requiresComment": false,
+          "requiresUser": true,
+          "stateMutation": false
+        }
+      ]
+    },
+    {
+      "name": "Ticket",
+      "nameCamel": "ticket",
+      "namePascal": "Ticket",
+      "stereotype": "aggregate_root",
+      "table": "tickets",
+      "pkAttribute": "id",
+      "pkType": "String",
+      "attributeCount": 8,
+      "relationshipCount": 2,
+      "useCaseCount": 8,
+      "flags": {
+        "hasCreate": true,
+        "hasUpdate": true,
+        "hasDelete": true,
+        "hasGetAll": true,
+        "hasGetById": true,
+        "hasComments": true,
+        "relatedEntities": [
+          "User",
+          "Comment"
+        ]
+      },
+      "attributes": [
+        {
+          "name": "id",
+          "type": "String",
+          "resolvedType": {
+            "kind": "primitive",
+            "ref": "String"
+          },
+          "fieldRole": "id",
+          "required": true,
+          "primary": true
+        },
+        {
+          "name": "title",
+          "type": "String",
+          "resolvedType": {
+            "kind": "primitive",
+            "ref": "String"
+          },
+          "fieldRole": "text",
+          "required": true,
+          "primary": false
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "resolvedType": {
+            "kind": "primitive",
+            "ref": "String"
+          },
+          "fieldRole": "text",
+          "required": false,
+          "primary": false
+        },
+        {
+          "name": "status",
+          "type": "TicketStatus",
+          "resolvedType": {
+            "kind": "enum",
+            "ref": "TicketStatus"
+          },
+          "fieldRole": "status",
+          "required": true,
+          "primary": false
+        },
+        {
+          "name": "priority",
+          "type": "TicketPriority",
+          "resolvedType": {
+            "kind": "enum",
+            "ref": "TicketPriority"
+          },
+          "fieldRole": "priority",
+          "required": true,
+          "primary": false
+        },
+        {
+          "name": "assigneeId",
+          "type": "String",
+          "resolvedType": {
+            "kind": "primitive",
+            "ref": "String"
+          },
+          "fieldRole": "assignee",
+          "required": false,
+          "primary": false
+        },
+        {
+          "name": "createdAt",
+          "type": "DateTime",
+          "resolvedType": {
+            "kind": "primitive",
+            "ref": "DateTime"
+          },
+          "fieldRole": "timestamp",
+          "required": true,
+          "primary": false
+        },
+        {
+          "name": "updatedAt",
+          "type": "DateTime",
+          "resolvedType": {
+            "kind": "primitive",
+            "ref": "DateTime"
+          },
+          "fieldRole": "timestamp",
+          "required": false,
+          "primary": false
+        }
+      ],
+      "relationships": [
+        {
+          "name": "assignee",
+          "target": "User",
+          "resolvedTarget": {
+            "kind": "resolved",
+            "ref": "User"
+          },
+          "type": "many_to_one"
+        },
+        {
+          "name": "comments",
+          "target": "Comment",
+          "resolvedTarget": {
+            "kind": "resolved",
+            "ref": "Comment"
+          },
+          "type": "one_to_many"
+        }
+      ],
+      "useCases": [
+        {
+          "name": "get_all",
+          "methodName": "getAll",
+          "httpMethod": "GET",
+          "category": "read",
+          "pathSuffix": "",
+          "requiresComment": false,
+          "requiresUser": false,
+          "stateMutation": false
+        },
+        {
+          "name": "get_by_id",
+          "methodName": "getById",
+          "httpMethod": "GET",
+          "category": "read",
+          "pathSuffix": "/{id}",
+          "requiresComment": false,
+          "requiresUser": false,
+          "stateMutation": false
+        },
+        {
+          "name": "create",
+          "methodName": "create",
+          "httpMethod": "POST",
+          "category": "create",
+          "pathSuffix": "",
+          "requiresComment": false,
+          "requiresUser": false,
+          "stateMutation": false
+        },
+        {
+          "name": "update_status",
+          "methodName": "updateStatus",
+          "httpMethod": "PATCH",
+          "category": "update",
+          "pathSuffix": "/{id}/status",
+          "requiresComment": false,
+          "requiresUser": false,
+          "stateMutation": true
+        },
+        {
+          "name": "update_priority",
+          "methodName": "updatePriority",
+          "httpMethod": "PATCH",
+          "category": "update",
+          "pathSuffix": "/{id}/priority",
+          "requiresComment": false,
+          "requiresUser": false,
+          "stateMutation": true
+        },
+        {
+          "name": "assign_user",
+          "methodName": "assignUser",
+          "httpMethod": "PUT",
+          "category": "action",
+          "pathSuffix": "/{id}/assign",
+          "requiresComment": false,
+          "requiresUser": true,
+          "stateMutation": false
+        },
+        {
+          "name": "unassign_user",
+          "methodName": "unassignUser",
+          "httpMethod": "DELETE",
+          "category": "delete",
+          "pathSuffix": "/{id}/assign",
+          "requiresComment": false,
+          "requiresUser": true,
+          "stateMutation": false
+        },
+        {
+          "name": "add_comment",
+          "methodName": "addComment",
+          "httpMethod": "POST",
+          "category": "action",
+          "pathSuffix": "/{id}/comments",
+          "requiresComment": true,
+          "requiresUser": false,
+          "stateMutation": false
+        }
+      ]
+    },
+    {
+      "name": "Comment",
+      "nameCamel": "comment",
+      "namePascal": "Comment",
+      "stereotype": "entity",
+      "table": "comments",
+      "pkAttribute": "id",
+      "pkType": "String",
+      "attributeCount": 5,
+      "relationshipCount": 2,
+      "useCaseCount": 1,
+      "flags": {
+        "hasCreate": false,
+        "hasUpdate": false,
+        "hasDelete": false,
+        "hasGetAll": false,
+        "hasGetById": false,
+        "hasComments": true,
+        "relatedEntities": [
+          "Ticket",
+          "User"
+        ]
+      },
+      "attributes": [
+        {
+          "name": "id",
+          "type": "String",
+          "resolvedType": {
+            "kind": "primitive",
+            "ref": "String"
+          },
+          "fieldRole": "id",
+          "required": true,
+          "primary": true
+        },
+        {
+          "name": "ticketId",
+          "type": "String",
+          "resolvedType": {
+            "kind": "primitive",
+            "ref": "String"
+          },
+          "fieldRole": "assignee",
+          "required": true,
+          "primary": false
+        },
+        {
+          "name": "text",
+          "type": "String",
+          "resolvedType": {
+            "kind": "primitive",
+            "ref": "String"
+          },
+          "fieldRole": "text",
+          "required": true,
+          "primary": false
+        },
+        {
+          "name": "authorId",
+          "type": "String",
+          "resolvedType": {
+            "kind": "primitive",
+            "ref": "String"
+          },
+          "fieldRole": "assignee",
+          "required": true,
+          "primary": false
+        },
+        {
+          "name": "createdAt",
+          "type": "DateTime",
+          "resolvedType": {
+            "kind": "primitive",
+            "ref": "DateTime"
+          },
+          "fieldRole": "timestamp",
+          "required": true,
+          "primary": false
+        }
+      ],
+      "relationships": [
+        {
+          "name": "ticket",
+          "target": "Ticket",
+          "resolvedTarget": {
+            "kind": "resolved",
+            "ref": "Ticket"
+          },
+          "type": "many_to_one"
+        },
+        {
+          "name": "author",
+          "target": "User",
+          "resolvedTarget": {
+            "kind": "resolved",
+            "ref": "User"
+          },
+          "type": "many_to_one"
+        }
+      ],
+      "useCases": [
+        {
+          "name": "add_comment",
+          "methodName": "addComment",
+          "httpMethod": "POST",
+          "category": "action",
+          "pathSuffix": "/{id}/comments",
+          "requiresComment": true,
+          "requiresUser": false,
+          "stateMutation": false
+        }
+      ]
+    }
+  ],
+  "enums": [
+    {
+      "name": "TicketStatus",
+      "valueCount": 4,
+      "values": [
+        {
+          "name": "OPEN",
+          "label": "Abierta"
+        },
+        {
+          "name": "IN_PROGRESS",
+          "label": "En curso"
+        },
+        {
+          "name": "RESOLVED",
+          "label": "Resuelta"
+        },
+        {
+          "name": "CLOSED",
+          "label": "Cerrada"
+        }
+      ]
+    },
+    {
+      "name": "TicketPriority",
+      "valueCount": 4,
+      "values": [
+        {
+          "name": "LOW",
+          "label": "Baja"
+        },
+        {
+          "name": "MEDIUM",
+          "label": "Media"
+        },
+        {
+          "name": "HIGH",
+          "label": "Alta"
+        },
+        {
+          "name": "URGENT",
+          "label": "Urgente"
+        }
+      ]
+    }
+  ],
+  "diagnostics": [],
+  "behavior": {}
+}

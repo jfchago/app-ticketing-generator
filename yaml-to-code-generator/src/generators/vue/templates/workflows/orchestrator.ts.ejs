@@ -1,0 +1,142 @@
+<%-`// ${workflow.name}.orchestrator.ts — Generated workflow orchestrator`%>
+
+export interface WorkflowState {
+  currentStep: string;
+  completed: boolean;
+  error: string | null;
+}
+
+export interface StepResult {
+  nextStep?: string;
+  error?: string;
+}
+
+<%
+const allActions = [];
+const allConditions = [];
+for (const step of workflow.steps) {
+  for (const action of step.actions) {
+    if (action.params.verb && !allActions.includes(action.params.verb)) {
+      allActions.push(action.params.verb);
+    }
+    if (action.params.condition && !allConditions.includes(action.params.condition)) {
+      allConditions.push(action.params.condition);
+    }
+  }
+} -%>
+<% if (allActions.length > 0) { -%>
+export type <%= workflow.name %>Action =
+<%_ for (let i = 0; i < allActions.length; i++) { _%>
+  | '<%= allActions[i] %>'<%= i < allActions.length - 1 ? '' : ';' %>
+<%_ } _%>
+<% } -%>
+
+<% if (allConditions.length > 0) { -%>
+export type <%= workflow.name %>Condition =
+<%_ for (let i = 0; i < allConditions.length; i++) { _%>
+  | '<%= allConditions[i] %>'<%= i < allConditions.length - 1 ? '' : ';' %>
+<%_ } _%>
+<% } -%>
+
+export interface <%= workflow.name %>Context {
+<% if (allActions.length > 0) { -%>
+  dispatch(action: <%= workflow.name %>Action, payload?: Record<string, unknown>): Promise<void>;
+<% } -%>
+<% if (allConditions.length > 0) { -%>
+  evaluate(condition: <%= workflow.name %>Condition): Promise<boolean>;
+<% } -%>
+  onStateChange(state: WorkflowState): void;
+}
+
+export function create<%= workflow.name %>Orchestrator(ctx: <%= workflow.name %>Context) {
+  let currentStep = '<%= workflow.startStep %>';
+  let completed = false;
+  let error: string | null = null;
+
+  function getState(): WorkflowState {
+    return { currentStep, completed, error };
+  }
+
+  function notify() {
+    ctx.onStateChange(getState());
+  }
+
+  const stepHandlers: Record<string, () => Promise<StepResult>> = {
+<% for (const step of workflow.steps) { -%>
+    '<%= step.id %>': async () => {
+<% if (step.label) { -%>
+      console.log('[<%- workflow.name %>] Step: <%- step.label %>');
+<% } -%>
+<% for (const action of step.actions) { -%>
+<% if (step.label) { -%>
+      await ctx.dispatch('<%= action.params.verb || action.type %>', { step: '<%- step.label %>' });
+<% } else { -%>
+      await ctx.dispatch('<%= action.params.verb || action.type %>');
+<% } -%>
+<% } -%>
+<% if (step.timerExpression) { -%>
+      await delay('<%= step.timerExpression %>');
+<% } -%>
+      return {};
+    },
+<% } -%>
+  };
+
+  async function start(_payload?: Record<string, unknown>): Promise<void> {
+    error = null;
+    completed = false;
+    currentStep = '<%= workflow.startStep %>';
+    notify();
+
+    while (currentStep && !completed && !error) {
+      const handler = stepHandlers[currentStep];
+      if (!handler) {
+        error = `Unknown step: ${currentStep}`;
+        notify();
+        break;
+      }
+      const result = await handler();
+      if (result.error) {
+        error = result.error;
+        notify();
+        break;
+      }
+      if (result.nextStep) {
+        currentStep = result.nextStep;
+      } else {
+        const stepIds = [<%- workflow.steps.map(s => `'${s.id}'`).join(', ') %>];
+        const idx = stepIds.indexOf(currentStep);
+        if (idx >= 0 && idx < stepIds.length - 1) {
+          currentStep = stepIds[idx + 1];
+        } else {
+          completed = true;
+        }
+      }
+      notify();
+    }
+  }
+
+  function reset(): void {
+    currentStep = '<%= workflow.startStep %>';
+    completed = false;
+    error = null;
+    notify();
+  }
+
+  return { start, reset, onStateChange: ctx.onStateChange, getState };
+}
+<% if (workflow.steps.some(s => s.timerExpression)) { -%>
+
+function delay(d: string): Promise<void> {
+  const match = d.match(/^(\d+)([smhdw])$/);
+  if (!match) return Promise.resolve();
+  const val = parseInt(match[1], 10);
+  const ms = match[2] === 's' ? val * 1000
+    : match[2] === 'm' ? val * 60 * 1000
+    : match[2] === 'h' ? val * 60 * 60 * 1000
+    : match[2] === 'd' ? val * 24 * 60 * 60 * 1000
+    : match[2] === 'w' ? val * 7 * 24 * 60 * 60 * 1000
+    : 0;
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+<% } -%>
