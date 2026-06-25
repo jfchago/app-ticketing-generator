@@ -145,11 +145,7 @@ export interface RelationshipDef extends Extensible {
   targetCardinality: string;
 }
 
-export type RelationType =
-  | "one_to_one"
-  | "one_to_many"
-  | "many_to_one"
-  | "many_to_many";
+export type RelationType = 'one_to_one' | 'one_to_many' | 'many_to_one' | 'many_to_many';
 
 export interface UseCaseDef extends Extensible {
   /** Original use case key (e.g., "get_all", "create", "assign_user") */
@@ -170,7 +166,7 @@ export interface UseCaseDef extends Extensible {
   actionLabel: string;
 }
 
-export type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
+export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
 // ── Behavioral IR Types (v2) ─────────────────────────────────────────
 
@@ -188,21 +184,21 @@ export interface ActionDef extends Extensible {
 }
 
 export type ActionType =
-  | "create"
-  | "update"
-  | "delete"
-  | "notify"
-  | "emit_event"
-  | "call_service"
-  | "assign"
-  | "validate"
-  | "log"
-  | "schedule";
+  | 'create'
+  | 'update'
+  | 'delete'
+  | 'notify'
+  | 'emit_event'
+  | 'call_service'
+  | 'assign'
+  | 'validate'
+  | 'log'
+  | 'schedule';
 
 // ── Participant ──────────────────────────────────────────────────────
 
 export interface ParticipantDef extends Extensible {
-  role: "actor" | "system" | "external";
+  role: 'actor' | 'system' | 'external';
   name: string;
 }
 
@@ -233,14 +229,14 @@ export interface WorkflowStepDef extends Extensible {
 }
 
 export type WorkflowStepType =
-  | "task"
-  | "human_task"
-  | "gateway"
-  | "event"
-  | "start"
-  | "end"
-  | "timer"
-  | "subprocess";
+  | 'task'
+  | 'human_task'
+  | 'gateway'
+  | 'event'
+  | 'start'
+  | 'end'
+  | 'timer'
+  | 'subprocess';
 
 export interface WorkflowTransitionDef extends Extensible {
   targetStep: string;
@@ -301,4 +297,4 @@ export interface RuleDef extends Extensible {
   message: string;
 }
 
-export type BuildTool = "gradle" | "maven";
+export type BuildTool = 'gradle' | 'maven';

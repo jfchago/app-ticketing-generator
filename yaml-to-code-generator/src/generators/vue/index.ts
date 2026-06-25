@@ -1,10 +1,10 @@
-import { BaseGenerator } from "../base/index.js";
-import type { EntityDef } from "../../ir/types.js";
-import type { VueGenerationModel } from "../../generation/vue/types.js";
-import { fileURLToPath } from "url";
-import { dirname } from "path";
+import { BaseGenerator } from '../base/index.js';
+import type { EntityDef } from '../../ir/types.js';
+import type { VueGenerationModel } from '../../generation/vue/types.js';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
 
-const _vueTemplates = dirname(fileURLToPath(import.meta.url)) + "/templates";
+const _vueTemplates = dirname(fileURLToPath(import.meta.url)) + '/templates';
 
 export class VueGenerator extends BaseGenerator {
   private vueGen?: VueGenerationModel;
@@ -26,13 +26,9 @@ export class VueGenerator extends BaseGenerator {
       genCtx.genEntities = this.vueGen.entities;
     }
 
-    this.renderEjs("shared/enums.ts.ejs", "src/domain/enums.ts", genCtx);
-    this.renderEjs(
-      "shared/api-client.ts.ejs",
-      "src/infrastructure/api-client.ts",
-      genCtx,
-    );
-    this.renderEjs("shared/router.ts.ejs", "src/app/router/index.ts", genCtx);
+    this.renderEjs('shared/enums.ts.ejs', 'src/domain/enums.ts', genCtx);
+    this.renderEjs('shared/api-client.ts.ejs', 'src/infrastructure/api-client.ts', genCtx);
+    this.renderEjs('shared/router.ts.ejs', 'src/app/router/index.ts', genCtx);
 
     for (const entity of ir.entities) {
       this.#renderEntity(entity, genCtx);
@@ -40,77 +36,69 @@ export class VueGenerator extends BaseGenerator {
   }
 
   install(): void {
-    this.log(
-      "   ℹ Run `npm install` in the output directory to install dependencies.",
-    );
+    this.log('   ℹ Run `npm install` in the output directory to install dependencies.');
   }
 
   #renderEntity(entity: EntityDef, genCtx: Record<string, unknown>): void {
     const ctx = { entity, ...genCtx };
-    const genEntity = (genCtx.genEntities as Record<string, any>)?.[
-      entity.name
-    ];
+    const genEntity = (genCtx.genEntities as Record<string, any>)?.[entity.name];
 
     this.renderEjs(
-      "domain/entity.types.ts.ejs",
+      'domain/entity.types.ts.ejs',
       `src/domain/${entity.nameCamel}/${entity.nameCamel}.types.ts`,
       ctx,
     );
     this.renderEjs(
-      "domain/entity.repository.ts.ejs",
+      'domain/entity.repository.ts.ejs',
       `src/domain/${entity.nameCamel}/${entity.nameCamel}.repository.ts`,
       ctx,
     );
     this.renderEjs(
-      "domain/entity.service.ts.ejs",
+      'domain/entity.service.ts.ejs',
       `src/domain/${entity.nameCamel}/${entity.nameCamel}.service.ts`,
       ctx,
     );
 
     this.renderEjs(
-      "infrastructure/entity.repository.impl.ts.ejs",
+      'infrastructure/entity.repository.impl.ts.ejs',
       `src/infrastructure/repositories/${entity.nameCamel}.repository.impl.ts`,
       ctx,
     );
 
-    this.renderEjs(
-      "stores/entity.store.ts.ejs",
-      `src/stores/${entity.nameCamel}.store.ts`,
-      ctx,
-    );
+    this.renderEjs('stores/entity.store.ts.ejs', `src/stores/${entity.nameCamel}.store.ts`, ctx);
 
-    if (!entity.nameCamel.startsWith("comment")) {
+    if (!entity.nameCamel.startsWith('comment')) {
       this.renderEjs(
-        "components/EntityCard.vue.ejs",
+        'components/EntityCard.vue.ejs',
         `src/components/${entity.namePascal}Card.vue`,
         ctx,
       );
       if (genEntity?.hasCreate || genEntity?.hasUpdate) {
         this.renderEjs(
-          "components/EntityForm.vue.ejs",
+          'components/EntityForm.vue.ejs',
           `src/components/${entity.namePascal}Form.vue`,
           ctx,
         );
       }
     }
 
-    if (entity.attributes.some((a) => a.name === "status" && a.isEnum)) {
+    if (entity.attributes.some((a) => a.name === 'status' && a.isEnum)) {
       this.renderEjs(
-        "components/StatusBadge.vue.ejs",
+        'components/StatusBadge.vue.ejs',
         `src/components/${entity.namePascal}StatusBadge.vue`,
         ctx,
       );
     }
-    if (entity.attributes.some((a) => a.name === "priority" && a.isEnum)) {
+    if (entity.attributes.some((a) => a.name === 'priority' && a.isEnum)) {
       this.renderEjs(
-        "components/PriorityBadge.vue.ejs",
+        'components/PriorityBadge.vue.ejs',
         `src/components/${entity.namePascal}PriorityBadge.vue`,
         ctx,
       );
     }
-    if (entity.relationships.some((r) => r.name === "assignee")) {
+    if (entity.relationships.some((r) => r.name === 'assignee')) {
       this.renderEjs(
-        "components/AssigneeBadge.vue.ejs",
+        'components/AssigneeBadge.vue.ejs',
         `src/components/${entity.namePascal}AssigneeBadge.vue`,
         ctx,
       );
@@ -118,21 +106,21 @@ export class VueGenerator extends BaseGenerator {
 
     if (genEntity?.hasGetAll) {
       this.renderEjs(
-        "views/EntityListView.vue.ejs",
+        'views/EntityListView.vue.ejs',
         `src/views/${entity.namePascal}ListView.vue`,
         ctx,
       );
     }
     if (genEntity?.hasGetById) {
       this.renderEjs(
-        "views/EntityDetailView.vue.ejs",
+        'views/EntityDetailView.vue.ejs',
         `src/views/${entity.namePascal}DetailView.vue`,
         ctx,
       );
     }
     if (genEntity?.hasCreate) {
       this.renderEjs(
-        "views/CreateEntityView.vue.ejs",
+        'views/CreateEntityView.vue.ejs',
         `src/views/Create${entity.namePascal}View.vue`,
         ctx,
       );

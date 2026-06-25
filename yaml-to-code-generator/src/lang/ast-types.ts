@@ -17,7 +17,7 @@ export interface BehaviorNode {
 // ── Workflow ─────────────────────────────────────────────────────────
 
 export interface WorkflowAST extends BehaviorNode {
-  kind: "Workflow";
+  kind: 'Workflow';
   name: string;
   participants: ParticipantAST[];
   steps: WorkflowStepAST[];
@@ -26,24 +26,16 @@ export interface WorkflowAST extends BehaviorNode {
 }
 
 export interface ParticipantAST {
-  role: "actor" | "system" | "external";
+  role: 'actor' | 'system' | 'external';
   name: string;
 }
 
 export interface WorkflowStepAST extends BehaviorNode {
-  kind: "WorkflowStep";
+  kind: 'WorkflowStep';
   id: string;
   name: string;
   label?: string;
-  type:
-    | "task"
-    | "human_task"
-    | "gateway"
-    | "event"
-    | "start"
-    | "end"
-    | "timer"
-    | "subprocess";
+  type: 'task' | 'human_task' | 'gateway' | 'event' | 'start' | 'end' | 'timer' | 'subprocess';
   actorName?: string;
   actions: ActionAST[];
   transitions: {
@@ -60,16 +52,16 @@ export interface WorkflowStepAST extends BehaviorNode {
 
 export interface ActionAST extends BehaviorNode {
   type:
-    | "create"
-    | "update"
-    | "delete"
-    | "notify"
-    | "emit_event"
-    | "call_service"
-    | "assign"
-    | "validate"
-    | "log"
-    | "schedule";
+    | 'create'
+    | 'update'
+    | 'delete'
+    | 'notify'
+    | 'emit_event'
+    | 'call_service'
+    | 'assign'
+    | 'validate'
+    | 'log'
+    | 'schedule';
   target?: string;
   params: Record<string, string>;
   resultVariable?: string;
@@ -78,7 +70,7 @@ export interface ActionAST extends BehaviorNode {
 // ── Event ────────────────────────────────────────────────────────────
 
 export interface EventAST extends BehaviorNode {
-  kind: "Event";
+  kind: 'Event';
   name: string;
   source?: string;
   payload: { name: string; type: string; required: boolean }[];
@@ -88,7 +80,7 @@ export interface EventAST extends BehaviorNode {
 // ── Decision ─────────────────────────────────────────────────────────
 
 export interface DecisionAST extends BehaviorNode {
-  kind: "Decision";
+  kind: 'Decision';
   name: string;
   input?: string;
   cases: { condition: string; actions: ActionAST[] }[];

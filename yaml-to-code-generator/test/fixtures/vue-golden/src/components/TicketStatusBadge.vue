@@ -3,9 +3,7 @@ defineProps<{ status: string }>();
 </script>
 
 <template>
-  <span class="status-badge" :class="'status-' + status.toLowerCase()">{{
-    status
-  }}</span>
+  <span class="status-badge" :class="'status-' + status.toLowerCase()">{{ status }}</span>
 </template>
 
 <style scoped>

@@ -8,7 +8,7 @@ import type {
   ResolvedWorkflow,
   ResolvedEvent,
   ResolvedDecision,
-} from "./types.js";
+} from './types.js';
 
 export interface SemanticSnapshot {
   meta: SnapshotMeta;
@@ -140,14 +140,14 @@ export function toSnapshot(model: SemanticModel): SemanticSnapshot {
   const domain = model.domain;
 
   const diagCounts = {
-    error: model.diagnostics.filter((d) => d.severity === "error").length,
-    warning: model.diagnostics.filter((d) => d.severity === "warning").length,
-    info: model.diagnostics.filter((d) => d.severity === "info").length,
+    error: model.diagnostics.filter((d) => d.severity === 'error').length,
+    warning: model.diagnostics.filter((d) => d.severity === 'warning').length,
+    info: model.diagnostics.filter((d) => d.severity === 'info').length,
   };
 
   return {
     meta: {
-      tool: "yaml2code-semantic",
+      tool: 'yaml2code-semantic',
       version: 1,
       timestamp: new Date().toISOString(),
       specPath: model.meta.specPath,
@@ -156,14 +156,8 @@ export function toSnapshot(model: SemanticModel): SemanticSnapshot {
     summary: {
       entities: domain.entities.length,
       enums: domain.enums.length,
-      attributes: domain.entities.reduce(
-        (sum, e) => sum + e.attributes.length,
-        0,
-      ),
-      relationships: domain.entities.reduce(
-        (sum, e) => sum + e.relationships.length,
-        0,
-      ),
+      attributes: domain.entities.reduce((sum, e) => sum + e.attributes.length, 0),
+      relationships: domain.entities.reduce((sum, e) => sum + e.relationships.length, 0),
       useCases: domain.entities.reduce((sum, e) => sum + e.useCases.length, 0),
       workflows: domain.workflows.length,
       events: domain.events.length,
@@ -198,18 +192,9 @@ export function toSnapshot(model: SemanticModel): SemanticSnapshot {
         : undefined,
     })),
     behavior: {
-      workflows:
-        domain.workflows.length > 0
-          ? domain.workflows.map(workflowToSnapshot)
-          : undefined,
-      events:
-        domain.events.length > 0
-          ? domain.events.map(eventToSnapshot)
-          : undefined,
-      decisions:
-        domain.decisions.length > 0
-          ? domain.decisions.map(decisionToSnapshot)
-          : undefined,
+      workflows: domain.workflows.length > 0 ? domain.workflows.map(workflowToSnapshot) : undefined,
+      events: domain.events.length > 0 ? domain.events.map(eventToSnapshot) : undefined,
+      decisions: domain.decisions.length > 0 ? domain.decisions.map(decisionToSnapshot) : undefined,
     },
   };
 }
@@ -239,7 +224,7 @@ function entityToSnapshot(e: ResolvedEntity): EntitySnapshot {
       name: a.name,
       type: a.type,
       resolvedType: { kind: a.resolvedType.kind, ref: a.resolvedType.ref },
-      fieldRole: a.fieldRole ?? "field",
+      fieldRole: a.fieldRole ?? 'field',
       required: a.required,
       primary: a.primary,
     })),

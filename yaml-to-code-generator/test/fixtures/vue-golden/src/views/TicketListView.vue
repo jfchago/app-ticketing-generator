@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { onMounted } from "vue";
-import { useRouter } from "vue-router";
-import { useTicketStore } from "../stores/ticket.store";
-import TicketCard from "../components/TicketCard.vue";
+import { onMounted } from 'vue';
+import { useRouter } from 'vue-router';
+import { useTicketStore } from '../stores/ticket.store';
+import TicketCard from '../components/TicketCard.vue';
 
 const store = useTicketStore();
 const router = useRouter();
@@ -12,11 +12,11 @@ onMounted(() => {
 });
 
 function goToDetail(id: string) {
-  router.push("/tickets/" + id);
+  router.push('/tickets/' + id);
 }
 
 function goToCreate() {
-  router.push("/tickets/new");
+  router.push('/tickets/new');
 }
 </script>
 
@@ -31,12 +31,7 @@ function goToCreate() {
     <div v-if="store.loading">Loading...</div>
     <div v-else-if="store.error" class="error">{{ store.error }}</div>
     <div v-else>
-      <TicketCard
-        v-for="item in store.tickets"
-        :key="item.id"
-        :item="item"
-        @click="goToDetail"
-      />
+      <TicketCard v-for="item in store.tickets" :key="item.id" :item="item" @click="goToDetail" />
     </div>
   </div>
 </template>

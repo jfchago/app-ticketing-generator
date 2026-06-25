@@ -1,5 +1,5 @@
-import type { DslVersion, MigrationStep } from "./types.js";
-import { versionToString, compareVersions, versionsEqual } from "./resolver.js";
+import type { DslVersion, MigrationStep } from './types.js';
+import { versionToString, compareVersions, versionsEqual } from './resolver.js';
 
 const REGISTRY: MigrationStep[] = [];
 
@@ -14,10 +14,7 @@ export function registerMigration(step: MigrationStep): void {
   }
 }
 
-export function getMigrationSteps(
-  from: DslVersion,
-  to: DslVersion,
-): MigrationStep[] {
+export function getMigrationSteps(from: DslVersion, to: DslVersion): MigrationStep[] {
   const sorted = [...REGISTRY].sort(
     (a, b) => compareVersions(a.from, b.from) - compareVersions(a.to, b.to),
   );
@@ -25,10 +22,7 @@ export function getMigrationSteps(
   const relevant: MigrationStep[] = [];
 
   for (const step of sorted) {
-    if (
-      compareVersions(step.from, from) >= 0 &&
-      compareVersions(step.to, to) <= 0
-    ) {
+    if (compareVersions(step.from, from) >= 0 && compareVersions(step.to, to) <= 0) {
       relevant.push(step);
     }
   }
@@ -66,10 +60,7 @@ export function migrateSpec(
   return { spec: current, migrationPath: path };
 }
 
-export function isMigrationIdempotent(
-  label: string,
-  testSpec: unknown,
-): boolean {
+export function isMigrationIdempotent(label: string, testSpec: unknown): boolean {
   const step = REGISTRY.find((s) => s.label === label);
   if (!step) return true;
 

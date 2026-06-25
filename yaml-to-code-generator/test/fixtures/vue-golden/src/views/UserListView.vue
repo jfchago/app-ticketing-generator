@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { onMounted } from "vue";
-import { useRouter } from "vue-router";
-import { useUserStore } from "../stores/user.store";
-import UserCard from "../components/UserCard.vue";
+import { onMounted } from 'vue';
+import { useRouter } from 'vue-router';
+import { useUserStore } from '../stores/user.store';
+import UserCard from '../components/UserCard.vue';
 
 const store = useUserStore();
 const router = useRouter();
@@ -12,7 +12,7 @@ onMounted(() => {
 });
 
 function goToDetail(id: string) {
-  router.push("/users/" + id);
+  router.push('/users/' + id);
 }
 </script>
 
@@ -25,12 +25,7 @@ function goToDetail(id: string) {
     <div v-if="store.loading">Loading...</div>
     <div v-else-if="store.error" class="error">{{ store.error }}</div>
     <div v-else>
-      <UserCard
-        v-for="item in store.users"
-        :key="item.id"
-        :item="item"
-        @click="goToDetail"
-      />
+      <UserCard v-for="item in store.users" :key="item.id" :item="item" @click="goToDetail" />
     </div>
   </div>
 </template>

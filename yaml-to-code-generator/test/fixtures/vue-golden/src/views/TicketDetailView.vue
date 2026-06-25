@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import { onMounted } from "vue";
-import { useRoute, useRouter } from "vue-router";
-import { useTicketStore } from "../stores/ticket.store";
+import { onMounted } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import { useTicketStore } from '../stores/ticket.store';
 
-import StatusBadge from "../components/TicketStatusBadge.vue";
+import StatusBadge from '../components/TicketStatusBadge.vue';
 
-import PriorityBadge from "../components/TicketPriorityBadge.vue";
+import PriorityBadge from '../components/TicketPriorityBadge.vue';
 
-import AssigneeBadge from "../components/TicketAssigneeBadge.vue";
+import AssigneeBadge from '../components/TicketAssigneeBadge.vue';
 
 const store = useTicketStore();
 const route = useRoute();
@@ -30,16 +30,9 @@ onMounted(() => {
 
       <div class="meta">
         <span>Status: <StatusBadge :status="store.current.status" /></span>
-        <span
-          >Priority: <PriorityBadge :priority="store.current.priority"
-        /></span>
-        <span
-          >Assigned to: <AssigneeBadge :assignee-id="store.current.assigneeId"
-        /></span>
-        <span
-          >Created:
-          {{ new Date(store.current.createdAt).toLocaleDateString() }}</span
-        >
+        <span>Priority: <PriorityBadge :priority="store.current.priority" /></span>
+        <span>Assigned to: <AssigneeBadge :assignee-id="store.current.assigneeId" /></span>
+        <span>Created: {{ new Date(store.current.createdAt).toLocaleDateString() }}</span>
       </div>
     </div>
   </div>

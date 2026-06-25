@@ -25,7 +25,7 @@ export interface DeprecationNotice {
   message: string;
   since: DslVersion;
   removal: DslVersion;
-  severity: "warning" | "error";
+  severity: 'warning' | 'error';
 }
 
 export interface VersionedSpec {

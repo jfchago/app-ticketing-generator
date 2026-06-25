@@ -1,11 +1,11 @@
 // ir/snapshot.ts — Serialize IR to JSON for observability
 // Produces the format defined in docs/ir/ir-snapshot-format.md
 
-import type { IR, EntityDef, EnumDef } from "./types.js";
+import type { IR, EntityDef, EnumDef } from './types.js';
 
 export interface IRSnapshot {
   meta: {
-    tool: "yaml2code-ir";
+    tool: 'yaml2code-ir';
     version: 1;
     timestamp: string;
     specPath: string;
@@ -77,19 +77,13 @@ export function toIRSnapshot(
   semanticHash: string,
   includeFullIR?: boolean,
 ): IRSnapshot {
-  const totalAttributes = ir.entities.reduce(
-    (s, e) => s + e.attributes.length,
-    0,
-  );
-  const totalRelationships = ir.entities.reduce(
-    (s, e) => s + e.relationships.length,
-    0,
-  );
+  const totalAttributes = ir.entities.reduce((s, e) => s + e.attributes.length, 0);
+  const totalRelationships = ir.entities.reduce((s, e) => s + e.relationships.length, 0);
   const totalUseCases = ir.entities.reduce((s, e) => s + e.useCases.length, 0);
 
   const snapshot: IRSnapshot = {
     meta: {
-      tool: "yaml2code-ir",
+      tool: 'yaml2code-ir',
       version: 1,
       timestamp: new Date().toISOString(),
       specPath,
@@ -137,11 +131,10 @@ function summarizeEntity(entity: EntityDef): EntitySummary {
         .map((a) => {
           const name = a.name.toLowerCase();
           let role: string | undefined;
-          if (name === "status") role = "status";
-          else if (name === "priority") role = "priority";
-          else if (name.endsWith("id") && name !== "id") role = "assignee";
-          else if (["createdat", "updatedat"].includes(name))
-            role = "timestamp";
+          if (name === 'status') role = 'status';
+          else if (name === 'priority') role = 'priority';
+          else if (name.endsWith('id') && name !== 'id') role = 'assignee';
+          else if (['createdat', 'updatedat'].includes(name)) role = 'timestamp';
           return [a.name, role];
         })
         .filter(([_, v]) => v),
@@ -155,25 +148,19 @@ function summarizeEntity(entity: EntityDef): EntitySummary {
     useCaseCount: entity.useCases.length,
     useCaseNames: entity.useCases.map((u) => u.name).sort(),
     useCaseCategories: Object.fromEntries(
-      entity.useCases
-        .filter((u) => u.category)
-        .map((u) => [u.name, u.category]),
+      entity.useCases.filter((u) => u.category).map((u) => [u.name, u.category]),
     ),
     flags: {
-      hasCreate: entity.useCases.some((uc) => uc.name === "create"),
+      hasCreate: entity.useCases.some((uc) => uc.name === 'create'),
       hasUpdate: entity.useCases.some((uc) =>
-        ["update", "update_status", "update_priority"].includes(uc.name),
+        ['update', 'update_status', 'update_priority'].includes(uc.name),
       ),
-      hasDelete: entity.useCases.some((uc) => uc.name === "delete"),
-      hasGetAll: entity.useCases.some(
-        (uc) => uc.name === "get_all" || uc.name === "load_users",
-      ),
-      hasGetById: entity.useCases.some((uc) => uc.name === "get_by_id"),
+      hasDelete: entity.useCases.some((uc) => uc.name === 'delete'),
+      hasGetAll: entity.useCases.some((uc) => uc.name === 'get_all' || uc.name === 'load_users'),
+      hasGetById: entity.useCases.some((uc) => uc.name === 'get_by_id'),
     },
     pkType: entity.primaryKey?.type,
-    transitionKeys: entity.transitions
-      ? Object.keys(entity.transitions)
-      : undefined,
+    transitionKeys: entity.transitions ? Object.keys(entity.transitions) : undefined,
     ruleNames: entity.entityRules?.map((r) => r.name).sort(),
     eventNames: entity.entityEvents?.map((e) => e.name).sort(),
   };
@@ -194,17 +181,13 @@ export function compareIRSnapshots(
   const diffs: string[] = [];
 
   if (baseline.summary.entities !== current.summary.entities) {
-    diffs.push(
-      `entities: ${baseline.summary.entities} → ${current.summary.entities}`,
-    );
+    diffs.push(`entities: ${baseline.summary.entities} → ${current.summary.entities}`);
   }
   if (baseline.summary.enums !== current.summary.enums) {
     diffs.push(`enums: ${baseline.summary.enums} → ${current.summary.enums}`);
   }
   if (baseline.summary.attributes !== current.summary.attributes) {
-    diffs.push(
-      `attributes: ${baseline.summary.attributes} → ${current.summary.attributes}`,
-    );
+    diffs.push(`attributes: ${baseline.summary.attributes} → ${current.summary.attributes}`);
   }
   if (baseline.summary.relationships !== current.summary.relationships) {
     diffs.push(
@@ -212,9 +195,7 @@ export function compareIRSnapshots(
     );
   }
   if (baseline.summary.useCases !== current.summary.useCases) {
-    diffs.push(
-      `useCases: ${baseline.summary.useCases} → ${current.summary.useCases}`,
-    );
+    diffs.push(`useCases: ${baseline.summary.useCases} → ${current.summary.useCases}`);
   }
 
   for (const be of baseline.entities) {
@@ -224,9 +205,7 @@ export function compareIRSnapshots(
       continue;
     }
     if (be.attributeCount !== ce.attributeCount) {
-      diffs.push(
-        `entity ${be.name}.attributeCount: ${be.attributeCount} → ${ce.attributeCount}`,
-      );
+      diffs.push(`entity ${be.name}.attributeCount: ${be.attributeCount} → ${ce.attributeCount}`);
     }
     if (be.relationshipCount !== ce.relationshipCount) {
       diffs.push(
@@ -234,12 +213,10 @@ export function compareIRSnapshots(
       );
     }
     if (be.useCaseCount !== ce.useCaseCount) {
-      diffs.push(
-        `entity ${be.name}.useCaseCount: ${be.useCaseCount} → ${ce.useCaseCount}`,
-      );
+      diffs.push(`entity ${be.name}.useCaseCount: ${be.useCaseCount} → ${ce.useCaseCount}`);
     }
-    const bUc = be.useCaseNames.sort().join(",");
-    const cUc = ce.useCaseNames.sort().join(",");
+    const bUc = be.useCaseNames.sort().join(',');
+    const cUc = ce.useCaseNames.sort().join(',');
     if (bUc !== cUc) {
       diffs.push(`entity ${be.name}.useCases: [${bUc}] → [${cUc}]`);
     }

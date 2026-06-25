@@ -1,27 +1,21 @@
 <script setup lang="ts">
-import { ref } from "vue";
-import type { Ticket } from "../domain/ticket/ticket.types";
+import { ref } from 'vue';
+import type { Ticket } from '../domain/ticket/ticket.types';
 
-import type {
-  TicketStatus,
-  TicketPriority,
-} from "../domain/ticket/ticket.types";
-import {
-  TicketStatus_LABELS,
-  TicketPriority_LABELS,
-} from "../domain/ticket/ticket.types";
+import type { TicketStatus, TicketPriority } from '../domain/ticket/ticket.types';
+import { TicketStatus_LABELS, TicketPriority_LABELS } from '../domain/ticket/ticket.types';
 
 const emit = defineEmits<{
   submit: [data: Partial<Ticket>];
 }>();
 
-const title = ref<string>("");
+const title = ref<string>('');
 
 const description = ref<string | null>(null);
 
-const status = ref<TicketStatus>("OPEN");
+const status = ref<TicketStatus>('OPEN');
 
-const priority = ref<TicketPriority>("MEDIUM");
+const priority = ref<TicketPriority>('MEDIUM');
 
 const assigneeId = ref<string | null>(null);
 
@@ -33,7 +27,7 @@ function validateAll(): boolean {
 
 function handleSubmit() {
   if (!validateAll()) return;
-  emit("submit", {
+  emit('submit', {
     title: title.value,
     description: description.value,
     status: status.value,
@@ -62,11 +56,7 @@ function handleSubmit() {
 
       <select id="status" v-model="status" required>
         <option value="" disabled>Select...</option>
-        <option
-          v-for="(label, value) in TicketStatus_LABELS"
-          :key="value"
-          :value="value"
-        >
+        <option v-for="(label, value) in TicketStatus_LABELS" :key="value" :value="value">
           {{ label }}
         </option>
       </select>
@@ -77,11 +67,7 @@ function handleSubmit() {
 
       <select id="priority" v-model="priority" required>
         <option value="" disabled>Select...</option>
-        <option
-          v-for="(label, value) in TicketPriority_LABELS"
-          :key="value"
-          :value="value"
-        >
+        <option v-for="(label, value) in TicketPriority_LABELS" :key="value" :value="value">
           {{ label }}
         </option>
       </select>

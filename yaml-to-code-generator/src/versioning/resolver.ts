@@ -1,4 +1,4 @@
-import type { DslVersion } from "./types.js";
+import type { DslVersion } from './types.js';
 
 const VERSION_REGEX = /^v?(\d+)\.(\d+)\.(\d+)$/;
 
@@ -30,20 +30,17 @@ export function compareVersions(a: DslVersion, b: DslVersion): number {
   return a.patch - b.patch;
 }
 
-export function isVersionOlder(
-  version: DslVersion,
-  reference: DslVersion,
-): boolean {
+export function isVersionOlder(version: DslVersion, reference: DslVersion): boolean {
   return compareVersions(version, reference) < 0;
 }
 
 export function extractVersion(raw: Record<string, unknown>): DslVersion {
-  const versionField = raw["version"];
-  if (typeof versionField === "string") {
+  const versionField = raw['version'];
+  if (typeof versionField === 'string') {
     const parsed = parseDslVersion(versionField);
     if (parsed) return parsed;
   }
-  if (typeof versionField === "number") {
+  if (typeof versionField === 'number') {
     return { major: versionField, minor: 0, patch: 0 };
   }
   return { ...DEFAULT_DSL_VERSION };

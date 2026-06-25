@@ -1,12 +1,12 @@
-import type { Ticket } from "./ticket.types";
+import type { Ticket } from './ticket.types';
 
-import type { TicketStatus } from "./ticket.types";
+import type { TicketStatus } from './ticket.types';
 
-import type { TicketPriority } from "./ticket.types";
+import type { TicketPriority } from './ticket.types';
 
-import type { Comment } from "../comment/comment.types";
+import type { Comment } from '../comment/comment.types';
 
-import type { TicketRepository } from "./ticket.repository";
+import type { TicketRepository } from './ticket.repository';
 
 export class TicketService {
   repository: TicketRepository;
@@ -23,11 +23,7 @@ export class TicketService {
     return this.repository.getById(id);
   }
 
-  async create(
-    title: string,
-    description: string,
-    priority: TicketPriority,
-  ): Promise<Ticket> {
+  async create(title: string, description: string, priority: TicketPriority): Promise<Ticket> {
     return this.repository.create(title, description, priority);
   }
 
@@ -35,10 +31,7 @@ export class TicketService {
     return this.repository.updateStatus(ticketId, status);
   }
 
-  async updatePriority(
-    ticketId: string,
-    priority: TicketPriority,
-  ): Promise<void> {
+  async updatePriority(ticketId: string, priority: TicketPriority): Promise<void> {
     return this.repository.updatePriority(ticketId, priority);
   }
 

@@ -1,8 +1,8 @@
-import { defineStore } from "pinia";
-import type { Comment } from "../domain/comment/comment.types";
+import { defineStore } from 'pinia';
+import type { Comment } from '../domain/comment/comment.types';
 
-import { CommentService } from "../domain/comment/comment.service";
-import { CommentRepositoryImpl } from "../infrastructure/repositories/comment.repository.impl";
+import { CommentService } from '../domain/comment/comment.service';
+import { CommentRepositoryImpl } from '../infrastructure/repositories/comment.repository.impl';
 
 const service = new CommentService(new CommentRepositoryImpl());
 
@@ -13,7 +13,7 @@ interface CommentState {
   error: string | null;
 }
 
-export const useCommentStore = defineStore("comment", {
+export const useCommentStore = defineStore('comment', {
   state: (): CommentState => ({
     comments: [],
     current: null,

@@ -5,21 +5,16 @@
 // - No duplicate names within a block
 // - Cross-references between behavior blocks
 
-import type {
-  BehaviorAST,
-  WorkflowAST,
-  EventAST,
-  DecisionAST,
-} from "./ast-types.js";
+import type { BehaviorAST, WorkflowAST, EventAST, DecisionAST } from './ast-types.js';
 
 export class BehaviorValidationError extends Error {
   public readonly errors: string[];
 
   constructor(errors: string[]) {
     super(
-      `Behavior validation failed with ${errors.length} error(s):\n${errors.map((e) => `  - ${e}`).join("\n")}`,
+      `Behavior validation failed with ${errors.length} error(s):\n${errors.map((e) => `  - ${e}`).join('\n')}`,
     );
-    this.name = "BehaviorValidationError";
+    this.name = 'BehaviorValidationError';
     this.errors = errors;
   }
 }
@@ -47,13 +42,13 @@ export function validateBehaviorASTs(
 
   for (const ast of asts) {
     switch (ast.kind) {
-      case "Workflow":
+      case 'Workflow':
         errors.push(...validateWorkflow(ast));
         break;
-      case "Event":
+      case 'Event':
         errors.push(...validateEvent(ast));
         break;
-      case "Decision":
+      case 'Decision':
         errors.push(...validateDecision(ast));
         break;
     }
@@ -85,7 +80,7 @@ function validateWorkflow(wf: WorkflowAST): string[] {
   // Check start step exists
   if (wf.startStep && !stepNames.has(wf.startStep)) {
     errors.push(
-      `Workflow "${wf.name}": start step "${wf.startStep}" not found in steps [${[...stepNames].join(", ")}]`,
+      `Workflow "${wf.name}": start step "${wf.startStep}" not found in steps [${[...stepNames].join(', ')}]`,
     );
   }
 
@@ -93,7 +88,7 @@ function validateWorkflow(wf: WorkflowAST): string[] {
   for (const es of wf.endSteps) {
     if (!stepNames.has(es)) {
       errors.push(
-        `Workflow "${wf.name}": end step "${es}" not found in steps [${[...stepNames].join(", ")}]`,
+        `Workflow "${wf.name}": end step "${es}" not found in steps [${[...stepNames].join(', ')}]`,
       );
     }
   }
@@ -145,9 +140,7 @@ function validateDecision(dc: DecisionAST): string[] {
   const seen = new Set<string>();
   for (const c of dc.cases) {
     if (seen.has(c.condition)) {
-      errors.push(
-        `Decision "${dc.name}": duplicate when condition "${c.condition}"`,
-      );
+      errors.push(`Decision "${dc.name}": duplicate when condition "${c.condition}"`);
     }
     seen.add(c.condition);
   }

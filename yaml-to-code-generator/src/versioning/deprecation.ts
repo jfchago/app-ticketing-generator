@@ -1,5 +1,5 @@
-import type { DslVersion, DeprecationNotice } from "./types.js";
-import { isVersionOlder } from "./resolver.js";
+import type { DslVersion, DeprecationNotice } from './types.js';
+import { isVersionOlder } from './resolver.js';
 
 interface FeatureRecord {
   feature: string;
@@ -31,12 +31,9 @@ export function checkDeprecations(
         message: `${feature.feature} was removed in ${formatVersion(feature.removed)}. ${feature.replacement}`,
         since: feature.deprecated ?? feature.removed,
         removal: feature.removed,
-        severity: "error",
+        severity: 'error',
       });
-    } else if (
-      feature.deprecated &&
-      !isVersionOlder(canonicalVersion, feature.deprecated)
-    ) {
+    } else if (feature.deprecated && !isVersionOlder(canonicalVersion, feature.deprecated)) {
       const found = detectFeatureUsage(spec, feature.feature);
       if (found) {
         notices.push({
@@ -49,7 +46,7 @@ export function checkDeprecations(
             minor: 0,
             patch: 0,
           },
-          severity: "warning",
+          severity: 'warning',
         });
       }
     }
@@ -58,25 +55,21 @@ export function checkDeprecations(
   return notices;
 }
 
-function detectFeatureUsage(
-  spec: Record<string, unknown>,
-  feature: string,
-): boolean {
+function detectFeatureUsage(spec: Record<string, unknown>, feature: string): boolean {
   const featureLower = feature.toLowerCase();
-  if (typeof spec !== "object" || spec === null) return false;
+  if (typeof spec !== 'object' || spec === null) return false;
 
-  const entities = spec["entities"];
+  const entities = spec['entities'];
   if (Array.isArray(entities)) {
     for (const entity of entities) {
-      if (typeof entity !== "object" || entity === null) continue;
+      if (typeof entity !== 'object' || entity === null) continue;
       const e = entity as Record<string, unknown>;
-      if (Object.keys(e).some((k) => k.toLowerCase() === featureLower))
-        return true;
-      const attrs = e["attributes"];
+      if (Object.keys(e).some((k) => k.toLowerCase() === featureLower)) return true;
+      const attrs = e['attributes'];
       if (Array.isArray(attrs)) {
         for (const attr of attrs) {
           if (
-            typeof attr === "object" &&
+            typeof attr === 'object' &&
             attr !== null &&
             Object.keys(attr as Record<string, unknown>).some(
               (k) => k.toLowerCase() === featureLower,
@@ -85,11 +78,11 @@ function detectFeatureUsage(
             return true;
         }
       }
-      const rels = e["relationships"];
+      const rels = e['relationships'];
       if (Array.isArray(rels)) {
         for (const rel of rels) {
           if (
-            typeof rel === "object" &&
+            typeof rel === 'object' &&
             rel !== null &&
             Object.keys(rel as Record<string, unknown>).some(
               (k) => k.toLowerCase() === featureLower,
@@ -98,10 +91,9 @@ function detectFeatureUsage(
             return true;
         }
       }
-      const ucs = e["use_cases"];
+      const ucs = e['use_cases'];
       if (Array.isArray(ucs)) {
-        if (ucs.some((uc) => String(uc).toLowerCase() === featureLower))
-          return true;
+        if (ucs.some((uc) => String(uc).toLowerCase() === featureLower)) return true;
       }
     }
   }
@@ -112,9 +104,7 @@ function formatVersion(v: DslVersion): string {
   return `v${v.major}.${v.minor}.${v.patch}`;
 }
 
-export function listDeprecatedFeatures(
-  canonicalVersion: DslVersion,
-): FeatureRecord[] {
+export function listDeprecatedFeatures(canonicalVersion: DslVersion): FeatureRecord[] {
   return FEATURE_REGISTRY.filter(
     (f) =>
       f.deprecated !== null &&

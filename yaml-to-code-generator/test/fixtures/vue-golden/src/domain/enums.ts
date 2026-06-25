@@ -1,23 +1,23 @@
-export type TicketStatus = "OPEN" | "IN_PROGRESS" | "RESOLVED" | "CLOSED";
+export type TicketStatus = 'OPEN' | 'IN_PROGRESS' | 'RESOLVED' | 'CLOSED';
 
 export const TicketStatus_LABELS: Record<TicketStatus, string> = {
-  OPEN: "Abierta",
+  OPEN: 'Abierta',
 
-  IN_PROGRESS: "En curso",
+  IN_PROGRESS: 'En curso',
 
-  RESOLVED: "Resuelta",
+  RESOLVED: 'Resuelta',
 
-  CLOSED: "Cerrada",
+  CLOSED: 'Cerrada',
 };
 
-export type TicketPriority = "LOW" | "MEDIUM" | "HIGH" | "URGENT";
+export type TicketPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
 
 export const TicketPriority_LABELS: Record<TicketPriority, string> = {
-  LOW: "Baja",
+  LOW: 'Baja',
 
-  MEDIUM: "Media",
+  MEDIUM: 'Media',
 
-  HIGH: "Alta",
+  HIGH: 'Alta',
 
-  URGENT: "Urgente",
+  URGENT: 'Urgente',
 };

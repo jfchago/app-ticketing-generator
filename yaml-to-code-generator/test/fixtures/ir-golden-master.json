@@ -125,11 +125,7 @@
       },
       "pkType": "String",
       "transitionKeys": ["OPEN", "IN_PROGRESS", "RESOLVED", "CLOSED"],
-      "ruleNames": [
-        "PrioridadValida",
-        "RequiereComentarioParaCerrar",
-        "TituloObligatorio"
-      ],
+      "ruleNames": ["PrioridadValida", "RequiereComentarioParaCerrar", "TituloObligatorio"],
       "eventNames": []
     },
     {

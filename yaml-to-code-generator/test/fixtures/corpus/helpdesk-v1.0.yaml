@@ -2,12 +2,12 @@
 # This YAML is the SINGLE SOURCE OF TRUTH.
 # All code (Vue, Spring, PUML) is generated from this file.
 
-version: "1.0.0"
+version: '1.0.0'
 
 application:
-  name: "Mini HelpDesk"
+  name: 'Mini HelpDesk'
   module: helpdesk
-  description: "A minimal support ticket management system"
+  description: 'A minimal support ticket management system'
   basePackage: com.helpdesk
 
 # ── Enums ──────────────────────────────────────────────────────────────
@@ -20,10 +20,10 @@ enums:
       - RESOLVED
       - CLOSED
     labels:
-      OPEN: "Abierta"
-      IN_PROGRESS: "En curso"
-      RESOLVED: "Resuelta"
-      CLOSED: "Cerrada"
+      OPEN: 'Abierta'
+      IN_PROGRESS: 'En curso'
+      RESOLVED: 'Resuelta'
+      CLOSED: 'Cerrada'
 
   TicketPriority:
     values:
@@ -32,10 +32,10 @@ enums:
       - HIGH
       - URGENT
     labels:
-      LOW: "Baja"
-      MEDIUM: "Media"
-      HIGH: "Alta"
-      URGENT: "Urgente"
+      LOW: 'Baja'
+      MEDIUM: 'Media'
+      HIGH: 'Alta'
+      URGENT: 'Urgente'
 
 # ── Entities ───────────────────────────────────────────────────────────
 
@@ -43,7 +43,7 @@ entities:
   - name: User
     stereotype: entity
     table: users
-    description: "HelpDesk user (agent or reporter)"
+    description: 'HelpDesk user (agent or reporter)'
     attributes:
       - name: id
         type: String
@@ -70,7 +70,7 @@ entities:
   - name: Ticket
     stereotype: aggregate_root
     table: tickets
-    description: "Support ticket — the central aggregate"
+    description: 'Support ticket — the central aggregate'
     attributes:
       - name: id
         type: String
@@ -89,11 +89,11 @@ entities:
       - name: status
         type: TicketStatus
         required: true
-        default: "OPEN"
+        default: 'OPEN'
       - name: priority
         type: TicketPriority
         required: true
-        default: "MEDIUM"
+        default: 'MEDIUM'
       - name: assigneeId
         type: String
         required: false
@@ -109,14 +109,14 @@ entities:
         type: many_to_one
         target: User
         foreign_key: assigneeId
-        source_cardinality: "0..*"
-        target_cardinality: "0..1"
+        source_cardinality: '0..*'
+        target_cardinality: '0..1'
       - name: comments
         type: one_to_many
         target: Comment
         foreign_key: ticketId
         source_cardinality: 1
-        target_cardinality: "0..*"
+        target_cardinality: '0..*'
     use_cases:
       - get_all
       - get_by_id
@@ -135,20 +135,20 @@ entities:
       - name: RequiereComentarioParaCerrar
         on: update_status
         guard: "newStatus !== 'CLOSED' || entity.comments.length > 0"
-        message: "Requiere al menos un comentario para cerrar"
+        message: 'Requiere al menos un comentario para cerrar'
       - name: TituloObligatorio
         on: create
-        guard: "title.trim().length > 0"
-        message: "El título no puede estar vacío"
+        guard: 'title.trim().length > 0'
+        message: 'El título no puede estar vacío'
       - name: PrioridadValida
         on: update_priority
         guard: "newPriority !== 'LOW' || entity.priority !== 'LOW'"
-        message: "La prioridad ya es LOW"
+        message: 'La prioridad ya es LOW'
 
   - name: Comment
     stereotype: entity
     table: comments
-    description: "Comment attached to a ticket"
+    description: 'Comment attached to a ticket'
     attributes:
       - name: id
         type: String
@@ -175,14 +175,14 @@ entities:
         type: many_to_one
         target: Ticket
         foreign_key: ticketId
-        source_cardinality: "0..*"
-        target_cardinality: "1"
+        source_cardinality: '0..*'
+        target_cardinality: '1'
       - name: author
         type: many_to_one
         target: User
         foreign_key: authorId
-        source_cardinality: "0..*"
-        target_cardinality: "0..1"
+        source_cardinality: '0..*'
+        target_cardinality: '0..1'
     use_cases:
       - add_comment
 
@@ -290,7 +290,7 @@ workflows:
 # Eventos entre componentes + eventos usados por await en workflows
 
 events:
-  - "event TicketCreado {
+  - 'event TicketCreado {
     source: Ticket;
     payload {
     id: String;
@@ -298,8 +298,8 @@ events:
     prioridad: String;
     }
     handlers: [ DashboardService, EmailService ];
-    }"
-  - "event TicketAsignado {
+    }'
+  - 'event TicketAsignado {
     source: Ticket;
     payload {
     id: String;
@@ -307,36 +307,36 @@ events:
     asignadoNombre: String;
     }
     handlers: [ EmailService ];
-    }"
-  - "event TicketCerrado {
+    }'
+  - 'event TicketCerrado {
     source: Ticket;
     payload {
     id: String;
     }
     handlers: [ DashboardService ];
-    }"
-  - "event UsuarioResponde {
+    }'
+  - 'event UsuarioResponde {
     source: Ticket;
     payload {
     id: String;
     respuesta: String;
     }
     handlers: [ WorkflowOrchestrator ];
-    }"
-  - "event ManagerAprueba {
+    }'
+  - 'event ManagerAprueba {
     source: Ticket;
     payload {
     id: String;
     resultado: String;
     }
     handlers: [ WorkflowOrchestrator ];
-    }"
+    }'
 
 # ── Decisions (top-level) ──────────────────────────────────────────
 # Reglas de decisión
 
 decisions:
-  - "decision PrioridadTicket {
+  - 'decision PrioridadTicket {
     input: Ticket;
     when Urgente {
     System does notificarAdmin;
@@ -349,4 +349,4 @@ decisions:
     else {
     System does asignarSiguiente;
     }
-    }"
+    }'

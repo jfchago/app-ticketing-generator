@@ -2,7 +2,7 @@
 // Extended domain model that sits between ValidatedSpec and IR.
 // Contains resolved symbols, references, computed flags, and diagnostics.
 
-import type { ValidatedSpec } from "../validator/schema-validator.js";
+import type { ValidatedSpec } from '../validator/schema-validator.js';
 
 export interface SemanticModel {
   domain: ResolvedDomain;
@@ -100,18 +100,11 @@ export interface ResolvedAttribute {
 }
 
 export interface ResolvedType {
-  kind: "primitive" | "enum" | "entity" | "unknown";
+  kind: 'primitive' | 'enum' | 'entity' | 'unknown';
   ref: string;
 }
 
-export type FieldRole =
-  | "id"
-  | "status"
-  | "priority"
-  | "assignee"
-  | "timestamp"
-  | "text"
-  | "field";
+export type FieldRole = 'id' | 'status' | 'priority' | 'assignee' | 'timestamp' | 'text' | 'field';
 
 export interface ResolvedRelationship {
   name: string;
@@ -126,7 +119,7 @@ export interface ResolvedRelationship {
 }
 
 export interface ResolvedTarget {
-  kind: "resolved" | "unresolved";
+  kind: 'resolved' | 'unresolved';
   ref: string;
 }
 
@@ -145,12 +138,7 @@ export interface ResolvedUseCase {
   resolved: boolean;
 }
 
-export type UseCaseCategory =
-  | "create"
-  | "read"
-  | "update"
-  | "delete"
-  | "action";
+export type UseCaseCategory = 'create' | 'read' | 'update' | 'delete' | 'action';
 
 export interface ResolvedRule {
   name: string;
@@ -216,7 +204,7 @@ export interface ResolvedEvent {
   source?: string;
   payload: ResolvedPayloadField[];
   handlers: string[];
-  resolvedSource?: "entity" | "unresolved";
+  resolvedSource?: 'entity' | 'unresolved';
 }
 
 export interface ResolvedPayloadField {
@@ -240,10 +228,10 @@ export interface ResolvedDecisionCase {
 }
 
 export type ResolvedSymbol =
-  | { kind: "entity"; ref: ResolvedEntity }
-  | { kind: "enum"; ref: ResolvedEnum }
-  | { kind: "workflow"; ref: ResolvedWorkflow }
-  | { kind: "event"; ref: ResolvedEvent }
-  | { kind: "decision"; ref: ResolvedDecision };
+  | { kind: 'entity'; ref: ResolvedEntity }
+  | { kind: 'enum'; ref: ResolvedEnum }
+  | { kind: 'workflow'; ref: ResolvedWorkflow }
+  | { kind: 'event'; ref: ResolvedEvent }
+  | { kind: 'decision'; ref: ResolvedDecision };
 
-import type { SemanticDiagnostic } from "./diagnostics.js";
+import type { SemanticDiagnostic } from './diagnostics.js';

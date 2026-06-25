@@ -13,7 +13,7 @@ import type {
   ParticipantDef,
   EventDef,
   DecisionDef,
-} from "./types.js";
+} from './types.js';
 import type {
   BehaviorAST,
   WorkflowAST,
@@ -22,30 +22,30 @@ import type {
   DecisionAST,
   ActionAST,
   ParticipantAST,
-} from "../lang/ast-types.js";
-import type { SemanticModel, ResolvedEntity } from "../semantic/types.js";
+} from '../lang/ast-types.js';
+import type { SemanticModel, ResolvedEntity } from '../semantic/types.js';
 
 const PRIMITIVE_TYPES = new Set([
-  "String",
-  "Integer",
-  "Long",
-  "Float",
-  "Double",
-  "Boolean",
-  "Date",
-  "DateTime",
-  "Timestamp",
+  'String',
+  'Integer',
+  'Long',
+  'Float',
+  'Double',
+  'Boolean',
+  'Date',
+  'DateTime',
+  'Timestamp',
 ]);
 const DB_TYPE_MAP: Record<string, string> = {
-  String: "VARCHAR",
-  Integer: "INTEGER",
-  Long: "BIGINT",
-  Float: "FLOAT",
-  Double: "DOUBLE",
-  Boolean: "BOOLEAN",
-  Date: "DATE",
-  DateTime: "TIMESTAMP",
-  Timestamp: "TIMESTAMP",
+  String: 'VARCHAR',
+  Integer: 'INTEGER',
+  Long: 'BIGINT',
+  Float: 'FLOAT',
+  Double: 'DOUBLE',
+  Boolean: 'BOOLEAN',
+  Date: 'DATE',
+  DateTime: 'TIMESTAMP',
+  Timestamp: 'TIMESTAMP',
 };
 
 function mapToTSType(
@@ -55,15 +55,15 @@ function mapToTSType(
   isEntityRef: boolean,
 ): string {
   const primitiveMap: Record<string, string> = {
-    String: "string",
-    Integer: "number",
-    Long: "number",
-    Float: "number",
-    Double: "number",
-    Boolean: "boolean",
-    Date: "string",
-    DateTime: "string",
-    Timestamp: "string",
+    String: 'string',
+    Integer: 'number',
+    Long: 'number',
+    Float: 'number',
+    Double: 'number',
+    Boolean: 'boolean',
+    Date: 'string',
+    DateTime: 'string',
+    Timestamp: 'string',
   };
 
   // eslint-ignore-line
@@ -73,7 +73,7 @@ function mapToTSType(
   } else if (isEnum || isEntityRef) {
     tsType = type;
   } else {
-    tsType = "unknown";
+    tsType = 'unknown';
   }
 
   if (!required) {
@@ -94,7 +94,7 @@ function pascalCase(str: string): string {
   return str
     .split(/[-_\s]+/)
     .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
-    .join("");
+    .join('');
 }
 
 // ── Behavioral IR Builder (v2) ───────────────────────────────────────
@@ -110,11 +110,7 @@ export interface BehaviorIRContext {
  * - Entity-scoped rules → entity.entityRules
  * - Top-level workflows, events, decisions, rules → IR root arrays
  */
-export function extendIRWithBehavior(
-  ir: IR,
-  asts: BehaviorAST[],
-  context?: BehaviorIRContext,
-): IR {
+export function extendIRWithBehavior(ir: IR, asts: BehaviorAST[], context?: BehaviorIRContext): IR {
   const entityMap = context?.entityMap ?? new Map<string, string>();
   const entityByName = new Map(ir.entities.map((e) => [e.name, e]));
 
@@ -124,10 +120,10 @@ export function extendIRWithBehavior(
 
   for (const ast of asts) {
     switch (ast.kind) {
-      case "Workflow":
+      case 'Workflow':
         workflows.push(workflowASTToIR(ast));
         break;
-      case "Event": {
+      case 'Event': {
         const ev = eventASTToIR(ast);
         const entityName = entityMap.get(ast.name);
         if (entityName && entityByName.has(entityName)) {
@@ -139,7 +135,7 @@ export function extendIRWithBehavior(
         }
         break;
       }
-      case "Decision":
+      case 'Decision':
         topDecisions.push(decisionASTToIR(ast));
         break;
     }
@@ -365,9 +361,9 @@ function buildEntityFromSemantic(e: ResolvedEntity): EntityDef {
       required: a.required,
       primary: a.primary,
       defaultValue: a.defaultValue,
-      isEnum: a.resolvedType.kind === "enum",
-      isEntityRef: a.resolvedType.kind === "entity",
-      isPrimitive: a.resolvedType.kind === "primitive",
+      isEnum: a.resolvedType.kind === 'enum',
+      isEntityRef: a.resolvedType.kind === 'entity',
+      isPrimitive: a.resolvedType.kind === 'primitive',
       length: a.length,
       column: a.column,
       nullable: a.nullable,
@@ -394,15 +390,13 @@ function buildEntityFromSemantic(e: ResolvedEntity): EntityDef {
       pathSuffix: uc.pathSuffix,
       actionLabel: uc.actionLabel,
     })),
-    hasCreate: e.useCases.some((uc) => uc.name === "create"),
+    hasCreate: e.useCases.some((uc) => uc.name === 'create'),
     hasUpdate: e.useCases.some((uc) =>
-      ["update", "update_status", "update_priority"].includes(uc.name),
+      ['update', 'update_status', 'update_priority'].includes(uc.name),
     ),
-    hasDelete: e.useCases.some((uc) => uc.name === "delete"),
-    hasGetAll: e.useCases.some(
-      (uc) => uc.name === "get_all" || uc.name === "load_users",
-    ),
-    hasGetById: e.useCases.some((uc) => uc.name === "get_by_id"),
+    hasDelete: e.useCases.some((uc) => uc.name === 'delete'),
+    hasGetAll: e.useCases.some((uc) => uc.name === 'get_all' || uc.name === 'load_users'),
+    hasGetById: e.useCases.some((uc) => uc.name === 'get_by_id'),
     transitions: e.transitions,
     entityRules: e.entityRules.map((r) => ({
       name: r.name,
@@ -427,15 +421,10 @@ function buildEntityFromSemantic(e: ResolvedEntity): EntityDef {
           type: e.primaryKey.type,
           required: e.primaryKey.required,
           primary: true,
-          tsType: mapToTSType(
-            e.primaryKey.type,
-            e.primaryKey.required,
-            false,
-            false,
-          ),
+          tsType: mapToTSType(e.primaryKey.type, e.primaryKey.required, false, false),
           isEnum: false,
           isEntityRef: false,
-          isPrimitive: e.primaryKey.resolvedType.kind === "primitive",
+          isPrimitive: e.primaryKey.resolvedType.kind === 'primitive',
           length: e.primaryKey.length,
           column: e.primaryKey.column,
           nullable: false,

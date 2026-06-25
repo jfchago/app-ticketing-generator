@@ -1,4 +1,4 @@
-import type { TargetAdapter, TargetRegistration } from "./types.js";
+import type { TargetAdapter, TargetRegistration } from './types.js';
 
 export class TargetRegistry {
   private _targets = new Map<string, TargetAdapter>();

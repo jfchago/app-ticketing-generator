@@ -1,17 +1,14 @@
-import type { Ticket } from "../../domain/ticket/ticket.types";
-import type {
-  TicketStatus,
-  TicketPriority,
-} from "../../domain/ticket/ticket.types";
+import type { Ticket } from '../../domain/ticket/ticket.types';
+import type { TicketStatus, TicketPriority } from '../../domain/ticket/ticket.types';
 
-import type { Comment } from "../../domain/comment/comment.types";
+import type { Comment } from '../../domain/comment/comment.types';
 
-import type { TicketRepository } from "../../domain/ticket/ticket.repository";
-import { apiClient } from "../api-client";
+import type { TicketRepository } from '../../domain/ticket/ticket.repository';
+import { apiClient } from '../api-client';
 
 export class TicketRepositoryImpl implements TicketRepository {
   async getAll(): Promise<Ticket[]> {
-    const { data } = await apiClient.get<Ticket[]>("/tickets");
+    const { data } = await apiClient.get<Ticket[]>('/tickets');
     return data;
   }
 
@@ -20,12 +17,8 @@ export class TicketRepositoryImpl implements TicketRepository {
     return data;
   }
 
-  async create(
-    title: string,
-    description: string,
-    priority: TicketPriority,
-  ): Promise<Ticket> {
-    const { data } = await apiClient.post<Ticket>("/tickets", {
+  async create(title: string, description: string, priority: TicketPriority): Promise<Ticket> {
+    const { data } = await apiClient.post<Ticket>('/tickets', {
       title,
       description,
       priority,
@@ -37,10 +30,7 @@ export class TicketRepositoryImpl implements TicketRepository {
     await apiClient.patch(`/tickets/${ticketId}/status`, { status });
   }
 
-  async updatePriority(
-    ticketId: string,
-    priority: TicketPriority,
-  ): Promise<void> {
+  async updatePriority(ticketId: string, priority: TicketPriority): Promise<void> {
     await apiClient.patch(`/tickets/${ticketId}/priority`, { priority });
   }
 
@@ -53,10 +43,7 @@ export class TicketRepositoryImpl implements TicketRepository {
   }
 
   async addComment(ticketId: string, text: string): Promise<Comment> {
-    const { data } = await apiClient.post<Comment>(
-      `/tickets/${ticketId}/comments`,
-      { text },
-    );
+    const { data } = await apiClient.post<Comment>(`/tickets/${ticketId}/comments`, { text });
     return data;
   }
 }

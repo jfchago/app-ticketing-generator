@@ -1,4 +1,4 @@
-import type { IR, BuildTool } from "../ir/types.js";
+import type { IR, BuildTool } from '../ir/types.js';
 
 export interface GenerationOpts {
   ir: IR;

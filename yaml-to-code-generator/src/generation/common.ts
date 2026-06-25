@@ -1,13 +1,13 @@
 // generation/common.ts — Shared types for all Generation Models
 // Every target model extends or references these base contracts.
 
-import type { IR } from "../ir/types.js";
+import type { IR } from '../ir/types.js';
 
 export interface GenerationModel {
   ir: IR;
   entities: { [name: string]: GeneratedEntity };
   enums: GeneratedEnum[];
-  features: IR["buildFeatures"];
+  features: IR['buildFeatures'];
 }
 
 export interface GeneratedEntity {

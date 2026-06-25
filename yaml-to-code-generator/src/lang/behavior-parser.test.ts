@@ -1,5 +1,5 @@
-import { describe, it, expect } from "vitest";
-import { parseBehaviorBlock } from "./ast-builder.js";
+import { describe, it, expect } from 'vitest';
+import { parseBehaviorBlock } from './ast-builder.js';
 
 // ── Helpers ──────────────────────────────────────────────────────────
 
@@ -12,10 +12,10 @@ function expectError(type: string, src: string) {
 }
 // ── Workflow edge cases ──────────────────────────────────────────────
 
-describe("Workflow parsing", () => {
-  it("parses workflow with no participants", () => {
+describe('Workflow parsing', () => {
+  it('parses workflow with no participants', () => {
     const ast = parse(
-      "workflow",
+      'workflow',
       `
       workflow NoParticipants {
         start -> step1;
@@ -26,14 +26,14 @@ describe("Workflow parsing", () => {
       }
     `,
     );
-    if (ast.kind !== "Workflow") return;
+    if (ast.kind !== 'Workflow') return;
     expect(ast.participants).toHaveLength(0);
     expect(ast.steps).toHaveLength(1);
   });
 
-  it("parses workflow with no start step", () => {
+  it('parses workflow with no start step', () => {
     const ast = parse(
-      "workflow",
+      'workflow',
       `
       workflow NoStart {
         actor User;
@@ -44,13 +44,13 @@ describe("Workflow parsing", () => {
       }
     `,
     );
-    if (ast.kind !== "Workflow") return;
-    expect(ast.startStep).toBe("");
+    if (ast.kind !== 'Workflow') return;
+    expect(ast.startStep).toBe('');
   });
 
-  it("parses workflow with no end step", () => {
+  it('parses workflow with no end step', () => {
     const ast = parse(
-      "workflow",
+      'workflow',
       `
       workflow NoEnd {
         actor User;
@@ -61,13 +61,13 @@ describe("Workflow parsing", () => {
       }
     `,
     );
-    if (ast.kind !== "Workflow") return;
+    if (ast.kind !== 'Workflow') return;
     expect(ast.endSteps).toHaveLength(0);
   });
 
-  it("parses workflow with empty step (no content)", () => {
+  it('parses workflow with empty step (no content)', () => {
     const ast = parse(
-      "workflow",
+      'workflow',
       `
       workflow EmptyStep {
         start -> step1;
@@ -77,14 +77,14 @@ describe("Workflow parsing", () => {
       }
     `,
     );
-    if (ast.kind !== "Workflow") return;
+    if (ast.kind !== 'Workflow') return;
     expect(ast.steps[0].actions).toHaveLength(0);
-    expect(ast.steps[0].label).toBe("A label");
+    expect(ast.steps[0].label).toBe('A label');
   });
 
-  it("parses workflow step with label containing special chars", () => {
+  it('parses workflow step with label containing special chars', () => {
     const ast = parse(
-      "workflow",
+      'workflow',
       `
       workflow LabelTest {
         start -> s1;
@@ -95,13 +95,13 @@ describe("Workflow parsing", () => {
       }
     `,
     );
-    if (ast.kind !== "Workflow") return;
+    if (ast.kind !== 'Workflow') return;
     expect(ast.steps[0].label).toBe("Step with 'quotes' and spaces!");
   });
 
-  it("parses workflow with if/else decision block", () => {
+  it('parses workflow with if/else decision block', () => {
     const ast = parse(
-      "workflow",
+      'workflow',
       `
       workflow DecisionTest {
         actor User;
@@ -118,13 +118,13 @@ describe("Workflow parsing", () => {
       }
     `,
     );
-    if (ast.kind !== "Workflow") return;
+    if (ast.kind !== 'Workflow') return;
     expect(ast.steps[0].actions).toHaveLength(2);
   });
 
-  it("parses workflow with await statement", () => {
+  it('parses workflow with await statement', () => {
     const ast = parse(
-      "workflow",
+      'workflow',
       `
       workflow AwaitTest {
         start -> step1;
@@ -135,14 +135,14 @@ describe("Workflow parsing", () => {
       }
     `,
     );
-    if (ast.kind !== "Workflow") return;
+    if (ast.kind !== 'Workflow') return;
     // await statements don't produce actions directly
     expect(ast.steps[0].actions).toHaveLength(0);
   });
 
-  it("parses workflow with timer (after) block", () => {
+  it('parses workflow with timer (after) block', () => {
     const ast = parse(
-      "workflow",
+      'workflow',
       `
       workflow TimerTest {
         start -> step1;
@@ -155,17 +155,17 @@ describe("Workflow parsing", () => {
       }
     `,
     );
-    if (ast.kind !== "Workflow") return;
+    if (ast.kind !== 'Workflow') return;
     expect(ast.steps[0].actions).toHaveLength(1);
   });
 });
 
 // ── Event edge cases ─────────────────────────────────────────────────
 
-describe("Event parsing", () => {
-  it("parses an event with no source", () => {
+describe('Event parsing', () => {
+  it('parses an event with no source', () => {
     const ast = parse(
-      "event",
+      'event',
       `
       event ticketCreated {
         payload {
@@ -175,14 +175,14 @@ describe("Event parsing", () => {
       }
     `,
     );
-    if (ast.kind !== "Event") return;
+    if (ast.kind !== 'Event') return;
     expect(ast.source).toBeUndefined();
     expect(ast.payload).toHaveLength(2);
   });
 
-  it("parses an event with no payload", () => {
+  it('parses an event with no payload', () => {
     const ast = parse(
-      "event",
+      'event',
       `
       event ticketCreated {
         source: TicketSystem;
@@ -190,14 +190,14 @@ describe("Event parsing", () => {
       }
     `,
     );
-    if (ast.kind !== "Event") return;
+    if (ast.kind !== 'Event') return;
     expect(ast.payload).toHaveLength(0);
-    expect(ast.handlers).toEqual(["logTicket", "notifyUser"]);
+    expect(ast.handlers).toEqual(['logTicket', 'notifyUser']);
   });
 
-  it("parses an event with no handlers", () => {
+  it('parses an event with no handlers', () => {
     const ast = parse(
-      "event",
+      'event',
       `
       event ticketCreated {
         source: TicketSystem;
@@ -207,28 +207,28 @@ describe("Event parsing", () => {
       }
     `,
     );
-    if (ast.kind !== "Event") return;
+    if (ast.kind !== 'Event') return;
     expect(ast.handlers).toHaveLength(0);
   });
 
-  it("parses an event with only source (empty payload and handlers)", () => {
+  it('parses an event with only source (empty payload and handlers)', () => {
     const ast = parse(
-      "event",
+      'event',
       `
       event ticketCreated {
         source: TicketSystem;
       }
     `,
     );
-    if (ast.kind !== "Event") return;
-    expect(ast.source).toBe("TicketSystem");
+    if (ast.kind !== 'Event') return;
+    expect(ast.source).toBe('TicketSystem');
     expect(ast.payload).toHaveLength(0);
     expect(ast.handlers).toHaveLength(0);
   });
 
-  it("parses an event with empty payload block", () => {
+  it('parses an event with empty payload block', () => {
     const ast = parse(
-      "event",
+      'event',
       `
       event ticketCreated {
         payload {
@@ -236,29 +236,29 @@ describe("Event parsing", () => {
       }
     `,
     );
-    if (ast.kind !== "Event") return;
+    if (ast.kind !== 'Event') return;
     expect(ast.payload).toHaveLength(0);
   });
 
-  it("parses an event with multiple handlers", () => {
+  it('parses an event with multiple handlers', () => {
     const ast = parse(
-      "event",
+      'event',
       `
       event ticketCreated {
         handlers: [h1, h2, h3, h4, h5];
       }
     `,
     );
-    if (ast.kind !== "Event") return;
-    expect(ast.handlers).toEqual(["h1", "h2", "h3", "h4", "h5"]);
+    if (ast.kind !== 'Event') return;
+    expect(ast.handlers).toEqual(['h1', 'h2', 'h3', 'h4', 'h5']);
   });
 });
 
 // ── Decision edge cases ──────────────────────────────────────────────
-describe("Decision parsing", () => {
-  it("parses a decision with no input", () => {
+describe('Decision parsing', () => {
+  it('parses a decision with no input', () => {
     const ast = parse(
-      "decision",
+      'decision',
       `
       decision priorityDecision {
         when Urgente {
@@ -270,15 +270,15 @@ describe("Decision parsing", () => {
       }
     `,
     );
-    if (ast.kind !== "Decision") return;
+    if (ast.kind !== 'Decision') return;
     expect(ast.input).toBeUndefined();
     expect(ast.cases).toHaveLength(1);
     expect(ast.defaultActions).toHaveLength(1);
   });
 
-  it("parses a decision with no when clauses", () => {
+  it('parses a decision with no when clauses', () => {
     const ast = parse(
-      "decision",
+      'decision',
       `
       decision alwaysDefault {
         input: SomeInput;
@@ -288,14 +288,14 @@ describe("Decision parsing", () => {
       }
     `,
     );
-    if (ast.kind !== "Decision") return;
+    if (ast.kind !== 'Decision') return;
     expect(ast.cases).toHaveLength(0);
     expect(ast.defaultActions).toHaveLength(1);
   });
 
-  it("parses a decision with no else clause", () => {
+  it('parses a decision with no else clause', () => {
     const ast = parse(
-      "decision",
+      'decision',
       `
       decision noElse {
         input: Score;
@@ -308,14 +308,14 @@ describe("Decision parsing", () => {
       }
     `,
     );
-    if (ast.kind !== "Decision") return;
+    if (ast.kind !== 'Decision') return;
     expect(ast.cases).toHaveLength(2);
     expect(ast.defaultActions).toHaveLength(0);
   });
 
-  it("parses a decision with empty when clause (no actions)", () => {
+  it('parses a decision with empty when clause (no actions)', () => {
     const ast = parse(
-      "decision",
+      'decision',
       `
       decision emptyWhen {
         input: X;
@@ -327,13 +327,13 @@ describe("Decision parsing", () => {
       }
     `,
     );
-    if (ast.kind !== "Decision") return;
+    if (ast.kind !== 'Decision') return;
     expect(ast.cases[0].actions).toHaveLength(0);
   });
 
-  it("parses a decision with multiple when clauses", () => {
+  it('parses a decision with multiple when clauses', () => {
     const ast = parse(
-      "decision",
+      'decision',
       `
       decision multiWhen {
         input: Priority;
@@ -356,7 +356,7 @@ describe("Decision parsing", () => {
       }
     `,
     );
-    if (ast.kind !== "Decision") return;
+    if (ast.kind !== 'Decision') return;
     expect(ast.cases).toHaveLength(4);
     expect(ast.cases[3].actions).toHaveLength(2);
     expect(ast.defaultActions).toHaveLength(1);
@@ -365,14 +365,14 @@ describe("Decision parsing", () => {
 
 // ── Cross-block edge cases ───────────────────────────────────────────
 
-describe("Cross-block edge cases", () => {
-  it("throws for unknown block type", () => {
-    expectError("unknown", "some random text");
+describe('Cross-block edge cases', () => {
+  it('throws for unknown block type', () => {
+    expectError('unknown', 'some random text');
   });
 
-  it("throws for malformed source (unclosed brace)", () => {
+  it('throws for malformed source (unclosed brace)', () => {
     expectError(
-      "workflow",
+      'workflow',
       `
       workflow "bad" {
         actor User;
@@ -383,11 +383,11 @@ describe("Cross-block edge cases", () => {
     );
   });
 
-  it("throws for completely empty source", () => {
-    expectError("workflow", "");
+  it('throws for completely empty source', () => {
+    expectError('workflow', '');
   });
 
-  it("throws for source with only whitespace", () => {
-    expectError("workflow", "   \n  \t  ");
+  it('throws for source with only whitespace', () => {
+    expectError('workflow', '   \n  \t  ');
   });
 });

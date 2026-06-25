@@ -1,6 +1,6 @@
-import type { User } from "./user.types";
+import type { User } from './user.types';
 
-import type { UserRepository } from "./user.repository";
+import type { UserRepository } from './user.repository';
 
 export class UserService {
   repository: UserRepository;

@@ -4,7 +4,7 @@ export type {
   VersionedSpec,
   MigrationStep,
   DeprecationNotice,
-} from "./types.js";
+} from './types.js';
 
 export {
   CANONICAL_DSL_VERSION,
@@ -16,9 +16,9 @@ export {
   extractVersion,
   extractVersionString,
   versionsEqual,
-} from "./resolver.js";
+} from './resolver.js';
 
-export { canonicalize, normalizeSpec } from "./canonicalize.js";
+export { canonicalize, normalizeSpec } from './canonicalize.js';
 
 export {
   registerMigration,
@@ -26,11 +26,11 @@ export {
   isMigrationIdempotent,
   listRegisteredMigrations,
   clearRegistry,
-} from "./migrator.js";
+} from './migrator.js';
 
 export {
   registerFeature,
   checkDeprecations,
   listDeprecatedFeatures,
   clearFeatureRegistry,
-} from "./deprecation.js";
+} from './deprecation.js';

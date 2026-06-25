@@ -1,42 +1,35 @@
-import { execSync } from "child_process";
-import { getEnv } from "./yeoman-env.js";
-import { readFileSync, writeFileSync } from "fs";
-import yaml from "js-yaml";
-import { parseYamlFile } from "../parser/yaml-parser.js";
-import {
-  validateSpec,
-  SchemaValidationError,
-} from "../validator/schema-validator.js";
-import { buildIR, extendIRWithBehavior } from "../ir/builder.js";
-import type { IR, BuildTool } from "../ir/types.js";
-import { toIRSnapshot } from "../ir/snapshot.js";
-import { EmbeddedSourceProvider } from "../providers/behavior-source-provider.js";
-import { parseBehaviorBlock } from "../lang/ast-builder.js";
-import type { BehaviorAST } from "../lang/ast-types.js";
+import { execSync } from 'child_process';
+import { getEnv } from './yeoman-env.js';
+import { readFileSync, writeFileSync } from 'fs';
+import yaml from 'js-yaml';
+import { parseYamlFile } from '../parser/yaml-parser.js';
+import { validateSpec, SchemaValidationError } from '../validator/schema-validator.js';
+import { buildIR, extendIRWithBehavior } from '../ir/builder.js';
+import type { IR, BuildTool } from '../ir/types.js';
+import { toIRSnapshot } from '../ir/snapshot.js';
+import { EmbeddedSourceProvider } from '../providers/behavior-source-provider.js';
+import { parseBehaviorBlock } from '../lang/ast-builder.js';
+import type { BehaviorAST } from '../lang/ast-types.js';
 import {
   buildSemanticModel,
   buildSemanticModelOrThrow,
   formatDiagnostics,
   SemanticDiagnosticsError,
   toSnapshot,
-} from "../semantic/index.js";
-import { parsePumlClassDiagram } from "../puml/puml-parser.js";
-import { generatePumlClassDiagram } from "../puml/puml-generator.js";
-import { ValidationError, BehaviorParseError, TargetError } from "../errors.js";
-import {
-  canonicalize,
-  extractVersion,
-  versionToString,
-} from "../versioning/index.js";
-import type { DslVersion } from "../versioning/types.js";
-import { DEFAULT_REGISTRY } from "../extensibility/registry.js";
-import type { TargetAdapter } from "../extensibility/types.js";
-import "../extensibility/targets/vue.js";
-import "../extensibility/targets/spring.js";
-import "../extensibility/targets/diagrams.js";
+} from '../semantic/index.js';
+import { parsePumlClassDiagram } from '../puml/puml-parser.js';
+import { generatePumlClassDiagram } from '../puml/puml-generator.js';
+import { ValidationError, BehaviorParseError, TargetError } from '../errors.js';
+import { canonicalize, extractVersion, versionToString } from '../versioning/index.js';
+import type { DslVersion } from '../versioning/types.js';
+import { DEFAULT_REGISTRY } from '../extensibility/registry.js';
+import type { TargetAdapter } from '../extensibility/types.js';
+import '../extensibility/targets/vue.js';
+import '../extensibility/targets/spring.js';
+import '../extensibility/targets/diagrams.js';
 
-import { buildVueGenerationModel } from "../generation/vue/builder.js";
-import { buildSpringGenerationModel } from "../generation/spring/builder.js";
+import { buildVueGenerationModel } from '../generation/vue/builder.js';
+import { buildSpringGenerationModel } from '../generation/spring/builder.js';
 
 export { BuildTool };
 
@@ -65,9 +58,9 @@ export interface GenerateResult {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type GeneratorConstructor = new (args: string[], opts: any) => any;
 
-import { VueGenerator } from "../extensibility/targets/vue.js";
-import { SpringGenerator } from "../extensibility/targets/spring.js";
-import { DiagramGenerator } from "../extensibility/targets/diagrams.js";
+import { VueGenerator } from '../extensibility/targets/vue.js';
+import { SpringGenerator } from '../extensibility/targets/spring.js';
+import { DiagramGenerator } from '../extensibility/targets/diagrams.js';
 
 const GENERATOR_CLASSES: Record<string, GeneratorConstructor> = {
   vue: VueGenerator,
@@ -80,35 +73,29 @@ function resolveAdapter(target: string): TargetAdapter {
   const adapter = DEFAULT_REGISTRY.get(target);
   if (!adapter) {
     throw new TargetError(
-      `Unknown target: "${target}". Known: ${DEFAULT_REGISTRY.listNames().join(", ")}`,
+      `Unknown target: "${target}". Known: ${DEFAULT_REGISTRY.listNames().join(', ')}`,
     );
   }
   return adapter;
 }
 
-export type InspectStage =
-  | "raw"
-  | "validated"
-  | "semantic"
-  | "ir"
-  | "vue-model"
-  | "spring-model";
+export type InspectStage = 'raw' | 'validated' | 'semantic' | 'ir' | 'vue-model' | 'spring-model';
 
 export function inspectStage(yamlPath: string, stage: InspectStage): unknown {
   const raw = parseYamlFile(yamlPath);
-  if (stage === "raw") return raw;
+  if (stage === 'raw') return raw;
 
   const versioned = canonicalize(raw as Record<string, unknown>);
   const spec = validateSpec(versioned.spec);
-  if (stage === "validated") return spec;
+  if (stage === 'validated') return spec;
 
   const semanticModel = buildSemanticModelOrThrow(spec, undefined, yamlPath);
-  if (stage === "semantic") return toSnapshot(semanticModel);
+  if (stage === 'semantic') return toSnapshot(semanticModel);
 
   const ir = buildIR(semanticModel);
-  if (stage === "ir") return toIRSnapshot(ir, yamlPath, "cli-inspect", false);
+  if (stage === 'ir') return toIRSnapshot(ir, yamlPath, 'cli-inspect', false);
 
-  if (stage === "vue-model") {
+  if (stage === 'vue-model') {
     const vueGen = buildVueGenerationModel(ir);
     return {
       features: vueGen.features,
@@ -138,7 +125,7 @@ export function inspectStage(yamlPath: string, stage: InspectStage): unknown {
     };
   }
 
-  if (stage === "spring-model") {
+  if (stage === 'spring-model') {
     const springGen = buildSpringGenerationModel(ir);
     return {
       features: springGen.features,
@@ -174,40 +161,34 @@ export function inspectStage(yamlPath: string, stage: InspectStage): unknown {
   throw new Error(`Unknown inspect stage: ${stage}`);
 }
 
-export async function generate(
-  options: GenerateOptions,
-): Promise<GenerateResult> {
-  console.log("📖 Step 1/6: Parsing YAML...");
+export async function generate(options: GenerateOptions): Promise<GenerateResult> {
+  console.log('📖 Step 1/6: Parsing YAML...');
   const raw = parseYamlFile(options.yamlPath);
   console.log(
-    `   Parsed "${raw.application?.name ?? "unknown"}" — ${raw.entities?.length ?? 0} entities`,
+    `   Parsed "${raw.application?.name ?? 'unknown'}" — ${raw.entities?.length ?? 0} entities`,
   );
 
   const originalVersion = extractVersion(raw as Record<string, unknown>);
   console.log(`   DSL version: ${versionToString(originalVersion)}`);
 
-  console.log("⚙️  Canonicalizing...");
+  console.log('⚙️  Canonicalizing...');
   const versioned = canonicalize(raw as Record<string, unknown>);
   if (versioned.migrated && versioned.migrationPath.length > 0) {
-    console.log(`   Migrated: ${versioned.migrationPath.join(" → ")}`);
+    console.log(`   Migrated: ${versioned.migrationPath.join(' → ')}`);
   }
   if (versioned.warnings.length > 0) {
     for (const w of versioned.warnings) {
-      console.log(
-        `   ${w.severity === "error" ? "⛔" : "⚠"} [${w.code}] ${w.message}`,
-      );
+      console.log(`   ${w.severity === 'error' ? '⛔' : '⚠'} [${w.code}] ${w.message}`);
     }
   }
-  console.log(
-    `   Canonical version: ${versionToString(versioned.canonicalVersion)}`,
-  );
+  console.log(`   Canonical version: ${versionToString(versioned.canonicalVersion)}`);
 
   let spec;
   if (!options.skipValidation) {
-    console.log("🔍 Step 2/6: Validating structure...");
+    console.log('🔍 Step 2/6: Validating structure...');
     try {
       spec = validateSpec(versioned.spec);
-      console.log("   Structure validated ✓");
+      console.log('   Structure validated ✓');
     } catch (err) {
       if (err instanceof SchemaValidationError) {
         throw new ValidationError(err.message);
@@ -215,52 +196,44 @@ export async function generate(
       throw err;
     }
   } else {
-    console.log("   ⚠ Skipping validation (--skip-validation)");
+    console.log('   ⚠ Skipping validation (--skip-validation)');
     spec = validateSpec(versioned.spec);
   }
 
-  console.log("🔗 Step 3/6: Building Semantic Model...");
-  const semanticModel = buildSemanticModelOrThrow(
-    spec,
-    undefined,
-    options.yamlPath,
-  );
+  console.log('🔗 Step 3/6: Building Semantic Model...');
+  const semanticModel = buildSemanticModelOrThrow(spec, undefined, options.yamlPath);
   console.log(formatDiagnostics(semanticModel.diagnostics));
   console.log(
     `   Semantic Model: ${semanticModel.domain.entities.length} entities, ${semanticModel.domain.enums.length} enums`,
   );
 
-  console.log("🔧 Step 4/6: Building Intermediate Representation...");
+  console.log('🔧 Step 4/6: Building Intermediate Representation...');
   const ir = buildIR(semanticModel);
-  console.log(
-    `   IR built: ${ir.entities.length} entities, ${ir.enums.length} enums`,
-  );
+  console.log(`   IR built: ${ir.entities.length} entities, ${ir.enums.length} enums`);
   if (ir.buildFeatures) {
     const bf = ir.buildFeatures;
     const features: string[] = [];
-    if (bf.hasStateMachine) features.push("StateMachine");
-    if (bf.hasEvents) features.push("Events");
-    if (bf.hasWorkflows) features.push("Workflows");
-    if (bf.hasDecisions) features.push("Decisions");
-    if (bf.hasRules) features.push("Rules");
-    if (features.length > 0) console.log(`   Features: ${features.join(", ")}`);
+    if (bf.hasStateMachine) features.push('StateMachine');
+    if (bf.hasEvents) features.push('Events');
+    if (bf.hasWorkflows) features.push('Workflows');
+    if (bf.hasDecisions) features.push('Decisions');
+    if (bf.hasRules) features.push('Rules');
+    if (features.length > 0) console.log(`   Features: ${features.join(', ')}`);
   }
 
   // ── Behavioral pipeline ──
   const provider = new EmbeddedSourceProvider();
-  const behaviorBlocks = provider.extract(
-    versioned.spec as Record<string, unknown>,
-  );
+  const behaviorBlocks = provider.extract(versioned.spec as Record<string, unknown>);
 
   if (behaviorBlocks.length > 0) {
-    console.log("🧩 Step 4b/6: Parsing behavior blocks...");
+    console.log('🧩 Step 4b/6: Parsing behavior blocks...');
     const asts: BehaviorAST[] = [];
     for (const block of behaviorBlocks) {
       try {
         const ast = parseBehaviorBlock(block.type, block.raw);
         asts.push(ast);
       } catch (parseErr) {
-        const msg = `Parse error in ${block.type} "${block.name ?? "unnamed"}": ${(parseErr as Error).message}`;
+        const msg = `Parse error in ${block.type} "${block.name ?? 'unnamed'}": ${(parseErr as Error).message}`;
         if (options.strictBehavior) {
           throw new BehaviorParseError(msg, {
             blockType: block.type,
@@ -272,11 +245,11 @@ export async function generate(
     }
 
     if (asts.length > 0) {
-      console.log("   Validating behavior against Semantic Model...");
+      console.log('   Validating behavior against Semantic Model...');
       buildSemanticModelOrThrow(spec, asts, options.yamlPath);
-      console.log("   Behavior validation passed ✓");
+      console.log('   Behavior validation passed ✓');
 
-      console.log("   Merging behavioral IR...");
+      console.log('   Merging behavioral IR...');
       const entityMap = new Map<string, string>();
       for (const block of behaviorBlocks) {
         if (block.entityName && block.name) {
@@ -289,7 +262,7 @@ export async function generate(
       );
     }
   } else {
-    console.log("   No behavior blocks found — v1-compatible output");
+    console.log('   No behavior blocks found — v1-compatible output');
   }
 
   // ── Yeoman dispatch ──
@@ -299,14 +272,10 @@ export async function generate(
   );
 
   const GeneratorClass = GENERATOR_CLASSES[options.target];
-  console.log("🚀 Step 6/6: Generating files...");
+  console.log('🚀 Step 6/6: Generating files...');
 
   const env = getEnv();
-  env.registerStub(
-    GeneratorClass,
-    adapter.generatorNamespace,
-    adapter.generatorModulePath,
-  );
+  env.registerStub(GeneratorClass, adapter.generatorNamespace, adapter.generatorModulePath);
 
   const runOpts = adapter.buildRunOptions(ir, {
     ir,
@@ -325,11 +294,11 @@ export async function generate(
       const glob = `src/**/*.{ts,vue,json}`;
       execSync(`npx prettier --write "${glob}"`, {
         cwd: options.outputDir,
-        stdio: "pipe",
+        stdio: 'pipe',
       });
-      console.log("   Formatted with Prettier.");
+      console.log('   Formatted with Prettier.');
     } catch (e) {
-      console.log("   ⚠ Prettier — skipping format:", (e as Error).message);
+      console.log('   ⚠ Prettier — skipping format:', (e as Error).message);
     }
   }
 
@@ -352,36 +321,34 @@ export async function generate(
 }
 
 export function validateOnly(yamlPath: string, strictBehavior?: boolean): void {
-  console.log("📖 Parsing YAML...");
+  console.log('📖 Parsing YAML...');
   const raw = parseYamlFile(yamlPath);
-  console.log(`   Parsed "${raw.application?.name ?? "unknown"}"`);
+  console.log(`   Parsed "${raw.application?.name ?? 'unknown'}"`);
 
   const originalVersion = extractVersion(raw as Record<string, unknown>);
   console.log(`   DSL version: ${versionToString(originalVersion)}`);
 
-  console.log("⚙️  Canonicalizing...");
+  console.log('⚙️  Canonicalizing...');
   const versioned = canonicalize(raw as Record<string, unknown>);
   if (versioned.migrated && versioned.migrationPath.length > 0) {
-    console.log(`   Migrated: ${versioned.migrationPath.join(" → ")}`);
+    console.log(`   Migrated: ${versioned.migrationPath.join(' → ')}`);
   }
   if (versioned.warnings.length > 0) {
     for (const w of versioned.warnings) {
-      console.log(
-        `   ${w.severity === "error" ? "⛔" : "⚠"} [${w.code}] ${w.message}`,
-      );
+      console.log(`   ${w.severity === 'error' ? '⛔' : '⚠'} [${w.code}] ${w.message}`);
     }
   }
 
-  console.log("🔍 Validating structure...");
+  console.log('🔍 Validating structure...');
   const spec = validateSpec(versioned.spec);
-  console.log("   ✓ Structure valid");
+  console.log('   ✓ Structure valid');
 
-  console.log("🔗 Building Semantic Model...");
+  console.log('🔗 Building Semantic Model...');
   const semanticModel = buildSemanticModel(spec, undefined, yamlPath);
   const diagnostics = semanticModel.diagnostics;
   console.log(formatDiagnostics(diagnostics));
 
-  if (diagnostics.some((d) => d.severity === "error")) {
+  if (diagnostics.some((d) => d.severity === 'error')) {
     throw new SemanticDiagnosticsError(diagnostics);
   }
 
@@ -389,85 +356,82 @@ export function validateOnly(yamlPath: string, strictBehavior?: boolean): void {
     const provider = new EmbeddedSourceProvider();
     const blocks = provider.extract(raw as Record<string, unknown>);
     if (blocks.length > 0) {
-      console.log("   ✓ Behavior blocks validated (strict mode)");
+      console.log('   ✓ Behavior blocks validated (strict mode)');
     }
   }
 
-  console.log("   ✓ Semantics valid");
-  console.log("✅ All validations passed.");
+  console.log('   ✓ Semantics valid');
+  console.log('✅ All validations passed.');
 }
 
 export function pumlToYaml(inputPath: string, outputPath: string): void {
-  console.log("📖 Reading PUML file...");
-  const content = readFileSync(inputPath, "utf8");
+  console.log('📖 Reading PUML file...');
+  const content = readFileSync(inputPath, 'utf8');
 
-  console.log("🔍 Parsing class diagram...");
+  console.log('🔍 Parsing class diagram...');
   const rawSpec = parsePumlClassDiagram(content);
   console.log(
     `   Found ${rawSpec.entities.length} entities, ${Object.keys(rawSpec.enums ?? {}).length} enums`,
   );
 
-  console.log("⚙️  Canonicalizing...");
+  console.log('⚙️  Canonicalizing...');
   const versioned = canonicalize(rawSpec as Record<string, unknown>);
 
-  console.log("🔍 Validating extracted spec...");
+  console.log('🔍 Validating extracted spec...');
   const validated = validateSpec(versioned.spec);
   const semanticModel = buildSemanticModelOrThrow(validated);
   console.log(formatDiagnostics(semanticModel.diagnostics));
-  console.log("   ✓ Valid");
+  console.log('   ✓ Valid');
 
   const yamlOutput = yaml.dump(versioned.spec, { indent: 2, lineWidth: 120 });
-  writeFileSync(outputPath, yamlOutput, "utf8");
+  writeFileSync(outputPath, yamlOutput, 'utf8');
 
   console.log(`✅ YAML written to ${outputPath}`);
 }
 
 export function yamlToPuml(yamlPath: string, outputPath: string): void {
-  console.log("📖 Reading YAML...");
+  console.log('📖 Reading YAML...');
   const raw = parseYamlFile(yamlPath);
 
-  console.log("⚙️  Canonicalizing...");
+  console.log('⚙️  Canonicalizing...');
   const versioned = canonicalize(raw as Record<string, unknown>);
 
-  console.log("🔍 Validating...");
+  console.log('🔍 Validating...');
   const spec = validateSpec(versioned.spec);
   const semanticModel = buildSemanticModelOrThrow(spec);
 
-  console.log("🔧 Building IR...");
+  console.log('🔧 Building IR...');
   const ir = buildIR(semanticModel);
 
-  console.log("📝 Generating PUML...");
+  console.log('📝 Generating PUML...');
   const puml = generatePumlClassDiagram(ir);
 
-  writeFileSync(outputPath, puml, "utf8");
+  writeFileSync(outputPath, puml, 'utf8');
   console.log(`✅ PUML written to ${outputPath}`);
 }
 
-export async function yamlToDiagrams(
-  yamlPath: string,
-  outputDir: string,
-): Promise<void> {
-  console.log("📖 Reading YAML...");
+export async function yamlToDiagrams(yamlPath: string, outputDir: string): Promise<void> {
+  console.log('📖 Reading YAML...');
   const raw = parseYamlFile(yamlPath);
 
-  console.log("⚙️  Canonicalizing...");
+  console.log('⚙️  Canonicalizing...');
   const versioned = canonicalize(raw as Record<string, unknown>);
 
-  console.log("🔍 Validating...");
+  console.log('🔍 Validating...');
   const spec = validateSpec(versioned.spec);
 
-  console.log("🧠 Building Semantic Model...");
+  console.log('🧠 Building Semantic Model...');
   const semanticModel = buildSemanticModelOrThrow(spec);
   console.log(formatDiagnostics(semanticModel.diagnostics));
 
-  console.log("🔧 Building IR...");
+  console.log('🔧 Building IR...');
   const ir = buildIR(semanticModel);
 
-  console.log("📝 Generating diagrams...");
-  const adapter = resolveAdapter("diagrams");
+  console.log('📝 Generating diagrams...');
+  const adapter = resolveAdapter('diagrams');
   const env = getEnv();
   env.registerStub(
-    GENERATOR_CLASSES["diagrams"],
+    GENERATOR_CLASSES['diagrams'],
     adapter.generatorNamespace,
     adapter.generatorModulePath,
   );

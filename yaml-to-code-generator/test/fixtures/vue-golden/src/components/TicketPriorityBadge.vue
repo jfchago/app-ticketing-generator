@@ -3,9 +3,7 @@ defineProps<{ priority: string }>();
 </script>
 
 <template>
-  <span class="priority-badge" :class="'priority-' + priority.toLowerCase()">{{
-    priority
-  }}</span>
+  <span class="priority-badge" :class="'priority-' + priority.toLowerCase()">{{ priority }}</span>
 </template>
 
 <style scoped>
