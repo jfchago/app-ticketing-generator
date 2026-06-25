@@ -40,9 +40,9 @@ There is no separate `lint`, `test`, or `format` command for the Vue app.
 **Wrapper script (recommended):**
 
 ```
-./generate.sh generate --spec specs/helpdesk.yaml --target vue --output ../vue-poc-agents
-./generate.sh generate --spec specs/helpdesk.yaml --target spring --output ../spring-backend
-./generate.sh generate --spec specs/helpdesk.yaml --target spring --build-tool maven --output ../spring-backend
+./generate.sh generate --spec specs/helpdesk.yaml --target vue --output ../generated-repos/vue-poc-agents
+./generate.sh generate --spec specs/helpdesk.yaml --target spring --output ../generated-repos/spring-backend
+./generate.sh generate --spec specs/helpdesk.yaml --target spring --build-tool maven --output ../generated-repos/spring-backend
 ./generate.sh generate --spec specs/helpdesk.yaml --target diagrams --output ../specs/diagrams
 ./generate.sh validate --spec specs/helpdesk.yaml
 ./generate.sh validate --spec specs/helpdesk.yaml --strict-behavior
@@ -65,7 +65,7 @@ npx tsx src/cli.ts inspect -s <yaml> --stage <raw|validated|semantic|ir|vue-mode
 **npm scripts (from `yaml-to-code-generator/`):**
 
 ```
-npm run generate -- -s specs/helpdesk.yaml -t vue -o ../vue-poc-agents
+npm run generate -- -s specs/helpdesk.yaml -t vue -o ../generated-repos/vue-poc-agents
 npm run validate -- -s specs/helpdesk.yaml
 ```
 

@@ -1,7 +1,7 @@
 <%# shared/router.ts.ejs — Vue Router configuration %>
 import { createRouter, createWebHistory } from 'vue-router';
 <% for (const entity of ir.entities) { %>
-<% if (entity.hasGetAll) { %>
+<% if (genEntities?.[entity.name]?.hasGetAll) { %>
 import <%= entity.namePascal %>ListView from '../../views/<%= entity.namePascal %>ListView.vue';
 <% } %>
 <% } %>
@@ -15,21 +15,21 @@ const router = createRouter({
       redirect: '/<%= listEntity ? listEntity.nameKebab + 's' : 'tickets' %>'
     },
 <% for (const entity of ir.entities) { %>
-<% if (entity.hasGetAll) { %>
+<% if (genEntities?.[entity.name]?.hasGetAll) { %>
     {
       path: '/<%= entity.nameKebab %>s',
       name: '<%= entity.nameCamel %>-list',
       component: <%= entity.namePascal %>ListView
     },
 <% } %>
-<% if (entity.hasCreate) { %>
+<% if (genEntities?.[entity.name]?.hasCreate) { %>
     {
       path: '/<%= entity.nameKebab %>s/new',
       name: 'create-<%= entity.nameKebab %>',
       component: () => import('../../views/Create<%= entity.namePascal %>View.vue')
     },
 <% } %>
-<% if (entity.hasGetById) { %>
+<% if (genEntities?.[entity.name]?.hasGetById) { %>
     {
       path: '/<%= entity.nameKebab %>s/:id',
       name: '<%= entity.nameCamel %>-detail',

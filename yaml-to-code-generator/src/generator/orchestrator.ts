@@ -13,11 +13,21 @@ import { toIRSnapshot } from "../ir/snapshot.js";
 import { EmbeddedSourceProvider } from "../providers/behavior-source-provider.js";
 import { parseBehaviorBlock } from "../lang/ast-builder.js";
 import type { BehaviorAST } from "../lang/ast-types.js";
-import { buildSemanticModel, buildSemanticModelOrThrow, formatDiagnostics, SemanticDiagnosticsError, toSnapshot } from "../semantic/index.js";
+import {
+	buildSemanticModel,
+	buildSemanticModelOrThrow,
+	formatDiagnostics,
+	SemanticDiagnosticsError,
+	toSnapshot,
+} from "../semantic/index.js";
 import { parsePumlClassDiagram } from "../puml/puml-parser.js";
 import { generatePumlClassDiagram } from "../puml/puml-generator.js";
 import { ValidationError, BehaviorParseError, TargetError } from "../errors.js";
-import { canonicalize, extractVersion, versionToString } from "../versioning/index.js";
+import {
+	canonicalize,
+	extractVersion,
+	versionToString,
+} from "../versioning/index.js";
 import type { DslVersion } from "../versioning/types.js";
 import { DEFAULT_REGISTRY } from "../extensibility/registry.js";
 import type { TargetAdapter } from "../extensibility/types.js";
@@ -31,14 +41,14 @@ import { buildSpringGenerationModel } from "../generation/spring/builder.js";
 export { BuildTool };
 
 export interface GenerateOptions {
-  yamlPath: string;
-  target: string;
-  outputDir: string;
-  dryRun?: boolean;
-  skipValidation?: boolean;
-  buildTool?: BuildTool;
-  strictBehavior?: boolean;
-  format?: boolean;
+	yamlPath: string;
+	target: string;
+	outputDir: string;
+	dryRun?: boolean;
+	skipValidation?: boolean;
+	buildTool?: BuildTool;
+	strictBehavior?: boolean;
+	format?: boolean;
 }
 
 export interface GenerateResult {
@@ -76,84 +86,100 @@ function resolveAdapter(target: string): TargetAdapter {
 	return adapter;
 }
 
+export type InspectStage =
+	| "raw"
+	| "validated"
+	| "semantic"
+	| "ir"
+	| "vue-model"
+	| "spring-model";
 
-export type InspectStage = 'raw' | 'validated' | 'semantic' | 'ir' | 'vue-model' | 'spring-model';
+export function inspectStage(yamlPath: string, stage: InspectStage): unknown {
+	const raw = parseYamlFile(yamlPath);
+	if (stage === "raw") return raw;
 
-export function inspectStage(
-  yamlPath: string,
-  stage: InspectStage,
-): unknown {
-  const raw = parseYamlFile(yamlPath);
-  if (stage === 'raw') return raw;
+	const versioned = canonicalize(raw as Record<string, unknown>);
+	const spec = validateSpec(versioned.spec);
+	if (stage === "validated") return spec;
 
-  const versioned = canonicalize(raw as Record<string, unknown>);
-  const spec = validateSpec(versioned.spec);
-  if (stage === 'validated') return spec;
+	const semanticModel = buildSemanticModelOrThrow(spec, undefined, yamlPath);
+	if (stage === "semantic") return toSnapshot(semanticModel);
 
-  const semanticModel = buildSemanticModelOrThrow(spec, undefined, yamlPath);
-  if (stage === 'semantic') return toSnapshot(semanticModel);
+	const ir = buildIR(semanticModel);
+	if (stage === "ir") return toIRSnapshot(ir, yamlPath, "cli-inspect", false);
 
-  const ir = buildIR(semanticModel);
-  if (stage === 'ir') return toIRSnapshot(ir, yamlPath, 'cli-inspect', false);
+	if (stage === "vue-model") {
+		const vueGen = buildVueGenerationModel(ir);
+		return {
+			features: vueGen.features,
+			entityNames: Object.keys(vueGen.entities),
+			enums: vueGen.enums.map((e: any) => ({
+				name: e.name,
+				valueCount: e.values.length,
+			})),
+			entities: Object.fromEntries(
+				Object.entries(vueGen.entities).map(
+					([name, gen]: [string, any]) => [
+						name,
+						{
+							statePropertyName: gen.statePropertyName,
+							selectedPropertyName: gen.selectedPropertyName,
+							displayFieldCount: gen.displayFields.length,
+							formFieldCount: gen.formFields.length,
+							componentFlags: gen.components,
+							useCaseNames: Object.keys(gen.useCases),
+							storeActionCount: gen.storeActions.length,
+							ruleCheckCount: gen.ruleChecks.length,
+							hasCommentSupport: gen.hasCommentSupport,
+							hasAssignee: gen.hasAssignee,
+							transitionKeys: Object.keys(gen.transitions ?? {}),
+						},
+					],
+				),
+			),
+		};
+	}
 
-  if (stage === 'vue-model') {
-    const vueGen = buildVueGenerationModel(ir);
-    return {
-      features: vueGen.features,
-      entityNames: Object.keys(vueGen.entities),
-      enums: vueGen.enums.map((e: any) => ({ name: e.name, valueCount: e.values.length })),
-      entities: Object.fromEntries(
-        Object.entries(vueGen.entities).map(([name, gen]: [string, any]) => [
-          name,
-          {
-            statePropertyName: gen.statePropertyName,
-            selectedPropertyName: gen.selectedPropertyName,
-            displayFieldCount: gen.displayFields.length,
-            formFieldCount: gen.formFields.length,
-            componentFlags: gen.components,
-            useCaseNames: Object.keys(gen.useCases),
-            storeActionCount: gen.storeActions.length,
-            ruleCheckCount: gen.ruleChecks.length,
-            hasCommentSupport: gen.hasCommentSupport,
-            hasAssignee: gen.hasAssignee,
-            transitionKeys: Object.keys(gen.transitions ?? {}),
-          },
-        ])
-      ),
-    };
-  }
+	if (stage === "spring-model") {
+		const springGen = buildSpringGenerationModel(ir);
+		return {
+			features: springGen.features,
+			entityNames: Object.keys(springGen.entities),
+			enums: springGen.enums.map((e: any) => ({
+				name: e.name,
+				valueCount: e.values.length,
+			})),
+			entities: Object.fromEntries(
+				Object.entries(springGen.entities).map(
+					([name, gen]: [string, any]) => [
+						name,
+						{
+							pkJavaType: gen.pkJavaType,
+							attributeTypeNames: Object.keys(gen.attributeTypes),
+							serviceMethodCount: gen.serviceMethods.length,
+							serviceMethodNames: gen.serviceMethods.map(
+								(m: any) => m.name,
+							),
+							endpointCount: gen.endpoints.length,
+							repositoryMethodCount: gen.repositoryMethods.length,
+							ruleCheckCount: gen.ruleChecks.length,
+							hasCreatedAt: gen.hasCreatedAt,
+							hasUpdatedAt: gen.hasUpdatedAt,
+							oneToManyRelationCount:
+								gen.oneToManyRelations.length,
+							manyToOneRelationCount:
+								gen.manyToOneRelations.length,
+							emitsEvents: gen.emitsEvents,
+							eventPublisherCount: gen.eventPublishers.length,
+							transitionKeys: Object.keys(gen.transitions ?? {}),
+						},
+					],
+				),
+			),
+		};
+	}
 
-  if (stage === 'spring-model') {
-    const springGen = buildSpringGenerationModel(ir);
-    return {
-      features: springGen.features,
-      entityNames: Object.keys(springGen.entities),
-      enums: springGen.enums.map((e: any) => ({ name: e.name, valueCount: e.values.length })),
-      entities: Object.fromEntries(
-        Object.entries(springGen.entities).map(([name, gen]: [string, any]) => [
-          name,
-          {
-            pkJavaType: gen.pkJavaType,
-            attributeTypeNames: Object.keys(gen.attributeTypes),
-            serviceMethodCount: gen.serviceMethods.length,
-            serviceMethodNames: gen.serviceMethods.map((m: any) => m.name),
-            endpointCount: gen.endpoints.length,
-            repositoryMethodCount: gen.repositoryMethods.length,
-            ruleCheckCount: gen.ruleChecks.length,
-            hasCreatedAt: gen.hasCreatedAt,
-            hasUpdatedAt: gen.hasUpdatedAt,
-            oneToManyRelationCount: gen.oneToManyRelations.length,
-            manyToOneRelationCount: gen.manyToOneRelations.length,
-            emitsEvents: gen.emitsEvents,
-            eventPublisherCount: gen.eventPublishers.length,
-            transitionKeys: Object.keys(gen.transitions ?? {}),
-          },
-        ])
-      ),
-    };
-  }
-
-  throw new Error(`Unknown inspect stage: ${stage}`);
+	throw new Error(`Unknown inspect stage: ${stage}`);
 }
 
 export async function generate(
@@ -175,10 +201,14 @@ export async function generate(
 	}
 	if (versioned.warnings.length > 0) {
 		for (const w of versioned.warnings) {
-			console.log(`   ${w.severity === "error" ? "⛔" : "⚠"} [${w.code}] ${w.message}`);
+			console.log(
+				`   ${w.severity === "error" ? "⛔" : "⚠"} [${w.code}] ${w.message}`,
+			);
 		}
 	}
-	console.log(`   Canonical version: ${versionToString(versioned.canonicalVersion)}`);
+	console.log(
+		`   Canonical version: ${versionToString(versioned.canonicalVersion)}`,
+	);
 
 	let spec;
 	if (!options.skipValidation) {
@@ -198,7 +228,11 @@ export async function generate(
 	}
 
 	console.log("🔗 Step 3/6: Building Semantic Model...");
-	const semanticModel = buildSemanticModelOrThrow(spec, undefined, options.yamlPath);
+	const semanticModel = buildSemanticModelOrThrow(
+		spec,
+		undefined,
+		options.yamlPath,
+	);
 	console.log(formatDiagnostics(semanticModel.diagnostics));
 	console.log(
 		`   Semantic Model: ${semanticModel.domain.entities.length} entities, ${semanticModel.domain.enums.length} enums`,
@@ -212,17 +246,20 @@ export async function generate(
 	if (ir.buildFeatures) {
 		const bf = ir.buildFeatures;
 		const features: string[] = [];
-		if (bf.hasStateMachine) features.push('StateMachine');
-		if (bf.hasEvents) features.push('Events');
-		if (bf.hasWorkflows) features.push('Workflows');
-		if (bf.hasDecisions) features.push('Decisions');
-		if (bf.hasRules) features.push('Rules');
-		if (features.length > 0) console.log(`   Features: ${features.join(', ')}`);
+		if (bf.hasStateMachine) features.push("StateMachine");
+		if (bf.hasEvents) features.push("Events");
+		if (bf.hasWorkflows) features.push("Workflows");
+		if (bf.hasDecisions) features.push("Decisions");
+		if (bf.hasRules) features.push("Rules");
+		if (features.length > 0)
+			console.log(`   Features: ${features.join(", ")}`);
 	}
 
 	// ── Behavioral pipeline ──
 	const provider = new EmbeddedSourceProvider();
-	const behaviorBlocks = provider.extract(versioned.spec as Record<string, unknown>);
+	const behaviorBlocks = provider.extract(
+		versioned.spec as Record<string, unknown>,
+	);
 
 	if (behaviorBlocks.length > 0) {
 		console.log("🧩 Step 4b/6: Parsing behavior blocks...");
@@ -294,15 +331,16 @@ export async function generate(
 
 	if (options.format && !options.dryRun) {
 		try {
-			const glob = `${options.outputDir}/src/**/*.{ts,vue,json}`;
+			const glob = `src/**/*.{ts,vue,json}`;
 			execSync(`npx prettier --write "${glob}"`, {
 				cwd: options.outputDir,
 				stdio: "pipe",
 			});
 			console.log("   Formatted with Prettier.");
-		} catch {
+		} catch (e) {
 			console.log(
-				"   ⚠ Prettier not available — skipping format.",
+				"   ⚠ Prettier — skipping format:",
+				(e as Error).message,
 			);
 		}
 	}
@@ -342,7 +380,9 @@ export function validateOnly(yamlPath: string, strictBehavior?: boolean): void {
 	}
 	if (versioned.warnings.length > 0) {
 		for (const w of versioned.warnings) {
-			console.log(`   ${w.severity === "error" ? "⛔" : "⚠"} [${w.code}] ${w.message}`);
+			console.log(
+				`   ${w.severity === "error" ? "⛔" : "⚠"} [${w.code}] ${w.message}`,
+			);
 		}
 	}
 
@@ -355,7 +395,7 @@ export function validateOnly(yamlPath: string, strictBehavior?: boolean): void {
 	const diagnostics = semanticModel.diagnostics;
 	console.log(formatDiagnostics(diagnostics));
 
-	if (diagnostics.some(d => d.severity === 'error')) {
+	if (diagnostics.some((d) => d.severity === "error")) {
 		throw new SemanticDiagnosticsError(diagnostics);
 	}
 

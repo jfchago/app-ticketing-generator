@@ -38,7 +38,7 @@ function buildVueEntity(entity: EntityDef, ir: IR): VueGeneratedEntity {
   const components = buildComponentFlags(entity, ir, hasCommentSupport);
   const ruleChecks = buildRuleChecks(entity);
   const useCases = buildUseCases(entity, ir, commentEntity);
-  const storeActions = deriveStoreActions(entity, useCases);
+  const storeActions = deriveStoreActions(entity, useCases, hasCommentSupport);
 
   return {
     name: entity.name,
@@ -317,6 +317,7 @@ function buildStoreActionBody(
   uc: VueUseCaseDef,
   actionCategory: string,
   stateList: string,
+  hasCommentSupport: boolean,
 ): string {
   const bodyParts: string[] = [];
   const idParam = uc.storeAction.paramNames[0] ?? '';
@@ -411,7 +412,9 @@ function buildStoreActionBody(
     bodyParts.push(`  if (!${entityVar}) { this.error = '${entity.namePascal} not found'; return null as unknown as ${uc.methodSignature.returnType}; }`);
     bodyParts.push(...buildRuleCheckLines(actionCategory).map(l => `  ${l}`));
     bodyParts.push(`  const createdComment = await service.${uc.methodName}(${uc.storeAction.paramNames.join(', ')});`);
-    bodyParts.push(`  if (this.current?.id === ${idParam}) this.current.comments.push(createdComment);`);
+    if (hasCommentSupport) {
+      bodyParts.push(`  if (this.current?.id === ${idParam}) this.current.comments.push(createdComment);`);
+    }
     bodyParts.push(`  return createdComment;`);
     bodyParts.push(`} catch (e) { this.error = e instanceof Error ? e.message : 'Error adding comment'; throw e; }`);
   } else {
@@ -424,11 +427,11 @@ function buildStoreActionBody(
   return bodyParts.join('\n        ');
 }
 
-function deriveStoreActions(entity: EntityDef, useCases: Record<string, VueUseCaseDef>): VueStoreAction[] {
+function deriveStoreActions(entity: EntityDef, useCases: Record<string, VueUseCaseDef>, hasCommentSupport: boolean): VueStoreAction[] {
   return Object.values(useCases).map(uc => {
     const actionCategory = uc.actionCategory;
     const stateList = entity.nameCamel + 's';
-    const body = buildStoreActionBody(entity, uc, actionCategory, stateList);
+    const body = buildStoreActionBody(entity, uc, actionCategory, stateList, hasCommentSupport);
     return {
       name: uc.storeAction.actionName,
       params: uc.storeAction.paramNames.map((name, i) => ({
