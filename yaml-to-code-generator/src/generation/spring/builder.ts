@@ -62,6 +62,7 @@ function buildSpringEntity(entity: EntityDef, ir: IR): SpringGeneratedEntity {
     attributeTypes,
     imports: buildSpringImports(entity, ir),
     serviceMethods,
+    needsMapper: serviceMethods.some((m) => m.returnType.includes('DTO')),
     endpoints,
     repositoryMethods: buildRepositoryMethods(entity),
     transitions: entity.transitions ?? {},
@@ -236,6 +237,12 @@ function buildServiceMethod(
     annotations = ['@Transactional'];
     const pkField = entity.primaryKey?.name ?? 'id';
     body = `var ${entity.nameCamel} = ${entity.nameCamel}Repository.findById(id).orElseThrow(() -> new RuntimeException("${entity.namePascal} not found: " + id));\n        ${commentPascal} ${commentCamel} = new ${commentPascal}();\n        ${commentCamel}.setId(UUID.randomUUID().toString());\n        ${commentCamel}.set${foreignKeyField.charAt(0).toUpperCase() + foreignKeyField.slice(1)}(String.valueOf(${entity.nameCamel}.get${pkField.charAt(0).toUpperCase() + pkField.slice(1)}()));\n        ${commentCamel}.setText(text);\n        ${commentCamel}.setAuthorId("system");\n        ${commentCamel}.setCreatedAt(LocalDateTime.now());\n        ${commentCamel}Repository.save(${commentCamel});\n        return ${commentCamel}Mapper.toDTO(${commentCamel});`;
+  } else if (uc.name === 'add_comment') {
+    // Fallback for entity that IS the comment (no foreign entity)
+    returnType = `${entity.namePascal}DTO`;
+    params = `${pkJavaType} id, String text`;
+    annotations = ['@Transactional'];
+    body = `${entity.namePascal} ${entity.nameCamel} = new ${entity.namePascal}();\n        ${entity.nameCamel}.setId(UUID.randomUUID().toString());\n        ${entity.nameCamel}.setText(text);\n        ${entity.nameCamel}.setAuthorId("system");\n        ${entity.nameCamel}.setCreatedAt(LocalDateTime.now());\n        ${entity.nameCamel}.setTicketId(id);\n        ${entity.nameCamel}Repository.save(${entity.nameCamel});\n        return ${entity.nameCamel}Mapper.toDTO(${entity.nameCamel});`;
   } else {
     returnType = 'void';
     params = '';
@@ -300,6 +307,14 @@ function buildRuleCheckBody(
         );
       }
       condition = condition.replace(/\.length\b(?!\s*\()/g, '.length()');
+      // Append .name() for enum attribute getters in guard expressions
+      for (const attr of entity.attributes.filter((a) => a.isEnum && !a.primary)) {
+        const getterName = `get${attr.name.charAt(0).toUpperCase() + attr.name.slice(1)}`;
+        condition = condition.replace(
+          new RegExp(`\\.${getterName}\\(\\)(?!\\.)`, 'g'),
+          `.${getterName}().name()`,
+        );
+      }
       return `if (!(${condition})) { throw new RuntimeException("${r.message}"); }`;
     })
     .join('\n        ');
@@ -336,11 +351,15 @@ function buildEndpoints(entity: EntityDef, ir: IR): SpringEndpoint[] {
     if (!uc.needsId && uc.httpMethod === 'GET') {
       returnType = `List<${entity.namePascal}DTO>`;
       params = '';
-      body = `return ${entity.nameCamel}Service.${uc.methodName}();`;
+      body = `return ResponseEntity.ok(${entity.nameCamel}Service.${uc.methodName}());`;
     } else if (uc.name === 'get_by_id') {
-      body = `return ${entity.nameCamel}Service.${uc.methodName}(id);`;
+      body = `return ResponseEntity.ok(${entity.nameCamel}Service.${uc.methodName}(id));`;
     } else if (uc.name === 'add_comment' && commentEntity) {
       returnType = `${commentEntity.namePascal}DTO`;
+      params = `@PathVariable ${pkJavaType} id, @RequestBody java.util.Map<String, String> body`;
+      body = `return ResponseEntity.ok(${entity.nameCamel}Service.${uc.methodName}(id, body.get("text")));`;
+    } else if (uc.name === 'add_comment') {
+      // Fallback for entity that IS the comment (no foreign entity)
       params = `@PathVariable ${pkJavaType} id, @RequestBody java.util.Map<String, String> body`;
       body = `return ResponseEntity.ok(${entity.nameCamel}Service.${uc.methodName}(id, body.get("text")));`;
     } else if (uc.name === 'create' || categoryIsCreate(uc)) {

@@ -1,7 +1,7 @@
 <%# service/EntityService.java.ejs — Business logic service layer %><%
 const gen = genEntities?.[entity.name];
 if (!gen || gen.serviceMethods.length === 0) { return; }
-const hasCommentSupport = gen.serviceMethods.some(m => m.returnType === 'CommentDTO');
+const hasCommentSupport = gen.serviceMethods.some(m => m.returnType === 'CommentDTO' && `${entity.namePascal}DTO` !== 'CommentDTO');
 const hasTransitions = Object.keys(gen.transitions).length > 0;
 const hasAddComment = entity.useCases?.some(uc => uc.name === 'add_comment');
 %>
@@ -15,6 +15,7 @@ import <%= ir.application.basePackage %>.repository.<%= entity.namePascal %>Repo
 import <%= ir.application.basePackage %>.entity.<%= attr.type %>;
 <% } %>
 <% if (hasCommentSupport) { %>
+import <%= ir.application.basePackage %>.entity.Comment;
 import <%= ir.application.basePackage %>.repository.CommentRepository;
 import <%= ir.application.basePackage %>.dto.CommentMapper;
 import <%= ir.application.basePackage %>.dto.CommentDTO;
@@ -43,8 +44,7 @@ public class <%= entity.namePascal %>Service {
 <% if (hasCommentSupport) { %>
     private final CommentRepository commentRepository;
 <% } %>
-<% const usesMapper = gen.serviceMethods.some(m => m.returnType.endsWith('DTO')); %>
-<% if (usesMapper) { %>
+<% if (gen.needsMapper) { %>
     private final <%= entity.namePascal %>Mapper <%= entity.nameCamel %>Mapper;
 <% } %>
 <% if (hasCommentSupport) { %>

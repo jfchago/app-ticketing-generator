@@ -63,11 +63,9 @@ public class <%= entity.namePascal %>Controller {
 <%   const statusEnum = entity.attributes.find(a => a.isEnum && a.name === 'status'); %>
 <%   const priorityEnum = entity.attributes.find(a => a.isEnum && a.name === 'priority'); %>
 <%   if (statusEnum && uc.methodName === 'updateStatus') { %>
-        <%= statusEnum.type %> status = <%= statusEnum.type %>.valueOf(body.get("status"));
-        return ResponseEntity.ok(<%= entity.nameCamel %>Service.<%= uc.methodName %>(id, status));
+        return ResponseEntity.ok(<%= entity.nameCamel %>Service.<%= uc.methodName %>(id, body.get("status")));
 <%   } else if (priorityEnum && uc.methodName === 'updatePriority') { %>
-        <%= priorityEnum.type %> priority = <%= priorityEnum.type %>.valueOf(body.get("priority"));
-        return ResponseEntity.ok(<%= entity.nameCamel %>Service.<%= uc.methodName %>(id, priority));
+        return ResponseEntity.ok(<%= entity.nameCamel %>Service.<%= uc.methodName %>(id, body.get("priority")));
 <%   } else { %>
         return ResponseEntity.ok(<%= entity.nameCamel %>Service.<%= uc.methodName %>(id, body));
 <%   } %>

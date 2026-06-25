@@ -35,6 +35,8 @@ export interface SpringGeneratedEntity extends GeneratedEntity {
   /** Whether entity has timestamp fields */
   hasCreatedAt: boolean;
   hasUpdatedAt: boolean;
+  /** Whether any service method references the entity mapper */
+  needsMapper: boolean;
   /** Relationships by type */
   oneToManyRelations: SpringRelationship[];
   manyToOneRelations: SpringRelationship[];
