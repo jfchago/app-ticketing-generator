@@ -1,4 +1,22 @@
 <%# components/StatusBadge.vue.ejs — Status badge component %>
+<%
+const gen = genEntities?.[entity.name];
+const statusAttr = gen?.enumAttributes?.find(ea => ea.name === 'status');
+const statusColorMap = [
+  { keywords: ['open', 'active', 'pending'], bg: 'var(--color-primary-light)', color: 'var(--color-primary)' },
+  { keywords: ['in_progress', 'processing'], bg: 'var(--color-warning-light)', color: 'var(--color-warning)' },
+  { keywords: ['resolved', 'completed', 'done'], bg: 'var(--color-success-light)', color: 'var(--color-success)' },
+  { keywords: ['closed', 'cancelled', 'rejected'], bg: 'var(--color-neutral-light)', color: 'var(--color-neutral)' },
+  { keywords: ['on_hold', 'blocked', 'waiting'], bg: 'var(--color-info-light)', color: 'var(--color-info)' },
+];
+function statusStyle(valueName) {
+  const lower = valueName.toLowerCase();
+  for (const entry of statusColorMap) {
+    if (entry.keywords.includes(lower)) return entry;
+  }
+  return { bg: 'var(--color-neutral-light)', color: 'var(--color-neutral)' };
+}
+%>
 <script setup lang="ts">
 defineProps<{ status: string; }>();
 </script>
@@ -9,4 +27,7 @@ defineProps<{ status: string; }>();
 
 <style scoped>
 .status-badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.85em; font-weight: 600; }
+<% if (statusAttr) { for (const v of statusAttr.values) { const style = statusStyle(v.name); %>
+.status-<%= v.name.toLowerCase() %> { background: <%- style.bg %>; color: <%- style.color %>; }
+<% } } %>
 </style>

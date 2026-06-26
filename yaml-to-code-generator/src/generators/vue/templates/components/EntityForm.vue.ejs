@@ -49,7 +49,7 @@ function handleSubmit() {
   <form @submit.prevent="handleSubmit" class="entity-form">
 <% for (const attr of entity.attributes.filter(a => !a.primary && a.name !== 'id' && a.name !== 'createdAt' && a.name !== 'updatedAt' && !a.isEntityRef)) { %>
     <div class="form-group">
-      <label for="<%= attr.name %>"><%= attr.namePascal %></label>
+      <label for="<%= attr.name %>"><%= attr.namePascal.replace(/([a-z])([A-Z])/g, '$1 $2') %></label>
 <% if (attr.type === 'String' && (attr.length ?? 999) > 200) { %>
       <textarea id="<%= attr.name %>" v-model="<%= attr.name %>" <%= attr.required ? 'required' : '' %>></textarea>
 <% } else if (attr.isEnum) { %>

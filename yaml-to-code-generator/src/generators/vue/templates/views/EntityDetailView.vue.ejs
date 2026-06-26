@@ -2,20 +2,25 @@
 <%
 const gen = genEntities?.[entity.name];
 const detailAction = gen?.storeActions?.find(a => a.actionCategory === 'readById');
+const selected = `store.${gen.selectedPropertyName}`;
 %>
 <script setup lang="ts">
 import { onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { use<%= entity.namePascal %>Store } from '../stores/<%= entity.nameCamel %>.store';
 <% if (gen.components.shouldRenderStatusBadge) { %>
-import StatusBadge from '../components/<%= entity.namePascal %>StatusBadge.vue';
+import <%= entity.namePascal %>StatusBadge from '../components/<%= entity.namePascal %>StatusBadge.vue';
 <% } %>
 <% if (gen.components.shouldRenderPriorityBadge) { %>
-import PriorityBadge from '../components/<%= entity.namePascal %>PriorityBadge.vue';
+import <%= entity.namePascal %>PriorityBadge from '../components/<%= entity.namePascal %>PriorityBadge.vue';
 <% } %>
 <% if (gen.components.shouldRenderAssigneeBadge) { %>
-import AssigneeBadge from '../components/<%= entity.namePascal %>AssigneeBadge.vue';
+import <%= entity.namePascal %>AssigneeBadge from '../components/<%= entity.namePascal %>AssigneeBadge.vue';
 <% } %>
+
+function formatDate(value: string | null | undefined): string {
+  return value ? new Date(value).toLocaleDateString() : '-';
+}
 
 const store = use<%= entity.namePascal %>Store();
 const route = useRoute();
@@ -36,28 +41,44 @@ onMounted(() => {
 
     <div v-if="store.loading">Loading...</div>
     <div v-else-if="store.error" class="error">{{ store.error }}</div>
-    <div v-else-if="store.<%= gen.selectedPropertyName %>">
-<% if (gen.components.shouldRenderStatusBadge) { %>
-      <h1>{{ store.<%= gen.selectedPropertyName %>.title }}</h1>
-      <p class="description">{{ store.<%= gen.selectedPropertyName %>.description }}</p>
+    <div v-else-if="<%= selected %>">
+<%
+  const textFields = gen.displayFields.filter(f => f.fieldRole === 'text');
+  const firstText = textFields.shift();
+  if (firstText) {
+%>
+      <h1>{{ <%= selected %>.<%= firstText.name %> }}</h1>
+<% } %>
+<% for (const field of textFields) { %>
+      <p class="description">{{ <%= selected %>.<%= field.name %> }}</p>
+<% } %>
 
+<%
+  const badgeFields = gen.displayFields.filter(f =>
+    (f.fieldRole === 'status' && gen.components.shouldRenderStatusBadge) ||
+    (f.fieldRole === 'priority' && gen.components.shouldRenderPriorityBadge) ||
+    (f.fieldRole === 'assignee' && gen.components.shouldRenderAssigneeBadge) ||
+    f.fieldRole === 'timestamp' ||
+    f.fieldRole === 'field'
+  );
+  if (badgeFields.length > 0) {
+%>
       <div class="meta">
-        <span>Status: <StatusBadge :status="store.<%= gen.selectedPropertyName %>.status" /></span>
-        <span>Priority: <PriorityBadge :priority="store.<%= gen.selectedPropertyName %>.priority" /></span>
-        <span>Assigned to: <AssigneeBadge :assignee-id="store.<%= gen.selectedPropertyName %>.assigneeId" /></span>
-        <span>Created: {{ new Date(store.<%= gen.selectedPropertyName %>.createdAt).toLocaleDateString() }}</span>
-      </div>
+<% for (const field of badgeFields) {
+  if (field.fieldRole === 'status') { %>
+        <span>Status: <<%= entity.namePascal %>StatusBadge :status="<%= selected %>.<%= field.name %>" /></span>
+<% } else if (field.fieldRole === 'priority') { %>
+        <span>Priority: <<%= entity.namePascal %>PriorityBadge :priority="<%= selected %>.<%= field.name %>" /></span>
+<% } else if (field.fieldRole === 'assignee') { %>
+        <span>Assigned to: <<%= entity.namePascal %>AssigneeBadge :assignee-id="<%= selected %>.<%= field.name %>" /></span>
+<% } else if (field.fieldRole === 'timestamp') { %>
+        <span><%= field.namePascal %>: {{ formatDate(<%= selected %>.<%= field.name %>) }}</span>
 <% } else { %>
-      <pre>{{ JSON.stringify(store.<%= gen.selectedPropertyName %>, null, 2) }}</pre>
+        <span><%= field.namePascal %>: {{ <%= selected %>.<%= field.name %> }}</span>
+<% } %>
+<% } %>
+      </div>
 <% } %>
     </div>
   </div>
 </template>
-
-<style scoped>
-.detail-view { max-width: 800px; margin: 0 auto; padding: 20px; }
-.btn-back { padding: 8px 16px; background: transparent; border: 1px solid var(--color-border, #ddd); border-radius: 4px; cursor: pointer; margin-bottom: 16px; }
-.description { color: var(--color-text-secondary, #666); margin: 12px 0; }
-.meta { display: flex; gap: 16px; margin: 16px 0; }
-.error { color: red; }
-</style>

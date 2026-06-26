@@ -1,0 +1,86 @@
+/* Layout utilities */
+.list-view {
+  max-width: var(--content-max-width, 800px);
+  margin: 0 auto;
+  padding: var(--space-xl, 20px);
+}
+
+.detail-view {
+  max-width: var(--content-max-width, 800px);
+  margin: 0 auto;
+  padding: var(--space-xl, 20px);
+}
+
+.create-view {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: var(--space-xl, 20px);
+}
+
+.list-view header,
+.detail-view header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-lg, 16px);
+}
+
+/* Buttons */
+.btn-primary {
+  padding: var(--space-sm, 8px) var(--space-lg, 16px);
+  background: var(--color-primary, #42b883);
+  color: white;
+  border: none;
+  border-radius: var(--radius-sm, 4px);
+  cursor: pointer;
+  transition: background var(--transition-fast, 150ms ease);
+}
+
+.btn-primary:hover {
+  background: color-mix(in srgb, var(--color-primary, #42b883) 80%, black);
+}
+
+.btn-back {
+  padding: var(--space-sm, 8px) var(--space-lg, 16px);
+  background: transparent;
+  border: 1px solid var(--color-border, #ddd);
+  border-radius: var(--radius-sm, 4px);
+  cursor: pointer;
+  margin-bottom: var(--space-lg, 16px);
+  transition: border-color var(--transition-fast, 150ms ease);
+}
+
+.btn-back:hover {
+  border-color: var(--color-primary, #42b883);
+}
+
+/* Error state */
+.error {
+  color: var(--color-danger, #dc3545);
+}
+
+/* Meta info row */
+.meta {
+  display: flex;
+  gap: var(--space-lg, 16px);
+  margin: var(--space-lg, 16px) 0;
+}
+
+/* Description text */
+.description {
+  color: var(--color-text-secondary, #666);
+  margin: var(--space-md, 12px) 0;
+}
+
+/* Form utilities */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs, 4px);
+}
+
+.entity-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md, 12px);
+}

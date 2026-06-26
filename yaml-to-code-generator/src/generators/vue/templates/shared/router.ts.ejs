@@ -12,7 +12,7 @@ const router = createRouter({
   routes: [
     {
       path: '/',
-      redirect: '/tickets'
+      redirect: '/<%= listEntity?.nameKebab %>s'
     },
 <% for (const entity of ir.entities) { %>
 <% if (genEntities?.[entity.name]?.hasGetAll) { %>

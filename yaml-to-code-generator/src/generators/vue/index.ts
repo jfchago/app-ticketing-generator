@@ -29,6 +29,9 @@ export class VueGenerator extends BaseGenerator {
     this.renderEjs('shared/enums.ts.ejs', 'src/domain/enums.ts', genCtx);
     this.renderEjs('shared/api-client.ts.ejs', 'src/infrastructure/api-client.ts', genCtx);
     this.renderEjs('shared/router.ts.ejs', 'src/app/router/index.ts', genCtx);
+    this.renderEjs('shared/tokens.css.ejs', 'src/styles/tokens.css', genCtx);
+    this.renderEjs('shared/base.css.ejs', 'src/styles/base.css', genCtx);
+    this.renderEjs('shared/utilities.css.ejs', 'src/styles/utilities.css', genCtx);
 
     for (const entity of ir.entities) {
       this.#renderEntity(entity, genCtx);

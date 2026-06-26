@@ -1,7 +1,15 @@
 <%# components/EntityCard.vue.ejs — List item card component %>
+<%
+const gen = genEntities?.[entity.name];
+const textFields = gen?.displayFields?.filter(f => f.fieldRole === 'text') ?? [];
+const primaryField = textFields[0];
+const descField = textFields.length > 1 ? textFields[1] : null;
+%>
 <script setup lang="ts">
+import type { <%= entity.namePascal %> } from '../domain/<%= entity.nameCamel %>/<%= entity.nameCamel %>.types';
+
 defineProps<{
-  item: Record<string, any>;
+  item: <%= entity.namePascal %>;
 }>();
 
 defineEmits<{
@@ -11,8 +19,14 @@ defineEmits<{
 
 <template>
   <div class="card" @click="$emit('click', item.id)">
-    <h3>{{ item.title ?? item.name ?? item.id }}</h3>
-    <p v-if="item.description">{{ item.description }}</p>
+<% if (primaryField) { %>
+    <h3>{{ item.<%= primaryField.name %> }}</h3>
+<% } else { %>
+    <h3>{{ item.id }}</h3>
+<% } %>
+<% if (descField) { %>
+    <p v-if="item.<%= descField.name %>">{{ item.<%= descField.name %> }}</p>
+<% } %>
   </div>
 </template>
 
