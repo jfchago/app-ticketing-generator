@@ -306,7 +306,8 @@ function buildMethodParams(entity: EntityDef, uc: UseCaseDef): string {
     } else {
       valType = entity.attributes.find((a) => a.isEnum && !a.primary)?.type ?? 'string';
     }
-    return `${entity.nameCamel}Id: string, value: ${valType}`;
+    const valName = buildParamNames(entity, uc)[1] ?? 'value';
+    return `${entity.nameCamel}Id: string, ${valName}: ${valType}`;
   }
   if (uc.needsId) return `${entity.nameCamel}Id: string`;
   return '';
@@ -398,10 +399,10 @@ function buildStoreActionBody(
           expr = expr.replace(barePattern, `data.${attrName}`);
         }
       } else if (action === 'updateStatus' || action === 'updatePriority') {
-        expr = expr.replace(/\bnewStatus\b/g, 'value');
-        expr = expr.replace(/\bnewPriority\b/g, 'value');
+        expr = expr.replace(/\bnewStatus\b/g, valParam);
+        expr = expr.replace(/\bnewPriority\b/g, valParam);
       }
-      const retStmt = action === 'create' ? 'return { error: this.error }' : 'return';
+      const retStmt = action === 'create' ? `throw new Error('${check.message}')` : 'return';
       return `if (!(${expr})) { this.error = '${check.message}'; ${retStmt}; }`;
     });
   }

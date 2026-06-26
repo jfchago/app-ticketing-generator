@@ -206,7 +206,7 @@ function buildServiceMethod(
     const uniqueAttrs = entity.attributes.filter((a) => a.unique && !a.primary);
     let duplicateCheck = '';
     for (const attr of uniqueAttrs) {
-      duplicateCheck += `if (${entity.nameCamel}Repository.existsBy${attr.namePascal}(dto.get${attr.namePascal}())) { throw new RuntimeException("${entity.namePascal} with this ${attr.name} already exists"); }\n        `;
+      duplicateCheck += `if (${entity.nameCamel}Repository.existsBy${attr.namePascal}(dto.get${attr.namePascal}())) { throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.CONFLICT, "${entity.namePascal} with this ${attr.name} already exists"); }\n        `;
     }
     const mtoResolution = buildManyToOneResolutionBody(entity, ir, 'dto', entity.nameCamel);
     body = `${entity.namePascal} ${entity.nameCamel} = ${entity.nameCamel}Mapper.toEntity(dto);\n        ${mtoResolution ? mtoResolution + '\n        ' : ''}${duplicateCheck}${ruleBody}\n        ${entity.nameCamel}Repository.save(${entity.nameCamel});\n        ${buildEventPublishBody(ir, entity, uc.name)}\n        return ${entity.nameCamel}Mapper.toDTO(${entity.nameCamel});`;
@@ -325,7 +325,7 @@ function buildRuleCheckBody(
           `.${getterName}().name()`,
         );
       }
-      return `if (!(${condition})) { throw new RuntimeException("${r.message}"); }`;
+      return `if (!(${condition})) { throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.BAD_REQUEST, "${r.message}"); }`;
     })
     .join('\n        ');
 }
