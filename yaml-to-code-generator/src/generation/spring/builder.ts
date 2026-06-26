@@ -208,7 +208,8 @@ function buildServiceMethod(
     for (const attr of uniqueAttrs) {
       duplicateCheck += `if (${entity.nameCamel}Repository.existsBy${attr.namePascal}(dto.get${attr.namePascal}())) { throw new RuntimeException("${entity.namePascal} with this ${attr.name} already exists"); }\n        `;
     }
-    body = `${entity.namePascal} ${entity.nameCamel} = ${entity.nameCamel}Mapper.toEntity(dto);\n        ${duplicateCheck}${ruleBody}\n        ${entity.nameCamel}Repository.save(${entity.nameCamel});\n        ${buildEventPublishBody(ir, entity, uc.name)}\n        return ${entity.nameCamel}Mapper.toDTO(${entity.nameCamel});`;
+    const mtoResolution = buildManyToOneResolutionBody(entity, ir, 'dto', entity.nameCamel);
+    body = `${entity.namePascal} ${entity.nameCamel} = ${entity.nameCamel}Mapper.toEntity(dto);\n        ${mtoResolution ? mtoResolution + '\n        ' : ''}${duplicateCheck}${ruleBody}\n        ${entity.nameCamel}Repository.save(${entity.nameCamel});\n        ${buildEventPublishBody(ir, entity, uc.name)}\n        return ${entity.nameCamel}Mapper.toDTO(${entity.nameCamel});`;
   } else if (uc.name === 'update_status' && statusAttr) {
     returnType = `${entity.namePascal}DTO`;
     params = `${pkJavaType} id, String status`;
@@ -224,14 +225,16 @@ function buildServiceMethod(
     returnType = `${entity.namePascal}DTO`;
     params = `${pkJavaType} id, String userId`;
     annotations = ['@Transactional'];
-    const assigneeField = assigneeRel.foreignKey.replace(/_id$/i, 'Id');
-    body = `var ${entity.nameCamel} = ${entity.nameCamel}Repository.findById(id).orElseThrow(() -> new RuntimeException("${entity.namePascal} not found: " + id));\n        ${entity.nameCamel}.set${assigneeField.charAt(0).toUpperCase() + assigneeField.slice(1)}(userId);\n        ${entity.nameCamel}Repository.save(${entity.nameCamel});\n        ${buildEventPublishBody(ir, entity, uc.name)}\n        return ${entity.nameCamel}Mapper.toDTO(${entity.nameCamel});`;
+    const targetCamel = assigneeRel.target.charAt(0).toLowerCase() + assigneeRel.target.slice(1);
+    const targetPascal = assigneeRel.targetPascal;
+    const assigneeSetter = `set${assigneeRel.namePascal.charAt(0).toUpperCase() + assigneeRel.namePascal.slice(1)}`;
+    body = `var ${entity.nameCamel} = ${entity.nameCamel}Repository.findById(id).orElseThrow(() -> new RuntimeException("${entity.namePascal} not found: " + id));\n        ${targetPascal} ${targetCamel} = ${targetCamel}Repository.findById(userId).orElseThrow(() -> new RuntimeException("${targetPascal} not found: " + userId));\n        ${entity.nameCamel}.${assigneeSetter}(${targetCamel});\n        ${entity.nameCamel}Repository.save(${entity.nameCamel});\n        ${buildEventPublishBody(ir, entity, uc.name)}\n        return ${entity.nameCamel}Mapper.toDTO(${entity.nameCamel});`;
   } else if (uc.name === 'unassign_user' && assigneeRel) {
     returnType = `${entity.namePascal}DTO`;
     params = `${pkJavaType} id`;
     annotations = ['@Transactional'];
-    const unassignField = assigneeRel.foreignKey.replace(/_id$/i, 'Id');
-    body = `var ${entity.nameCamel} = ${entity.nameCamel}Repository.findById(id).orElseThrow(() -> new RuntimeException("${entity.namePascal} not found: " + id));\n        ${entity.nameCamel}.set${unassignField.charAt(0).toUpperCase() + unassignField.slice(1)}(null);\n        ${entity.nameCamel}Repository.save(${entity.nameCamel});\n        return ${entity.nameCamel}Mapper.toDTO(${entity.nameCamel});`;
+    const assigneeSetter = `set${assigneeRel.namePascal.charAt(0).toUpperCase() + assigneeRel.namePascal.slice(1)}`;
+    body = `var ${entity.nameCamel} = ${entity.nameCamel}Repository.findById(id).orElseThrow(() -> new RuntimeException("${entity.namePascal} not found: " + id));\n        ${entity.nameCamel}.${assigneeSetter}(null);\n        ${entity.nameCamel}Repository.save(${entity.nameCamel});\n        return ${entity.nameCamel}Mapper.toDTO(${entity.nameCamel});`;
   } else if (uc.name === 'add_comment' && commentEntity && commentRel) {
     const commentPascal = commentEntity.namePascal;
     const commentCamel = commentEntity.nameCamel;
@@ -330,9 +333,9 @@ function buildRuleCheckBody(
 function buildEventPublishBody(ir: IR, entity: EntityDef, action: string): string {
   const events = ir.events ?? [];
   const actionSuffixMap: Record<string, string> = {
-    'create': 'Creado',
-    'assign_user': 'Asignado',
-    'update_status': 'Cerrado',
+    create: 'Creado',
+    assign_user: 'Asignado',
+    update_status: 'Cerrado',
   };
   const suffix = actionSuffixMap[action];
   if (!suffix) return '';
@@ -341,6 +344,34 @@ function buildEventPublishBody(ir: IR, entity: EntityDef, action: string): strin
   return matching
     .map((ev) => `${ev.nameCamel}EventPublisher.publish(${entity.nameCamel});`)
     .join('\n        ');
+}
+
+function buildManyToOneResolutionBody(
+  entity: EntityDef,
+  _ir: IR,
+  dtoVar: string,
+  entityVar: string,
+): string {
+  const mtoRels = entity.relationships.filter((r) => r.type === 'many_to_one');
+  if (mtoRels.length === 0) return '';
+
+  const blocks: string[] = [];
+  for (const rel of mtoRels) {
+    const fk = rel.foreignKey;
+    const fkGetter = `get${fk.charAt(0).toUpperCase() + fk.slice(1)}`;
+    const targetCamel = rel.target.charAt(0).toLowerCase() + rel.target.slice(1);
+    const targetPascal = rel.targetPascal;
+    const setter = `set${rel.namePascal.charAt(0).toUpperCase() + rel.namePascal.slice(1)}`;
+
+    blocks.push(
+      `if (${dtoVar}.${fkGetter}() != null) {`,
+      `    ${targetPascal} ${targetCamel} = ${targetCamel}Repository.findById(${dtoVar}.${fkGetter}()).orElseThrow(() -> new RuntimeException("${targetPascal} not found: " + ${dtoVar}.${fkGetter}()));`,
+      `    ${entityVar}.${setter}(${targetCamel});`,
+      '}',
+    );
+  }
+
+  return blocks.join('\n        ');
 }
 
 function buildEndpoints(entity: EntityDef, ir: IR): SpringEndpoint[] {
