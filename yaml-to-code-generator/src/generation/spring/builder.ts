@@ -203,8 +203,12 @@ function buildServiceMethod(
     params = `${entity.namePascal}DTO dto`;
     annotations = ['@Transactional'];
     const ruleBody = buildRuleCheckBody(ruleChecks, entity, uc.name);
-    const pkField = entity.primaryKey?.name ?? 'id';
-    body = `${entity.namePascal} ${entity.nameCamel} = ${entity.nameCamel}Mapper.toEntity(dto);\n        if (${entity.nameCamel}Repository.findById(${entity.nameCamel}.get${pkField.charAt(0).toUpperCase() + pkField.slice(1)}()).isPresent()) { throw new RuntimeException("${entity.namePascal} already exists"); }\n        ${ruleBody}\n        ${entity.nameCamel}Repository.save(${entity.nameCamel});\n        ${buildEventPublishBody(ir, entity, uc.name)}\n        return ${entity.nameCamel}Mapper.toDTO(${entity.nameCamel});`;
+    const uniqueAttrs = entity.attributes.filter((a) => a.unique && !a.primary);
+    let duplicateCheck = '';
+    for (const attr of uniqueAttrs) {
+      duplicateCheck += `if (${entity.nameCamel}Repository.existsBy${attr.namePascal}(dto.get${attr.namePascal}())) { throw new RuntimeException("${entity.namePascal} with this ${attr.name} already exists"); }\n        `;
+    }
+    body = `${entity.namePascal} ${entity.nameCamel} = ${entity.nameCamel}Mapper.toEntity(dto);\n        ${duplicateCheck}${ruleBody}\n        ${entity.nameCamel}Repository.save(${entity.nameCamel});\n        ${buildEventPublishBody(ir, entity, uc.name)}\n        return ${entity.nameCamel}Mapper.toDTO(${entity.nameCamel});`;
   } else if (uc.name === 'update_status' && statusAttr) {
     returnType = `${entity.namePascal}DTO`;
     params = `${pkJavaType} id, String status`;
@@ -236,13 +240,13 @@ function buildServiceMethod(
     params = `${pkJavaType} id, String text`;
     annotations = ['@Transactional'];
     const pkField = entity.primaryKey?.name ?? 'id';
-    body = `var ${entity.nameCamel} = ${entity.nameCamel}Repository.findById(id).orElseThrow(() -> new RuntimeException("${entity.namePascal} not found: " + id));\n        ${commentPascal} ${commentCamel} = new ${commentPascal}();\n        ${commentCamel}.setId(UUID.randomUUID().toString());\n        ${commentCamel}.set${foreignKeyField.charAt(0).toUpperCase() + foreignKeyField.slice(1)}(String.valueOf(${entity.nameCamel}.get${pkField.charAt(0).toUpperCase() + pkField.slice(1)}()));\n        ${commentCamel}.setText(text);\n        ${commentCamel}.setAuthorId("system");\n        ${commentCamel}.setCreatedAt(LocalDateTime.now());\n        ${commentCamel}Repository.save(${commentCamel});\n        return ${commentCamel}Mapper.toDTO(${commentCamel});`;
+    body = `var ${entity.nameCamel} = ${entity.nameCamel}Repository.findById(id).orElseThrow(() -> new RuntimeException("${entity.namePascal} not found: " + id));\n        ${commentPascal} ${commentCamel} = new ${commentPascal}();\n        ${commentCamel}.set${foreignKeyField.charAt(0).toUpperCase() + foreignKeyField.slice(1)}(${entity.nameCamel}.get${pkField.charAt(0).toUpperCase() + pkField.slice(1)}());\n        ${commentCamel}.setText(text);\n        ${commentCamel}.setAuthorId(""); // TODO: replace with authentication context\n        ${commentCamel}Repository.save(${commentCamel});\n        return ${commentCamel}Mapper.toDTO(${commentCamel});`;
   } else if (uc.name === 'add_comment') {
     // Fallback for entity that IS the comment (no foreign entity)
     returnType = `${entity.namePascal}DTO`;
     params = `${pkJavaType} id, String text`;
     annotations = ['@Transactional'];
-    body = `${entity.namePascal} ${entity.nameCamel} = new ${entity.namePascal}();\n        ${entity.nameCamel}.setId(UUID.randomUUID().toString());\n        ${entity.nameCamel}.setText(text);\n        ${entity.nameCamel}.setAuthorId("system");\n        ${entity.nameCamel}.setCreatedAt(LocalDateTime.now());\n        ${entity.nameCamel}.setTicketId(id);\n        ${entity.nameCamel}Repository.save(${entity.nameCamel});\n        return ${entity.nameCamel}Mapper.toDTO(${entity.nameCamel});`;
+    body = `${entity.namePascal} ${entity.nameCamel} = new ${entity.namePascal}();\n        ${entity.nameCamel}.setText(text);\n        ${entity.nameCamel}.setAuthorId(""); // TODO: replace with authentication context\n        ${entity.nameCamel}.setTicketId(id);\n        ${entity.nameCamel}Repository.save(${entity.nameCamel});\n        return ${entity.nameCamel}Mapper.toDTO(${entity.nameCamel});`;
   } else {
     returnType = 'void';
     params = '';
@@ -285,6 +289,9 @@ function buildRuleCheckBody(
         .replace(/!==/g, '!=')
         .replace(/===/g, '==')
         .replace(/'/g, '"');
+      // Convert string comparisons from reference equality to value equality
+      condition = condition.replace(/([\w.()]+)\s*!=\s*"([^"]+)"/g, '!"$2".equals($1)');
+      condition = condition.replace(/([\w.()]+)\s*==\s*"([^"]+)"/g, '"$2".equals($1)');
       if (action === 'create') {
         for (const attrName of attrNames) {
           const barePattern = new RegExp(`\\b${attrName}\\b(?!\\s*\\()`, 'g');
@@ -320,9 +327,16 @@ function buildRuleCheckBody(
     .join('\n        ');
 }
 
-function buildEventPublishBody(ir: IR, entity: EntityDef, _action: string): string {
+function buildEventPublishBody(ir: IR, entity: EntityDef, action: string): string {
   const events = ir.events ?? [];
-  const matching = events.filter((ev) => ev.namePascal.startsWith(entity.namePascal));
+  const actionSuffixMap: Record<string, string> = {
+    'create': 'Creado',
+    'assign_user': 'Asignado',
+    'update_status': 'Cerrado',
+  };
+  const suffix = actionSuffixMap[action];
+  if (!suffix) return '';
+  const matching = events.filter((ev) => ev.namePascal.endsWith(suffix));
   if (matching.length === 0) return '';
   return matching
     .map((ev) => `${ev.nameCamel}EventPublisher.publish(${entity.nameCamel});`)

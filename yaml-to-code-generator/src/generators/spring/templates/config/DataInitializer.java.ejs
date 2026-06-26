@@ -54,6 +54,7 @@ public class DataInitializer implements CommandLineRunner {
         User u = new User();
         u.setId("user-1");
         u.setName("Admin");
+		u.setRole("admin");
         userRepository.save(u);
 <% } %>
     }

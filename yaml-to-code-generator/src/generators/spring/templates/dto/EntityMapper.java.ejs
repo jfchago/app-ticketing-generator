@@ -4,11 +4,9 @@ package <%= ir.application.basePackage %>.dto;
 import <%= ir.application.basePackage %>.entity.<%= entity.namePascal %>;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.factory.Mappers;
 
-@Mapper
+@Mapper(componentModel = "spring")
 public interface <%= entity.namePascal %>Mapper {
-    <%= entity.namePascal %>Mapper INSTANCE = Mappers.getMapper(<%= entity.namePascal %>Mapper.class);
 
     <%= entity.namePascal %>DTO toDTO(<%= entity.namePascal %> entity);
 

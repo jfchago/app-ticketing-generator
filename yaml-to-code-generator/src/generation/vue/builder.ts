@@ -257,7 +257,13 @@ function buildParamNames(entity: EntityDef, uc: UseCaseDef): string[] {
   if (uc.name === 'get_by_id') return ['id'];
   if (uc.name === 'create') return ['data'];
   if (uc.name === 'add_comment') return [`${entity.nameCamel}Id`, 'text'];
-  if (uc.needsId && uc.needsPayload) return [`${entity.nameCamel}Id`, 'value'];
+  if (uc.needsId && uc.needsPayload) {
+    if (uc.name === 'update_status') return [`${entity.nameCamel}Id`, 'status'];
+    if (uc.name === 'update_priority') return [`${entity.nameCamel}Id`, 'priority'];
+    if (uc.name === 'assign_user') return [`${entity.nameCamel}Id`, 'userId'];
+    if (uc.name === 'unassign_user') return [`${entity.nameCamel}Id`, 'userId'];
+    return [`${entity.nameCamel}Id`, 'value'];
+  }
   if (uc.needsId) return [`${entity.nameCamel}Id`];
   return [];
 }
@@ -273,6 +279,8 @@ function buildParamTypes(entity: EntityDef, uc: UseCaseDef): string[] {
       valType = entity.attributes.find((a) => a.name === 'status')?.type ?? 'string';
     } else if (uc.name === 'update_priority') {
       valType = entity.attributes.find((a) => a.name === 'priority')?.type ?? 'string';
+    } else if (uc.name === 'assign_user' || uc.name === 'unassign_user') {
+      valType = 'string';
     } else {
       valType = entity.attributes.find((a) => a.isEnum && !a.primary)?.type ?? 'string';
     }
@@ -293,6 +301,8 @@ function buildMethodParams(entity: EntityDef, uc: UseCaseDef): string {
       valType = entity.attributes.find((a) => a.name === 'status')?.type ?? 'string';
     } else if (uc.name === 'update_priority') {
       valType = entity.attributes.find((a) => a.name === 'priority')?.type ?? 'string';
+    } else if (uc.name === 'assign_user' || uc.name === 'unassign_user') {
+      valType = 'string';
     } else {
       valType = entity.attributes.find((a) => a.isEnum && !a.primary)?.type ?? 'string';
     }
@@ -391,7 +401,8 @@ function buildStoreActionBody(
         expr = expr.replace(/\bnewStatus\b/g, 'value');
         expr = expr.replace(/\bnewPriority\b/g, 'value');
       }
-      return `if (!(${expr})) { this.error = '${check.message}'; return; }`;
+      const retStmt = action === 'create' ? 'return { error: this.error }' : 'return';
+      return `if (!(${expr})) { this.error = '${check.message}'; ${retStmt}; }`;
     });
   }
 

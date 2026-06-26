@@ -6,6 +6,28 @@ import type { <%= entity.namePascal %> } from '../domain/<%= entity.nameCamel %>
 import type { <%- enumAttrs.map(a => a.type).join(', ') %> } from '../domain/<%= entity.nameCamel %>/<%= entity.nameCamel %>.types';
 import { <%- enumAttrs.map(a => `${a.type}_LABELS`).join(', ') %> } from '../domain/<%= entity.nameCamel %>/<%= entity.nameCamel %>.types';
 <% } %>
+<% const fkAttrs = entity.attributes.filter(a => entity.relationships.some(r => r.foreignKey === a.name)); if (fkAttrs.length > 0) { %>
+import { onMounted } from 'vue';
+<% for (const attr of fkAttrs) { 
+  const rel = entity.relationships.find(r => r.foreignKey === attr.name);
+  const targetEntity = rel ? ir.entities.find(e => e.name === rel.target) : null;
+  if (targetEntity) { %>
+import { use<%- targetEntity.namePascal %>Store } from '../stores/<%- targetEntity.nameCamel %>.store';
+const <%- targetEntity.nameCamel %>Store = use<%- targetEntity.namePascal %>Store();
+<%   } 
+} %>
+onMounted(() => {
+<% for (const attr of fkAttrs) { 
+  const rel = entity.relationships.find(r => r.foreignKey === attr.name);
+  const targetEntity = rel ? ir.entities.find(e => e.name === rel.target) : null;
+  if (targetEntity) { 
+    const loadMethod = targetEntity.useCases?.find(uc => uc.name === 'load_users')?.methodName ?? 'loadUsers';
+%>
+  <%- targetEntity.nameCamel %>Store.<%- loadMethod %>();
+<%   } 
+} %>
+});
+<% } %>
 
 const emit = defineEmits<{
   submit: [data: Partial<<%= entity.namePascal %>>];
@@ -34,6 +56,17 @@ function handleSubmit() {
       <select id="<%= attr.name %>" v-model="<%= attr.name %>" <%= attr.required ? 'required' : '' %>>
         <option value="" disabled>Select...</option>
         <option v-for="(label, value) in <%= attr.type %>_LABELS" :key="value" :value="value">{{ label }}</option>
+      </select>
+<% } else if (entity.relationships.some(r => r.foreignKey === attr.name)) { 
+  const rel = entity.relationships.find(r => r.foreignKey === attr.name);
+  const targetEntity = rel ? ir.entities.find(e => e.name === rel.target) : null;
+  const targetCamel = targetEntity?.nameCamel ?? 'unknown';
+  const targetPascal = targetEntity?.namePascal ?? 'Unknown';
+  const displayField = targetEntity?.attributes.find(a => a.name === 'name')?.name ?? targetEntity?.attributes.find(a => !a.primary)?.name ?? 'id';
+%>
+      <select id="<%= attr.name %>" v-model="<%= attr.name %>">
+        <option value="" disabled>Select <%- targetPascal %>...</option>
+        <option v-for="item in <%- targetCamel %>Store.<%- targetCamel %>s" :key="item.id" :value="item.id">{{ item.<%- displayField %> }}</option>
       </select>
 <% } else { %>
       <input id="<%= attr.name %>" v-model="<%= attr.name %>" type="text" <%= attr.required ? 'required' : '' %> />
