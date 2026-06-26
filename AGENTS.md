@@ -104,8 +104,8 @@ YAML DSL
   ├── AST validator → ValidatedAST (cross-references)
   ├── IR builder v2 → IR (merged structural + behavioral)
   └── Yeoman generators → files
-        ├── vue/ → TS + Vue SFC + XState + orchestrators
-        ├── spring/ → Java + Spring Boot + StateMachine + events
+        ├── vue/ → TS + Vue SFC files (types, stores, components, views)
+        ├── spring/ → Java + Spring Boot + events
         └── diagrams/ → PlantUML (class, state, sequence, activity, use case)
 ```
 
@@ -193,20 +193,16 @@ Behavior blocks are optional multiline strings inside YAML that define:
 
 | Block type | DSL keyword | Where it can appear | Generated output                                              | Status                        |
 | ---------- | ----------- | ------------------- | ------------------------------------------------------------- | ----------------------------- |
-| Workflow   | `workflows` | Top-level array     | Orchestrator with typed dispatch (Vue/Spring)                 | Functional (dispatch pattern) |
-| Event      | `events`    | Top-level array     | EventBus handlers (Vue), `ApplicationEventPublisher` (Spring) | Functional                    |
-| Decision   | `decisions` | Top-level array     | Strategy pattern functions (Vue), `evaluate()` class (Spring) | Functional                    |
+| Workflow   | `workflows` | Top-level array     | Activity/sequence diagrams (diagrams target only)             | Diagram output only           |
+| Event      | `events`    | Top-level array     | `ApplicationEventPublisher` classes and listener (Spring)     | Functional (Spring only)      |
+| Decision   | `decisions` | Top-level array     | None — parsed into IR but no code or diagram output           | Design-time artifact only     |
 
 **Transitions & Rules** are now plain YAML fields (not DSL strings), see `specs/helpdesk.yaml` for examples.
 
 Key characteristics of behavioral code generation:
 
 - **Rules now evaluate conditions**: `guard: "entity.comments.length === 0"` generates `check*()` functions returning the condition in both Vue (Pinia store) and Spring (service). The `entity` variable in the DSL is replaced with the actual entity name (e.g., `ticket`).
-- **Workflows dispatch externally**: The Vue orchestrator receives `ctx.dispatch(action, payload)` and `ctx.onStateChange(state)`. The caller wires the actual API calls. Generated types ensure valid action names.
-- **Decisions produce strategy patterns**: Generate `evaluatePrioridadTicket(input)` in Vue, `PrioridadticketDecision.evaluate(input)` in Spring with when/else branching.
 - **Actions preserve verbs**: The AST builder stores `action.params.verb` = `"crearTicket"`, `action.params.role` = `"user"`/`"system"`, `action.params.actor` = `"Usuario"` so templates can generate role-aware dispatch code.
-- **Error constants**: Generate typed error definitions with `raise` messages and `code` identifiers. Vue produces `AppError` constants and `getError()` lookup. Spring produces `RuntimeException` subclasses with `getError()` factory.
-- **Validation**: Validate functions evaluate `require` conditions and return `{ valid, message, errorCode }`.
 - **Event listeners (Spring)**: A single `@Component` class (`AppEventListener`) is generated with `@EventListener` methods for every event type. Events can be published and consumed within the application.
 
 See `docs/11-behavior-dsl-reference.md` for full grammar reference.
@@ -215,27 +211,17 @@ See `docs/11-behavior-dsl-reference.md` for full grammar reference.
 
 ### Vue target
 
-| Template path                        | Context                    | What it generates                                                                                                                                                                                                |
-| ------------------------------------ | -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `stores/entity.store.ts.ejs`         | `{ entity }`               | Pinia store with inline state machine transition table (`VALID_TRANSITIONS`), `check*()` rule guard functions, and guarded mutation actions (updateStatus, updatePriority, assignUser, unassignUser, addComment) |
-| `statemachines/state-machine.ts.ejs` | `{ entity, stateMachine }` | XState v5 machine config with guards (NOT WIRED — template exists but unused)                                                                                                                                    |
-| `workflows/orchestrator.ts.ejs`      | `{ workflow }`             | Typed orchestrator with `dispatch()` + `onStateChange()` (NOT WIRED)                                                                                                                                             |
-| `events/event-handler.ts.ejs`        | `{ event }`                | In-memory pub/sub per event type (NOT WIRED)                                                                                                                                                                     |
-| `decisions/decision.ts.ejs`          | `{ decision }`             | `evaluateDecision()` strategy functions (NOT WIRED)                                                                                                                                                              |
+| Template path                        | Context                    | What it generates                                                                                                                                                                                                                                                                                       |
+| ------------------------------------ | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `stores/entity.store.ts.ejs`         | `{ entity }`               | Pinia store with inline state machine transition table (`VALID_TRANSITIONS`), `check*()` rule guard functions (from `rules:` in YAML), and guarded CRUD mutation actions. Rules and transitions are generated inline within this template, not as separate files.                                       |
 
 ### Spring target
 
 | Template path                              | Context                    | What it generates                                         |
 | ------------------------------------------ | -------------------------- | --------------------------------------------------------- |
-| `statemachine/StateMachineConfig.java.ejs` | `{ entity, stateMachine }` | Spring StateMachine `@Configuration`                      |
-| `workflow/WorkflowOrchestrator.java.ejs`   | `{ workflow }`             | `@Service` with step handlers + `dispatchAction()`        |
 | `event/Event.java.ejs`                     | `{ event }`                | Event class with payload fields                           |
 | `event/EventPublisher.java.ejs`            | `{ event }`                | `ApplicationEventPublisher` wrapper                       |
 | `event/EventListener.java.ejs`             | `{}` (reads all ir.events) | `@Component` with `@EventListener` methods for all events |
-| `rule/BusinessRule.java.ejs`               | `{ entity, rule }`         | `evaluate()` with condition + `execute()`                 |
-| `decision/Decision.java.ejs`               | `{ decision }`             | `evaluate(Map)` strategy class                            |
-| `validation/Validation.java.ejs`           | `{ entity }`               | `Validator` class with `validate()` methods               |
-| `error/ErrorHandler.java.ejs`              | `{ entity }`               | RuntimeException subclasses with `getError()`             |
 
 ## Add new use cases
 
@@ -270,4 +256,11 @@ Each template receives `{ ir, entity?, enumDef? }` context:
 - `enumDef` — current enum definition (for `enum/Enum.java.ejs`; undefined otherwise)
 - Helper functions: `camelCase`, `pascalCase`, `kebabCase`, `snakeCase`, `pluralize`, `upperCase`, `lowerCase`, `indent`
 
-For behavior templates, additional context may include `workflow`, `stateMachine`, `event`, `decision`, or `rule` depending on the template type. See `docs/05-template-authoring.md` for details.
+For behavior templates, additional context may include `event` where applicable. See `docs/05-template-authoring.md` for details.
+
+## Known limitations
+
+- **Workflows produce diagrams only** — The workflow DSL (`workflows:` in YAML) generates activity and sequence diagrams via the diagrams target. No workflow orchestrator code is generated in Vue or Spring targets.
+- **Decisions have no output** — The decision DSL (`decisions:` in YAML) defines strategy branches but produces neither code nor diagrams in any target. Decisions are a design-time artifact only.
+- **Vue has no event handling** — Events are wired only in the Spring target (event classes, publishers, `@EventListener`). The Vue target produces no event handling code. Event payloads are parsed and stored in the IR but no Vue code is generated from them.
+- **State machine transitions and rule guards are inlined** — They appear inside Pinia store actions (Vue) and service methods (Spring) rather than as standalone configuration or validation files. This keeps the generated code self-contained but means there is no central state machine configuration to inspect.
