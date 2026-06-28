@@ -47,13 +47,15 @@ function handleSubmit() {
 
 <template>
   <form @submit.prevent="handleSubmit" class="entity-form">
+    <fieldset>
+      <legend><%= entity.namePascal %> Details</legend>
 <% for (const attr of entity.attributes.filter(a => !a.primary && a.name !== 'id' && a.name !== 'createdAt' && a.name !== 'updatedAt' && !a.isEntityRef)) { %>
     <div class="form-group">
       <label for="<%= attr.name %>"><%= attr.namePascal.replace(/([a-z])([A-Z])/g, '$1 $2') %></label>
 <% if (attr.type === 'String' && (attr.length ?? 999) > 200) { %>
-      <textarea id="<%= attr.name %>" v-model="<%= attr.name %>" <%= attr.required ? 'required' : '' %>></textarea>
+      <textarea id="<%= attr.name %>" v-model="<%= attr.name %>" aria-describedby="<%= attr.name %>-desc" <%= attr.required ? 'required' : '' %>></textarea>
 <% } else if (attr.isEnum) { %>
-      <select id="<%= attr.name %>" v-model="<%= attr.name %>" <%= attr.required ? 'required' : '' %>>
+      <select id="<%= attr.name %>" v-model="<%= attr.name %>" aria-describedby="<%= attr.name %>-desc" <%= attr.required ? 'required' : '' %>>
         <option value="" disabled>Select...</option>
         <option v-for="(label, value) in <%= attr.type %>_LABELS" :key="value" :value="value">{{ label }}</option>
       </select>
@@ -64,16 +66,18 @@ function handleSubmit() {
   const targetPascal = targetEntity?.namePascal ?? 'Unknown';
   const displayField = targetEntity?.attributes.find(a => a.name === 'name')?.name ?? targetEntity?.attributes.find(a => !a.primary)?.name ?? 'id';
 %>
-      <select id="<%= attr.name %>" v-model="<%= attr.name %>">
+      <select id="<%= attr.name %>" v-model="<%= attr.name %>" aria-describedby="<%= attr.name %>-desc">
         <option value="" disabled>Select <%- targetPascal %>...</option>
         <option v-for="item in <%- targetCamel %>Store.<%- targetCamel %>s" :key="item.id" :value="item.id">{{ item.<%- displayField %> }}</option>
       </select>
 <% } else { %>
-      <input id="<%= attr.name %>" v-model="<%= attr.name %>" type="text" <%= attr.required ? 'required' : '' %> />
+      <input id="<%= attr.name %>" v-model="<%= attr.name %>" type="text" aria-describedby="<%= attr.name %>-desc" <%= attr.required ? 'required' : '' %> />
 <% } %>
+      <span id="<%= attr.name %>-desc" class="sr-only">Enter the <%= attr.namePascal.replace(/([a-z])([A-Z])/g, '$1 $2') %></span>
     </div>
 <% } %>
-    <button type="submit">Save</button>
+    </fieldset>
+    <button type="submit" aria-label="Save <%= entity.namePascal %>">Save</button>
   </form>
 </template>
 
@@ -85,4 +89,12 @@ function handleSubmit() {
   padding: 8px; border: 1px solid var(--color-border, #ddd); border-radius: 4px;
 }
 button { padding: 10px 16px; background: var(--color-primary, #42b883); color: white; border: none; border-radius: 4px; cursor: pointer; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border-width: 0; }
+@media (min-width: 768px) {
+  .entity-form { max-width: 500px; }
+}
+@media (max-width: 576px) {
+  button { width: 100%; min-height: 44px; min-width: 44px; }
+  .form-group input, .form-group textarea, .form-group select { font-size: 16px; }
+}
 </style>

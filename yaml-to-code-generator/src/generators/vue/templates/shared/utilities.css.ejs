@@ -84,3 +84,69 @@
   flex-direction: column;
   gap: var(--space-md, 12px);
 }
+
+/* Responsive grid for list views */
+.list-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-md, 12px);
+}
+
+/* Mobile-first responsive breakpoints */
+@media (min-width: 768px) {
+  .list-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .create-view,
+  .detail-view,
+  .list-view {
+    padding: var(--space-2xl, 24px);
+  }
+}
+
+@media (min-width: 1024px) {
+  .list-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 576px) {
+  .list-view,
+  .detail-view,
+  .create-view {
+    padding: var(--space-md, 12px);
+  }
+  .btn-primary,
+  .btn-back {
+    width: 100%;
+  }
+  .meta {
+    flex-direction: column;
+  }
+}
+
+/* Skip link: Insert <a class="skip-link" href="#main-content">Skip to main content</a> as the first element in App.vue template */
+.skip-link {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+.skip-link:focus {
+  clip: auto;
+  position: fixed;
+  top: 8px;
+  left: 8px;
+  z-index: 9999;
+  padding: 8px 16px;
+  background: var(--color-primary, #42b883);
+  color: white;
+  border-radius: 4px;
+  font-weight: 600;
+  text-decoration: none;
+}

@@ -3,18 +3,18 @@
 const gen = genEntities?.[entity.name];
 const statusAttr = gen?.enumAttributes?.find(ea => ea.name === 'status');
 const statusColorMap = [
-  { keywords: ['open', 'active', 'pending'], bg: 'var(--color-primary-light)', color: 'var(--color-primary)' },
-  { keywords: ['in_progress', 'processing'], bg: 'var(--color-warning-light)', color: 'var(--color-warning)' },
-  { keywords: ['resolved', 'completed', 'done'], bg: 'var(--color-success-light)', color: 'var(--color-success)' },
-  { keywords: ['closed', 'cancelled', 'rejected'], bg: 'var(--color-neutral-light)', color: 'var(--color-neutral)' },
-  { keywords: ['on_hold', 'blocked', 'waiting'], bg: 'var(--color-info-light)', color: 'var(--color-info)' },
+  { keywords: ['open', 'active', 'pending'], bg: 'var(--color-primary-light)', color: 'var(--color-primary-text)' },
+  { keywords: ['in_progress', 'processing'], bg: 'var(--color-warning-light)', color: 'var(--color-warning-text)' },
+  { keywords: ['resolved', 'completed', 'done'], bg: 'var(--color-success-light)', color: 'var(--color-success-text)' },
+  { keywords: ['closed', 'cancelled', 'rejected'], bg: 'var(--color-neutral-light)', color: 'var(--color-neutral-text)' },
+  { keywords: ['on_hold', 'blocked', 'waiting'], bg: 'var(--color-info-light)', color: 'var(--color-info-text)' },
 ];
 function statusStyle(valueName) {
   const lower = valueName.toLowerCase();
   for (const entry of statusColorMap) {
     if (entry.keywords.includes(lower)) return entry;
   }
-  return { bg: 'var(--color-neutral-light)', color: 'var(--color-neutral)' };
+  return { bg: 'var(--color-neutral-light)', color: 'var(--color-neutral-text)' };
 }
 %>
 <script setup lang="ts">

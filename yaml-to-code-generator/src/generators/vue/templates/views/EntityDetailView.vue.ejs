@@ -17,6 +17,9 @@ import <%= entity.namePascal %>PriorityBadge from '../components/<%= entity.name
 <% if (gen.components.shouldRenderAssigneeBadge) { %>
 import <%= entity.namePascal %>AssigneeBadge from '../components/<%= entity.namePascal %>AssigneeBadge.vue';
 <% } %>
+import LoaderSpinner from '../components/LoaderSpinner.vue';
+import ErrorState from '../components/ErrorState.vue';
+import EmptyState from '../components/EmptyState.vue';
 
 function formatDate(value: string | null | undefined): string {
   return value ? new Date(value).toLocaleDateString() : '-';
@@ -33,15 +36,25 @@ onMounted(() => {
   store.getById(route.params.id as string);
 <% } %>
 });
+
+function retryLoad() {
+<% if (detailAction) { %>
+  store.<%= detailAction.name %>(route.params.id as string);
+<% } else { %>
+  store.getById(route.params.id as string);
+<% } %>
+}
 </script>
 
 <template>
-  <div class="detail-view">
-    <button @click="router.back()" class="btn-back">← Back</button>
+  <div class="detail-view" role="main" id="main-content">
+    <button @click="router.back()" class="btn-back" aria-label="Go back">← Back</button>
 
-    <div v-if="store.loading">Loading...</div>
-    <div v-else-if="store.error" class="error">{{ store.error }}</div>
-    <div v-else-if="<%= selected %>">
+    <div aria-live="polite">
+    <LoaderSpinner v-if="store.loading" />
+    <ErrorState v-else-if="store.error" :message="store.error" :retry-fn="retryLoad" />
+    <EmptyState v-else-if="!<%= selected %>" :entity-name="'<%= entity.namePascal %> Detail'" message="Not found" />
+    <div v-else>
 <%
   const textFields = gen.displayFields.filter(f => f.fieldRole === 'text');
   const firstText = textFields.shift();
@@ -79,6 +92,7 @@ onMounted(() => {
 <% } %>
       </div>
 <% } %>
+    </div>
     </div>
   </div>
 </template>

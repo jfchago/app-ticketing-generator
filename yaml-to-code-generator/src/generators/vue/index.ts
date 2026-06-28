@@ -33,6 +33,10 @@ export class VueGenerator extends BaseGenerator {
     this.renderEjs('shared/base.css.ejs', 'src/styles/base.css', genCtx);
     this.renderEjs('shared/utilities.css.ejs', 'src/styles/utilities.css', genCtx);
 
+    this.renderEjs('components/LoaderSpinner.vue.ejs', 'src/components/LoaderSpinner.vue', genCtx);
+    this.renderEjs('components/ErrorState.vue.ejs', 'src/components/ErrorState.vue', genCtx);
+    this.renderEjs('components/EmptyState.vue.ejs', 'src/components/EmptyState.vue', genCtx);
+
     for (const entity of ir.entities) {
       this.#renderEntity(entity, genCtx);
     }

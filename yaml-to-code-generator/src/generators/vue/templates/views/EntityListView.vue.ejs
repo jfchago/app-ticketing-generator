@@ -8,6 +8,9 @@ import { onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { use<%= entity.namePascal %>Store } from '../stores/<%= entity.nameCamel %>.store';
 import <%= entity.namePascal %>Card from '../components/<%= entity.namePascal %>Card.vue';
+import LoaderSpinner from '../components/LoaderSpinner.vue';
+import ErrorState from '../components/ErrorState.vue';
+import EmptyState from '../components/EmptyState.vue';
 
 const store = use<%= entity.namePascal %>Store();
 const router = useRouter();
@@ -20,6 +23,14 @@ onMounted(() => {
 <% } %>
 });
 
+function retryLoad() {
+<% if (readAction) { %>
+  store.<%= readAction.name %>();
+<% } else { %>
+  store.getAll();
+<% } %>
+}
+
 function goToDetail(id: string) {
   router.push('/<%= entity.nameKebab %>s/' + id);
 }
@@ -31,17 +42,19 @@ function goToCreate() {
 </script>
 
 <template>
-  <div class="list-view">
+  <div class="list-view" role="main" id="main-content">
     <header>
       <h1><%= entity.namePascal %>s</h1>
 <% if (entity.hasCreate) { %>
-      <button @click="goToCreate" class="btn-primary">+ New <%= entity.namePascal %></button>
+      <button @click="goToCreate" class="btn-primary" aria-label="Create new <%= entity.namePascal %>">+ New <%= entity.namePascal %></button>
 <% } %>
     </header>
 
-    <div v-if="store.loading">Loading...</div>
-    <div v-else-if="store.error" class="error">{{ store.error }}</div>
-    <div v-else>
+    <div aria-live="polite">
+    <LoaderSpinner v-if="store.loading" />
+    <ErrorState v-else-if="store.error" :message="store.error" :retry-fn="retryLoad" />
+    <EmptyState v-else-if="store.<%= gen.statePropertyName %>.length === 0" :entity-name="'<%= entity.namePascal %>'" />
+    <div v-else class="card-grid">
       <<%= entity.namePascal %>Card
         v-for="item in store.<%= gen.statePropertyName %>"
         :key="item.id"
@@ -49,6 +62,24 @@ function goToCreate() {
         @click="goToDetail"
       />
     </div>
+    </div>
   </div>
 </template>
 
+<style scoped>
+.card-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-md, 12px);
+}
+@media (min-width: 768px) {
+  .card-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (min-width: 1024px) {
+  .card-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+</style>
