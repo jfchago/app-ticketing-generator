@@ -29,13 +29,20 @@
 
   /* Typography */
   --font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-size-xs: 0.75rem;
   --font-size-sm: 0.85em;
   --font-size-base: 1em;
+  --font-size-md: 1.125rem;
   --font-size-lg: 1.25em;
   --font-size-xl: 1.5em;
+  --font-size-2xl: 1.875rem;
+  --font-size-3xl: 2.25rem;
   --font-weight-normal: 400;
   --font-weight-semibold: 600;
   --font-weight-bold: 700;
+  --line-height-tight: 1.2;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.75;
 
   /* Border radius */
   --radius-sm: 4px;
@@ -69,4 +76,23 @@
   --color-success-text: #14532d;
   --color-info-text: #164e63;
   --color-neutral-text: #364153;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-bg: #1a1a2e;
+    --color-bg-secondary: #16213e;
+    --color-text: #e0e0e0;
+    --color-text-secondary: #a0a0a0;
+    --color-border: #3a3a4a;
+    --color-primary-light: #1a3a2a;
+    --color-warning-light: #3a2e10;
+    --color-danger-light: #3a1a1a;
+    --color-success-light: #1a3a25;
+    --color-info-light: #1a2e35;
+    --color-neutral-light: #2a2a30;
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
+    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.5);
+    --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.6);
+  }
 }

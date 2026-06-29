@@ -28,7 +28,7 @@ async function handleSubmit(data: Partial<<%= entity.namePascal %>>) {
 </script>
 
 <template>
-  <div class="create-view" role="main" id="main-content">
+  <div class="create-view">
     <button @click="router.back()" class="btn-back" aria-label="Go back">← Back</button>
     <h1>Create <%= entity.namePascal %></h1>
     <<%= entity.namePascal %>Form @submit="handleSubmit" />

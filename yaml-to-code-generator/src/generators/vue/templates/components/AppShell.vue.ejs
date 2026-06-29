@@ -1,0 +1,105 @@
+<%# components/AppShell.vue.ejs — App shell layout with sidebar navigation %>
+<script setup lang="ts">
+import { ref } from 'vue';
+import NavBar from './NavBar.vue';
+import Breadcrumbs from './Breadcrumbs.vue';
+
+const sidebarOpen = ref(false);
+
+function toggleSidebar() {
+  sidebarOpen.value = !sidebarOpen.value;
+}
+</script>
+
+<template>
+  <div class="app-shell">
+    <a class="skip-link" href="#main-content">Skip to main content</a>
+    <button
+      class="hamburger"
+      aria-label="Toggle navigation menu"
+      :aria-expanded="sidebarOpen"
+      @click="toggleSidebar"
+    >
+      <span class="hamburger-line" />
+      <span class="hamburger-line" />
+      <span class="hamburger-line" />
+    </button>
+    <aside class="sidebar" :class="{ 'sidebar--open': sidebarOpen }" aria-label="Main navigation">
+      <NavBar @navigate="sidebarOpen = false" />
+    </aside>
+    <main id="main-content" class="main-content">
+      <Breadcrumbs />
+      <router-view />
+    </main>
+  </div>
+</template>
+
+<style scoped>
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.hamburger {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: var(--space-md, 12px);
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 100;
+}
+.hamburger-line {
+  display: block;
+  width: 24px;
+  height: 3px;
+  background: var(--color-text, #333);
+  border-radius: 2px;
+}
+
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 250px;
+  height: 100vh;
+  background: var(--color-bg-secondary, #f5f5f5);
+  border-right: 1px solid var(--color-border, #ddd);
+  transform: translateX(-100%);
+  transition: transform var(--transition-base, 200ms ease);
+  z-index: 99;
+  overflow-y: auto;
+}
+.sidebar--open {
+  transform: translateX(0);
+}
+
+.main-content {
+  flex: 1;
+  overflow-y: auto;
+  padding-top: 48px;
+}
+
+@media (min-width: 768px) {
+  .app-shell {
+    flex-direction: row;
+  }
+  .hamburger {
+    display: none;
+  }
+  .sidebar {
+    position: static;
+    transform: translateX(0);
+    width: 250px;
+    flex-shrink: 0;
+  }
+  .main-content {
+    padding-top: 0;
+  }
+}
+</style>

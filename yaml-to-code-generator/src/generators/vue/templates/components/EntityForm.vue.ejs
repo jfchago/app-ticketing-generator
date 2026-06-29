@@ -1,6 +1,7 @@
 <%# components/EntityForm.vue.ejs — Create/edit form component %>
 <script setup lang="ts">
 import { ref } from 'vue';
+import FormField from '../components/FormField.vue';
 import type { <%= entity.namePascal %> } from '../domain/<%= entity.nameCamel %>/<%= entity.nameCamel %>.types';
 <% const enumAttrs = entity.attributes.filter(a => a.isEnum); if (enumAttrs.length > 0) { %>
 import type { <%- enumAttrs.map(a => a.type).join(', ') %> } from '../domain/<%= entity.nameCamel %>/<%= entity.nameCamel %>.types';
@@ -29,13 +30,34 @@ onMounted(() => {
 });
 <% } %>
 
+<% const formAttrs = entity.attributes.filter(a => !a.primary && a.name !== 'createdAt' && a.name !== 'updatedAt' && a.name !== 'id' && !a.isEntityRef); %>
+
+<% for (const attr of formAttrs) { %>
+const <%= attr.name %> = ref<<%= attr.tsType %>><%- attr.defaultValue ? "('" + attr.defaultValue + "')" : attr.required ? "('')" : '(null)' %>;
+<% } %>
+
 const emit = defineEmits<{
   submit: [data: Partial<<%= entity.namePascal %>>];
 }>();
 
-<% for (const attr of entity.attributes.filter(a => !a.primary && a.name !== 'createdAt' && a.name !== 'updatedAt' && a.name !== 'id' && !a.isEntityRef)) { %>
-const <%= attr.name %> = ref<<%= attr.tsType %>><%- attr.defaultValue ? "('" + attr.defaultValue + "')" : attr.required ? "('')" : '(null)' %>;
-<% } %>
+const refs: Record<string, any> = {<% for (const attr of formAttrs) { %>
+  <%= attr.name %>: <%= attr.name %>,<% } %>
+};
+
+const formFields = [<% for (const attr of formAttrs) { %>
+  {
+    htmlId: '<%= attr.name %>',
+    label: '<%= attr.label ?? attr.namePascal.replace(/([a-z])([A-Z])/g, '$1 $2') %>',
+    type: <% if (attr.type === 'String' && (attr.length ?? 999) > 200) { %>'textarea' as const<% } else if (attr.isEnum) { %>'select' as const<% } else if (entity.relationships.some(r => r.foreignKey === attr.name)) { %>'fk-select' as const<% } else { %>'text' as const<% } %>,
+    options: <% if (attr.isEnum) { %>Object.entries(<%= attr.type %>_LABELS).map(([value, label]) => ({ value, label }))<% } else if (entity.relationships.some(r => r.foreignKey === attr.name)) {
+  const rel = entity.relationships.find(r => r.foreignKey === attr.name);
+  const targetEntity = rel ? ir.entities.find(e => e.name === rel.target) : null;
+  const targetCamel = targetEntity?.nameCamel ?? 'unknown';
+  const displayField = targetEntity?.attributes.find(a => a.name === 'name')?.name ?? targetEntity?.attributes.find(a => !a.primary)?.name ?? 'id';
+%>(<%- targetCamel %>Store.<%- targetCamel %>s || []).map(item => ({ value: item.id, label: item.<%- displayField %> }))<% } else { %>undefined<% } %>,
+    required: <%= attr.required %>,
+  },<% } %>
+];
 
 function handleSubmit() {
   emit('submit', {<%_ const submitAttrs = entity.attributes.filter(a => !a.primary && a.name !== 'id' && a.name !== 'createdAt' && a.name !== 'updatedAt' && !a.isEntityRef); for (let i = 0; i < submitAttrs.length; i++) { const a = submitAttrs[i]; _%>
@@ -49,33 +71,12 @@ function handleSubmit() {
   <form @submit.prevent="handleSubmit" class="entity-form">
     <fieldset>
       <legend><%= entity.namePascal %> Details</legend>
-<% for (const attr of entity.attributes.filter(a => !a.primary && a.name !== 'id' && a.name !== 'createdAt' && a.name !== 'updatedAt' && !a.isEntityRef)) { %>
-    <div class="form-group">
-      <label for="<%= attr.name %>"><%= attr.namePascal.replace(/([a-z])([A-Z])/g, '$1 $2') %></label>
-<% if (attr.type === 'String' && (attr.length ?? 999) > 200) { %>
-      <textarea id="<%= attr.name %>" v-model="<%= attr.name %>" aria-describedby="<%= attr.name %>-desc" <%= attr.required ? 'required' : '' %>></textarea>
-<% } else if (attr.isEnum) { %>
-      <select id="<%= attr.name %>" v-model="<%= attr.name %>" aria-describedby="<%= attr.name %>-desc" <%= attr.required ? 'required' : '' %>>
-        <option value="" disabled>Select...</option>
-        <option v-for="(label, value) in <%= attr.type %>_LABELS" :key="value" :value="value">{{ label }}</option>
-      </select>
-<% } else if (entity.relationships.some(r => r.foreignKey === attr.name)) { 
-  const rel = entity.relationships.find(r => r.foreignKey === attr.name);
-  const targetEntity = rel ? ir.entities.find(e => e.name === rel.target) : null;
-  const targetCamel = targetEntity?.nameCamel ?? 'unknown';
-  const targetPascal = targetEntity?.namePascal ?? 'Unknown';
-  const displayField = targetEntity?.attributes.find(a => a.name === 'name')?.name ?? targetEntity?.attributes.find(a => !a.primary)?.name ?? 'id';
-%>
-      <select id="<%= attr.name %>" v-model="<%= attr.name %>" aria-describedby="<%= attr.name %>-desc">
-        <option value="" disabled>Select <%- targetPascal %>...</option>
-        <option v-for="item in <%- targetCamel %>Store.<%- targetCamel %>s" :key="item.id" :value="item.id">{{ item.<%- displayField %> }}</option>
-      </select>
-<% } else { %>
-      <input id="<%= attr.name %>" v-model="<%= attr.name %>" type="text" aria-describedby="<%= attr.name %>-desc" <%= attr.required ? 'required' : '' %> />
-<% } %>
-      <span id="<%= attr.name %>-desc" class="sr-only">Enter the <%= attr.namePascal.replace(/([a-z])([A-Z])/g, '$1 $2') %></span>
-    </div>
-<% } %>
+    <FormField
+      v-for="field in formFields"
+      :key="field.htmlId"
+      v-model="refs[field.htmlId].value"
+      v-bind="field"
+    />
     </fieldset>
     <button type="submit" aria-label="Save <%= entity.namePascal %>">Save</button>
   </form>
@@ -83,13 +84,7 @@ function handleSubmit() {
 
 <style scoped>
 .entity-form { display: flex; flex-direction: column; gap: 12px; max-width: 500px; }
-.form-group { display: flex; flex-direction: column; gap: 4px; }
-.form-group label { font-weight: 600; }
-.form-group input, .form-group textarea, .form-group select {
-  padding: 8px; border: 1px solid var(--color-border, #ddd); border-radius: 4px;
-}
 button { padding: 10px 16px; background: var(--color-primary, #42b883); color: white; border: none; border-radius: 4px; cursor: pointer; }
-.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border-width: 0; }
 @media (min-width: 768px) {
   .entity-form { max-width: 500px; }
 }

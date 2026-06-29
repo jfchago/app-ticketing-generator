@@ -3,15 +3,13 @@
 <% if (gen?.hasCommentSupport && gen?.commentEntity) { -%>
 import type { <%= gen.commentEntity.namePascal %> } from '../<%= gen.commentEntity.nameCamel %>/<%= gen.commentEntity.nameCamel %>.types';
 <% } -%>
-<% for (const enumDef of ir.enums) {
-  if (!entity.attributes.some(a => a.isEnum && a.type === enumDef.namePascal)) continue; -%>
-export type <%= enumDef.namePascal %> = <%_ const vals = enumDef.values; for (let i = 0; i < vals.length; i++) { _%>'<%= vals[i].name %>'<%= i < vals.length - 1 ? ' | ' : '' %><%_ } _%>;
-
-export const <%= enumDef.namePascal %>_LABELS: Record<<%= enumDef.namePascal %>, string> = {
-<% for (const val of enumDef.values) { -%>
-  '<%= val.name %>': '<%= val.label %>',
-<% } -%>
-};
+<%
+const entityEnumTypes = ir.enums.filter(enumDef => entity.attributes.some(a => a.isEnum && a.type === enumDef.namePascal));
+for (const enumDef of entityEnumTypes) { -%>
+import type { <%= enumDef.namePascal %> } from '../enums';
+import { <%= enumDef.namePascal %>_LABELS } from '../enums';
+export type { <%= enumDef.namePascal %> };
+export { <%= enumDef.namePascal %>_LABELS };
 <% } -%>
 
 export interface <%= entity.namePascal %> {

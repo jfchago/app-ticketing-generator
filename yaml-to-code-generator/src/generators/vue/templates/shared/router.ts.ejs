@@ -1,10 +1,11 @@
-<%# shared/router.ts.ejs — Vue Router configuration %>
+<%# shared/router.ts.ejs — Vue Router configuration with nested children %>
 import { createRouter, createWebHistory } from 'vue-router';
 <% for (const entity of ir.entities) { %>
 <% if (genEntities?.[entity.name]?.hasGetAll) { %>
 import <%= entity.namePascal %>ListView from '../../views/<%= entity.namePascal %>ListView.vue';
 <% } %>
 <% } %>
+import AppShell from '../../components/AppShell.vue';
 <% const listEntity = ir.entities.find(e => genEntities?.[e.name]?.hasGetAll); %>
 
 const router = createRouter({
@@ -14,29 +15,38 @@ const router = createRouter({
       path: '/',
       redirect: '/<%= listEntity?.nameKebab %>s'
     },
+    {
+      path: '/',
+      component: AppShell,
+      children: [
 <% for (const entity of ir.entities) { %>
 <% if (genEntities?.[entity.name]?.hasGetAll) { %>
-    {
-      path: '/<%= entity.nameKebab %>s',
-      name: '<%= entity.nameCamel %>-list',
-      component: <%= entity.namePascal %>ListView
-    },
+        {
+          path: '<%= entity.nameKebab %>s',
+          name: '<%= entity.nameCamel %>-list',
+          component: <%= entity.namePascal %>ListView,
+          meta: { breadcrumb: '<%= entity.namePascal %>s' }
+        },
 <% } %>
 <% if (genEntities?.[entity.name]?.hasCreate) { %>
-    {
-      path: '/<%= entity.nameKebab %>s/new',
-      name: 'create-<%= entity.nameKebab %>',
-      component: () => import('../../views/Create<%= entity.namePascal %>View.vue')
-    },
+        {
+          path: '<%= entity.nameKebab %>s/new',
+          name: 'create-<%= entity.nameKebab %>',
+          component: () => import('../../views/Create<%= entity.namePascal %>View.vue'),
+          meta: { breadcrumb: 'Create <%= entity.namePascal %>' }
+        },
 <% } %>
 <% if (genEntities?.[entity.name]?.hasGetById) { %>
-    {
-      path: '/<%= entity.nameKebab %>s/:id',
-      name: '<%= entity.nameCamel %>-detail',
-      component: () => import('../../views/<%= entity.namePascal %>DetailView.vue')
-    },
+        {
+          path: '<%= entity.nameKebab %>s/:id',
+          name: '<%= entity.nameCamel %>-detail',
+          component: () => import('../../views/<%= entity.namePascal %>DetailView.vue'),
+          meta: { breadcrumb: '<%= entity.namePascal %> Detail' }
+        },
 <% } %>
 <% } %>
+      ]
+    }
   ]
 });
 

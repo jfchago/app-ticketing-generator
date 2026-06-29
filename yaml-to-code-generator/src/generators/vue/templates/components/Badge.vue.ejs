@@ -1,0 +1,69 @@
+<%# components/Badge.vue.ejs — Unified badge component (status, priority, assignee) %>
+<script setup lang="ts">
+const props = withDefaults(defineProps<{
+  type: 'status' | 'priority' | 'assignee';
+  value: string | null | undefined;
+  colors?: Record<string, { bg: string; text: string }>;
+}>(), {
+  colors: () => ({}),
+});
+
+const STATUS_COLORS: Record<string, { bg: string; text: string }> = {
+  open: { bg: 'var(--color-primary-light)', text: 'var(--color-primary-text)' },
+  active: { bg: 'var(--color-primary-light)', text: 'var(--color-primary-text)' },
+  pending: { bg: 'var(--color-primary-light)', text: 'var(--color-primary-text)' },
+  in_progress: { bg: 'var(--color-warning-light)', text: 'var(--color-warning-text)' },
+  processing: { bg: 'var(--color-warning-light)', text: 'var(--color-warning-text)' },
+  resolved: { bg: 'var(--color-success-light)', text: 'var(--color-success-text)' },
+  completed: { bg: 'var(--color-success-light)', text: 'var(--color-success-text)' },
+  done: { bg: 'var(--color-success-light)', text: 'var(--color-success-text)' },
+  closed: { bg: 'var(--color-neutral-light)', text: 'var(--color-neutral-text)' },
+  cancelled: { bg: 'var(--color-neutral-light)', text: 'var(--color-neutral-text)' },
+  rejected: { bg: 'var(--color-neutral-light)', text: 'var(--color-neutral-text)' },
+  on_hold: { bg: 'var(--color-info-light)', text: 'var(--color-info-text)' },
+  blocked: { bg: 'var(--color-info-light)', text: 'var(--color-info-text)' },
+  waiting: { bg: 'var(--color-info-light)', text: 'var(--color-info-text)' },
+};
+
+const PRIORITY_COLORS: Record<string, { bg: string; text: string }> = {
+  low: { bg: 'var(--color-success-light)', text: 'var(--color-success-text)' },
+  minor: { bg: 'var(--color-success-light)', text: 'var(--color-success-text)' },
+  medium: { bg: 'var(--color-primary-light)', text: 'var(--color-primary-text)' },
+  normal: { bg: 'var(--color-primary-light)', text: 'var(--color-primary-text)' },
+  moderate: { bg: 'var(--color-primary-light)', text: 'var(--color-primary-text)' },
+  high: { bg: 'var(--color-warning-light)', text: 'var(--color-warning-text)' },
+  major: { bg: 'var(--color-warning-light)', text: 'var(--color-warning-text)' },
+  urgent: { bg: 'var(--color-danger-light)', text: 'var(--color-danger-text)' },
+  critical: { bg: 'var(--color-danger-light)', text: 'var(--color-danger-text)' },
+  blocker: { bg: 'var(--color-danger-light)', text: 'var(--color-danger-text)' },
+};
+</script>
+
+<template>
+  <span
+    v-if="type !== 'assignee'"
+    class="badge"
+    :style="{
+      background: colors?.[value?.toLowerCase() ?? '']?.bg ?? (type === 'status' ? STATUS_COLORS[value?.toLowerCase() ?? '']?.bg : PRIORITY_COLORS[value?.toLowerCase() ?? '']?.bg) ?? 'var(--color-neutral-light)',
+      color: colors?.[value?.toLowerCase() ?? '']?.text ?? (type === 'status' ? STATUS_COLORS[value?.toLowerCase() ?? '']?.text : PRIORITY_COLORS[value?.toLowerCase() ?? '']?.text) ?? 'var(--color-neutral-text)',
+    }"
+  >
+    {{ value }}
+  </span>
+  <span v-else-if="value" class="badge" :style="{ background: 'var(--color-primary-light)', color: 'var(--color-primary-text)' }">
+    {{ value }}
+  </span>
+  <span v-else class="badge unassigned" :style="{ color: 'var(--color-neutral-text)' }">
+    Unassigned
+  </span>
+</template>
+
+<style scoped>
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.85em;
+  font-weight: 600;
+}
+</style>

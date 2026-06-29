@@ -1,0 +1,17 @@
+// shared/date-utils.ts — Date formatting utilities
+
+export function formatDate(
+  value: string | null | undefined,
+  options?: Intl.DateTimeFormatOptions,
+): string {
+  return value ? new Date(value).toLocaleDateString(undefined, options) : '-';
+}
+
+export function formatDateTime(
+  value: string | null | undefined,
+  options?: Intl.DateTimeFormatOptions,
+): string {
+  return value
+    ? new Date(value).toLocaleDateString(undefined, options ?? { dateStyle: 'medium', timeStyle: 'short' })
+    : '-';
+}

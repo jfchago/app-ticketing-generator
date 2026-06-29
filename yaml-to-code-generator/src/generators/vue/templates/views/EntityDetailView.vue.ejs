@@ -8,22 +8,12 @@ const selected = `store.${gen.selectedPropertyName}`;
 import { onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { use<%= entity.namePascal %>Store } from '../stores/<%= entity.nameCamel %>.store';
-<% if (gen.components.shouldRenderStatusBadge) { %>
-import <%= entity.namePascal %>StatusBadge from '../components/<%= entity.namePascal %>StatusBadge.vue';
-<% } %>
-<% if (gen.components.shouldRenderPriorityBadge) { %>
-import <%= entity.namePascal %>PriorityBadge from '../components/<%= entity.namePascal %>PriorityBadge.vue';
-<% } %>
-<% if (gen.components.shouldRenderAssigneeBadge) { %>
-import <%= entity.namePascal %>AssigneeBadge from '../components/<%= entity.namePascal %>AssigneeBadge.vue';
-<% } %>
+import Badge from '../components/Badge.vue';
+import { formatDate } from '../shared/date-utils';
 import LoaderSpinner from '../components/LoaderSpinner.vue';
 import ErrorState from '../components/ErrorState.vue';
 import EmptyState from '../components/EmptyState.vue';
 
-function formatDate(value: string | null | undefined): string {
-  return value ? new Date(value).toLocaleDateString() : '-';
-}
 
 const store = use<%= entity.namePascal %>Store();
 const route = useRoute();
@@ -47,7 +37,7 @@ function retryLoad() {
 </script>
 
 <template>
-  <div class="detail-view" role="main" id="main-content">
+  <div class="detail-view">
     <button @click="router.back()" class="btn-back" aria-label="Go back">← Back</button>
 
     <div aria-live="polite">
@@ -79,11 +69,11 @@ function retryLoad() {
       <div class="meta">
 <% for (const field of badgeFields) {
   if (field.fieldRole === 'status') { %>
-        <span>Status: <<%= entity.namePascal %>StatusBadge :status="<%= selected %>.<%= field.name %>" /></span>
+        <span>Status: <Badge type="status" :value="<%= selected %>.<%= field.name %>" /></span>
 <% } else if (field.fieldRole === 'priority') { %>
-        <span>Priority: <<%= entity.namePascal %>PriorityBadge :priority="<%= selected %>.<%= field.name %>" /></span>
+        <span>Priority: <Badge type="priority" :value="<%= selected %>.<%= field.name %>" /></span>
 <% } else if (field.fieldRole === 'assignee') { %>
-        <span>Assigned to: <<%= entity.namePascal %>AssigneeBadge :assignee-id="<%= selected %>.<%= field.name %>" /></span>
+        <span>Assigned to: <Badge type="assignee" :value="<%= selected %>.<%= field.name %>" /></span>
 <% } else if (field.fieldRole === 'timestamp') { %>
         <span><%= field.namePascal %>: {{ formatDate(<%= selected %>.<%= field.name %>) }}</span>
 <% } else { %>

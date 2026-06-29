@@ -1,4 +1,4 @@
-<%# domain/entity.service.ts.ejs — Service class (thin pass-through) %>
+<%# domain/entity.service.ts.ejs — Service class with extensibility hooks %>
 <% const gen = genEntities?.[entity.name]; %>
 import type { <%= entity.namePascal %> } from './<%= entity.nameCamel %>.types';
 <% if (gen?.enumAttributes?.length) { for (const ea of gen.enumAttributes) { %>
@@ -9,37 +9,52 @@ import type { <%= gen.commentEntity.namePascal %> } from '../<%= gen.commentEnti
 <% } %>
 import type { <%= entity.namePascal %>Repository } from './<%= entity.nameCamel %>.repository';
 
-export class <%= entity.namePascal %>Service {
-  repository: <%= entity.namePascal %>Repository;
-
-  constructor(repository: <%= entity.namePascal %>Repository) {
-    this.repository = repository;
-  }
-
-  /**
-   * Generated pass-through methods delegate to the repository.
-   * Add business logic here when needed. For example:
-   *
-   * async create(data: Create<%= entity.namePascal %>Input) {
-   *   // TODO: add business rule — e.g. validate priority
-   *   if (data.priority === 'URGENT' && !data.assigneeId) {
-   *     throw new Error('URGENT tickets must have an assignee');
-   *   }
-   *   return this.repository.create(data);
-   * }
-   */
+export interface <%= entity.namePascal %>ServiceHooks {
 <% for (const uc of entity.useCases) { %>
 <%   const ucGen = gen?.useCases?.[uc.name]; if (!ucGen) continue; %>
+<%   const hookMethod = uc.methodName.charAt(0).toUpperCase() + uc.methodName.slice(1); %>
+  before<%= hookMethod %>?(<%- ucGen.methodSignature.params %>): Promise<void> | void;
+<% if (ucGen.methodSignature.returnType !== 'void') { %>
+  after<%= hookMethod %>?(result: <%- ucGen.methodSignature.returnType %>): Promise<void> | void;
+<% } else { %>
+  after<%= hookMethod %>?(): Promise<void> | void;
+<% } %>
+<% } %>
+}
+
+export class <%= entity.namePascal %>Service {
+  repository: <%= entity.namePascal %>Repository;
+  private readonly hooks?: Partial<<%= entity.namePascal %>ServiceHooks>;
+
+  constructor(repository: <%= entity.namePascal %>Repository, hooks?: Partial<<%= entity.namePascal %>ServiceHooks>) {
+    this.repository = repository;
+    this.hooks = hooks;
+  }
+
+<% for (const uc of entity.useCases) { %>
+<%   const ucGen = gen?.useCases?.[uc.name]; if (!ucGen) continue; %>
+<%   const hookMethod = uc.methodName.charAt(0).toUpperCase() + uc.methodName.slice(1); %>
 <%   if (uc.httpMethod === 'GET' && !uc.needsId) { %>
   async <%= uc.methodName %>(): Promise<<%- ucGen.methodSignature.returnType %>> {
-    return this.repository.<%= uc.methodName %>();
+    try { await this.hooks?.before<%= hookMethod %>?.(); } catch {}
+    const result = await this.repository.<%= uc.methodName %>();
+    try { await this.hooks?.after<%= hookMethod %>?.(result); } catch {}
+    return result;
   }
 <%   } else { %>
 <%     const paramNames = (ucGen.methodSignature.params.match(/(\w+)\s*:/g) ?? []).map(m => m.replace(':', '').trim()); %>
+<%     const isVoid = ucGen.methodSignature.returnType === 'void'; %>
   async <%= uc.methodName %>(<%- ucGen.methodSignature.params %>): Promise<<%- ucGen.methodSignature.returnType %>> {
-    return this.repository.<%= uc.methodName %>(<%= paramNames.join(', ') %>);
+    try { await this.hooks?.before<%= hookMethod %>?.(<%= paramNames.join(', ') %>); } catch {}
+<% if (isVoid) { %>
+    await this.repository.<%= uc.methodName %>(<%= paramNames.join(', ') %>);
+    try { await this.hooks?.after<%= hookMethod %>?.(); } catch {}
+<% } else { %>
+    const result = await this.repository.<%= uc.methodName %>(<%= paramNames.join(', ') %>);
+    try { await this.hooks?.after<%= hookMethod %>?.(result); } catch {}
+    return result;
+<% } %>
   }
 <%   } %>
 <% } %>
-
 }

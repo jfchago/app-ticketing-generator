@@ -22,6 +22,7 @@ const attributeSchema = z.object({
   length: z.number().int().positive().optional(),
   column: z.string().optional(),
   unique: z.boolean().optional().default(false),
+  label: z.string().optional(),
 });
 
 const cardinality = z.union([z.string(), z.number()]);
@@ -56,9 +57,15 @@ const entitySchema = z.object({
   rules: z.array(ruleSchema).optional().default([]),
 });
 
+const colorSchema = z.object({
+  bg: z.string(),
+  text: z.string(),
+});
+
 const enumSchema = z.object({
   values: z.array(z.string()).min(1),
   labels: z.record(z.string()).optional().default({}),
+  colors: z.record(colorSchema).optional().default({}),
 });
 
 const specSchema = z.object({

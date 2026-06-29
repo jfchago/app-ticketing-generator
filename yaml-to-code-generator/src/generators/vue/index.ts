@@ -32,10 +32,18 @@ export class VueGenerator extends BaseGenerator {
     this.renderEjs('shared/tokens.css.ejs', 'src/styles/tokens.css', genCtx);
     this.renderEjs('shared/base.css.ejs', 'src/styles/base.css', genCtx);
     this.renderEjs('shared/utilities.css.ejs', 'src/styles/utilities.css', genCtx);
+    this.renderEjs('shared/date-utils.ts.ejs', 'src/shared/date-utils.ts', genCtx);
+    this.renderEjs('shared/App.vue.ejs', 'src/App.vue', genCtx);
 
     this.renderEjs('components/LoaderSpinner.vue.ejs', 'src/components/LoaderSpinner.vue', genCtx);
     this.renderEjs('components/ErrorState.vue.ejs', 'src/components/ErrorState.vue', genCtx);
     this.renderEjs('components/EmptyState.vue.ejs', 'src/components/EmptyState.vue', genCtx);
+    this.renderEjs('components/AppShell.vue.ejs', 'src/components/AppShell.vue', genCtx);
+    this.renderEjs('components/NavBar.vue.ejs', 'src/components/NavBar.vue', genCtx);
+    this.renderEjs('components/Breadcrumbs.vue.ejs', 'src/components/Breadcrumbs.vue', genCtx);
+    this.renderEjs('components/Badge.vue.ejs', 'src/components/Badge.vue', genCtx);
+    this.renderEjs('components/Heading.vue.ejs', 'src/components/Heading.vue', genCtx);
+    this.renderEjs('components/FormField.vue.ejs', 'src/components/FormField.vue', genCtx);
 
     for (const entity of ir.entities) {
       this.#renderEntity(entity, genCtx);
@@ -87,28 +95,6 @@ export class VueGenerator extends BaseGenerator {
           ctx,
         );
       }
-    }
-
-    if (entity.attributes.some((a) => a.name === 'status' && a.isEnum)) {
-      this.renderEjs(
-        'components/StatusBadge.vue.ejs',
-        `src/components/${entity.namePascal}StatusBadge.vue`,
-        ctx,
-      );
-    }
-    if (entity.attributes.some((a) => a.name === 'priority' && a.isEnum)) {
-      this.renderEjs(
-        'components/PriorityBadge.vue.ejs',
-        `src/components/${entity.namePascal}PriorityBadge.vue`,
-        ctx,
-      );
-    }
-    if (entity.relationships.some((r) => r.name === 'assignee')) {
-      this.renderEjs(
-        'components/AssigneeBadge.vue.ejs',
-        `src/components/${entity.namePascal}AssigneeBadge.vue`,
-        ctx,
-      );
     }
 
     if (genEntity?.hasGetAll) {

@@ -57,6 +57,8 @@ export interface EnumDef extends Extensible {
 export interface EnumValueDef extends Extensible {
   name: string;
   label: string;
+  /** WCAG contrast-safe colors for badges */
+  colors?: { bg: string; text: string };
 }
 
 export interface EntityDef extends Extensible {
@@ -98,6 +100,8 @@ export interface EntityDef extends Extensible {
 export interface AttributeDef extends Extensible {
   /** Original name */
   name: string;
+  /** Human-readable label (from YAML) */
+  label?: string;
   /** PascalCase */
   namePascal: string;
   /** DSL type (String, Integer, Boolean, Date, or enum/entity name) */
