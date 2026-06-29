@@ -77,6 +77,22 @@ export class BaseGenerator extends Generator {
   }
 
   /**
+   * Renders an EJS template only if `condition` is truthy.
+   * Skips silently otherwise — no file staged, no error.
+   * Use this instead of `return;` inside templates (which produces
+   * undefined output and breaks the file writer).
+   */
+  protected renderEjsIf(
+    condition: boolean,
+    templateRelPath: string,
+    outputRelPath: string,
+    extraVars: Record<string, unknown> = {},
+  ): void {
+    if (!condition) return;
+    this.renderEjs(templateRelPath, outputRelPath, extraVars);
+  }
+
+  /**
    * Copies a static file verbatim (no EJS rendering).
    */
   protected copyStatic(templateRelPath: string, outputRelPath: string): void {

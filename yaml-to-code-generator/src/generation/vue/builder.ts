@@ -174,6 +174,13 @@ function isCommentTarget(entity: EntityDef, ir: IR): boolean {
 }
 
 function buildComponentFlags(entity: EntityDef, ir: IR): VueComponentFlags {
+  const hasStatus = entity.attributes.some((a) => a.name === 'status' && a.isEnum);
+  const hasPriority = entity.attributes.some((a) => a.name === 'priority' && a.isEnum);
+  const hasAssignee = entity.relationships.some((r) => r.name === 'assignee');
+  const hasTimestamp = entity.attributes.some((a) =>
+    ['createdAt', 'updatedAt', 'created_at', 'updated_at'].includes(a.name),
+  );
+
   return {
     shouldRenderCard: !isCommentTarget(entity, ir),
     shouldRenderForm:
@@ -181,9 +188,11 @@ function buildComponentFlags(entity: EntityDef, ir: IR): VueComponentFlags {
       entity.useCases.some((uc) =>
         ['update', 'update_status', 'update_priority'].includes(uc.name),
       ),
-    shouldRenderStatusBadge: entity.attributes.some((a) => a.name === 'status' && a.isEnum),
-    shouldRenderPriorityBadge: entity.attributes.some((a) => a.name === 'priority' && a.isEnum),
-    shouldRenderAssigneeBadge: entity.relationships.some((r) => r.name === 'assignee'),
+    shouldRenderStatusBadge: hasStatus,
+    shouldRenderPriorityBadge: hasPriority,
+    shouldRenderAssigneeBadge: hasAssignee,
+    hasAnyBadgeField: hasStatus || hasPriority || hasAssignee,
+    hasTimestampField: hasTimestamp,
   };
 }
 
@@ -499,10 +508,14 @@ function buildStoreActionBody(
     );
   } else if (actionCategory === 'comment') {
     bodyParts.push(`this.error = null;`);
-    bodyParts.push(`try { const ${entityVar} = this.${stateList}.find(t => t.id === ${idParam});`);
-    bodyParts.push(
-      `  if (!${entityVar}) { this.error = '${entity.namePascal} not found'; return null as unknown as ${uc.methodSignature.returnType}; }`,
-    );
+    if (hasCommentSupport) {
+      bodyParts.push(`try { const ${entityVar} = this.${stateList}.find(t => t.id === ${idParam});`);
+      bodyParts.push(
+        `  if (!${entityVar}) { this.error = '${entity.namePascal} not found'; return null as unknown as ${uc.methodSignature.returnType}; }`,
+      );
+    } else {
+      bodyParts.push(`try {`);
+    }
     bodyParts.push(...buildRuleCheckLines(actionCategory).map((l) => `  ${l}`));
     bodyParts.push(
       `  const createdComment = await service.${uc.methodName}(${uc.storeAction.paramNames.join(', ')});`,

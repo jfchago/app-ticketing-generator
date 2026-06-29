@@ -36,8 +36,9 @@ public class <%= entity.namePascal %> {
     @Id
 <% } %>
 <% const isFk = fkNames.has(attr.name); %>
+<% if (!isFk) { %>
 <% if (attr.column && attr.column !== attr.name) { %>
-    @Column(name = "<%= attr.column %>"<%= attr.length ? ', length = ' + attr.length : '' %><%= !attr.nullable ? ', nullable = false' : '' %><%= isFk ? ', insertable = false, updatable = false' : '' %><%= attr.unique ? ', unique = true' : '' %>)
+    @Column(name = "<%= attr.column %>"<%= attr.length ? ', length = ' + attr.length : '' %><%= !attr.nullable ? ', nullable = false' : '' %><%= attr.unique ? ', unique = true' : '' %>)
 <% } else if (!attr.primary) { %>
 <%
   const jpa = gen.attributeTypes[attr.name].jpaAnnotation;
@@ -49,7 +50,6 @@ public class <%= entity.namePascal %> {
   const colParts = [];
   if (jpaPairs.nullable === 'false') colParts.push('nullable = false');
   if (jpaPairs.length) colParts.push('length = ' + jpaPairs.length);
-  if (isFk) { colParts.push('insertable = false'); colParts.push('updatable = false'); }
   if (jpaPairs.unique) colParts.push('unique = true');
 %>
 <% if (colParts.length > 0) { %>
@@ -69,6 +69,7 @@ public class <%= entity.namePascal %> {
     private String <%= attr.name %>;
 <% } %>
 
+<% } %>
 <% } %>
 <% for (const rel of entity.relationships) { %>
 <% if (gen.manyToOneRelations.some(r => r.name === rel.name)) { %>

@@ -77,6 +77,8 @@ export interface VueComponentFlags {
   shouldRenderStatusBadge: boolean;
   shouldRenderPriorityBadge: boolean;
   shouldRenderAssigneeBadge: boolean;
+  hasAnyBadgeField: boolean;
+  hasTimestampField: boolean;
 }
 
 export interface VueImports {

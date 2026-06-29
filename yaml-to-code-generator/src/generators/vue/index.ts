@@ -63,24 +63,32 @@ export class VueGenerator extends BaseGenerator {
       `src/domain/${entity.nameCamel}/${entity.nameCamel}.types.ts`,
       ctx,
     );
-    this.renderEjs(
+    this.renderEjsIf(
+      entity.useCases.length > 0,
       'domain/entity.repository.ts.ejs',
       `src/domain/${entity.nameCamel}/${entity.nameCamel}.repository.ts`,
       ctx,
     );
-    this.renderEjs(
+    this.renderEjsIf(
+      entity.useCases.length > 0,
       'domain/entity.service.ts.ejs',
       `src/domain/${entity.nameCamel}/${entity.nameCamel}.service.ts`,
       ctx,
     );
 
-    this.renderEjs(
+    this.renderEjsIf(
+      entity.useCases.length > 0,
       'infrastructure/entity.repository.impl.ts.ejs',
       `src/infrastructure/repositories/${entity.nameCamel}.repository.impl.ts`,
       ctx,
     );
 
-    this.renderEjs('stores/entity.store.ts.ejs', `src/stores/${entity.nameCamel}.store.ts`, ctx);
+    this.renderEjsIf(
+      entity.useCases.length > 0,
+      'stores/entity.store.ts.ejs',
+      `src/stores/${entity.nameCamel}.store.ts`,
+      ctx,
+    );
 
     if (!entity.nameCamel.startsWith('comment')) {
       this.renderEjs(

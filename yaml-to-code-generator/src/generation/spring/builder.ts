@@ -215,7 +215,7 @@ function buildServiceMethod(
     params = `${pkJavaType} id, String status`;
     annotations = ['@Transactional'];
     transitionGuard = buildTransitionGuard(entity);
-    body = `var ${entity.nameCamel} = ${entity.nameCamel}Repository.findById(id).orElseThrow(() -> new RuntimeException("${entity.namePascal} not found: " + id));\n        ${buildRuleCheckBody(ruleChecks, entity, uc.name)}\n        ${entity.nameCamel}.setStatus(${statusAttr.type}.valueOf(status));\n        ${entity.nameCamel}Repository.save(${entity.nameCamel});\n        ${buildEventPublishBody(ir, entity, uc.name)}\n        return ${entity.nameCamel}Mapper.toDTO(${entity.nameCamel});`;
+    body = `var ${entity.nameCamel} = ${entity.nameCamel}Repository.findById(id).orElseThrow(() -> new RuntimeException("${entity.namePascal} not found: " + id));\n        ${buildRuleCheckBody(ruleChecks, entity, uc.name)}\n        ${transitionGuard}\n        ${entity.nameCamel}.setStatus(${statusAttr.type}.valueOf(status));\n        ${entity.nameCamel}Repository.save(${entity.nameCamel});\n        ${buildEventPublishBody(ir, entity, uc.name)}\n        return ${entity.nameCamel}Mapper.toDTO(${entity.nameCamel});`;
   } else if (uc.name === 'update_priority' && priorityAttr) {
     returnType = `${entity.namePascal}DTO`;
     params = `${pkJavaType} id, String priority`;
@@ -228,7 +228,7 @@ function buildServiceMethod(
     const targetCamel = assigneeRel.target.charAt(0).toLowerCase() + assigneeRel.target.slice(1);
     const targetPascal = assigneeRel.targetPascal;
     const assigneeSetter = `set${assigneeRel.namePascal.charAt(0).toUpperCase() + assigneeRel.namePascal.slice(1)}`;
-    body = `var ${entity.nameCamel} = ${entity.nameCamel}Repository.findById(id).orElseThrow(() -> new RuntimeException("${entity.namePascal} not found: " + id));\n        ${targetPascal} ${targetCamel} = ${targetCamel}Repository.findById(userId).orElseThrow(() -> new RuntimeException("${targetPascal} not found: " + userId));\n        ${entity.nameCamel}.${assigneeSetter}(${targetCamel});\n        ${entity.nameCamel}Repository.save(${entity.nameCamel});\n        ${buildEventPublishBody(ir, entity, uc.name)}\n        return ${entity.nameCamel}Mapper.toDTO(${entity.nameCamel});`;
+    body = `var ${entity.nameCamel} = ${entity.nameCamel}Repository.findById(id).orElseThrow(() -> new RuntimeException("${entity.namePascal} not found: " + id));\n        ${entity.nameCamel}.${assigneeSetter}(${targetCamel}Repository.getReferenceById(userId));\n        ${entity.nameCamel}Repository.save(${entity.nameCamel});\n        ${buildEventPublishBody(ir, entity, uc.name)}\n        return ${entity.nameCamel}Mapper.toDTO(${entity.nameCamel});`;
   } else if (uc.name === 'unassign_user' && assigneeRel) {
     returnType = `${entity.namePascal}DTO`;
     params = `${pkJavaType} id`;
@@ -238,18 +238,22 @@ function buildServiceMethod(
   } else if (uc.name === 'add_comment' && commentEntity && commentRel) {
     const commentPascal = commentEntity.namePascal;
     const commentCamel = commentEntity.nameCamel;
-    const foreignKeyField = commentRel.foreignKey.replace(/_id$/i, 'Id');
     returnType = `${commentPascal}DTO`;
     params = `${pkJavaType} id, String text`;
     annotations = ['@Transactional'];
-    const pkField = entity.primaryKey?.name ?? 'id';
-    body = `var ${entity.nameCamel} = ${entity.nameCamel}Repository.findById(id).orElseThrow(() -> new RuntimeException("${entity.namePascal} not found: " + id));\n        ${commentPascal} ${commentCamel} = new ${commentPascal}();\n        ${commentCamel}.set${foreignKeyField.charAt(0).toUpperCase() + foreignKeyField.slice(1)}(${entity.nameCamel}.get${pkField.charAt(0).toUpperCase() + pkField.slice(1)}());\n        ${commentCamel}.setText(text);\n        ${commentCamel}.setAuthorId(""); // TODO: replace with authentication context\n        ${commentCamel}Repository.save(${commentCamel});\n        return ${commentCamel}Mapper.toDTO(${commentCamel});`;
+    const inverseRel = commentEntity.relationships.find(r => r.target === entity.name);
+    const inverseRelSetter = inverseRel
+      ? `set${inverseRel.namePascal.charAt(0).toUpperCase() + inverseRel.namePascal.slice(1)}`
+      : '';
+    body = `var ${entity.nameCamel} = ${entity.nameCamel}Repository.findById(id).orElseThrow(() -> new RuntimeException("${entity.namePascal} not found: " + id));\n        ${commentPascal} ${commentCamel} = new ${commentPascal}();\n        ${commentCamel}.${inverseRelSetter}(${entity.nameCamel});\n        ${commentCamel}.setText(text);\n        // TODO: set comment author from authentication context\n        ${commentCamel}Repository.save(${commentCamel});\n        return ${commentCamel}Mapper.toDTO(${commentCamel});`;
   } else if (uc.name === 'add_comment') {
     // Fallback for entity that IS the comment (no foreign entity)
+    // NOTE: this path no longer triggers for Comment since `add_comment` was
+    // removed from Comment's YAML use_cases. Kept for robustness.
     returnType = `${entity.namePascal}DTO`;
     params = `${pkJavaType} id, String text`;
     annotations = ['@Transactional'];
-    body = `${entity.namePascal} ${entity.nameCamel} = new ${entity.namePascal}();\n        ${entity.nameCamel}.setText(text);\n        ${entity.nameCamel}.setAuthorId(""); // TODO: replace with authentication context\n        ${entity.nameCamel}.setTicketId(id);\n        ${entity.nameCamel}Repository.save(${entity.nameCamel});\n        return ${entity.nameCamel}Mapper.toDTO(${entity.nameCamel});`;
+    body = `${entity.namePascal} ${entity.nameCamel} = new ${entity.namePascal}();\n        ${entity.nameCamel}.setText(text);\n        // TODO: set ticket and author via repository lookups (requires repository injection)\n        ${entity.nameCamel}Repository.save(${entity.nameCamel});\n        return ${entity.nameCamel}Mapper.toDTO(${entity.nameCamel});`;
   } else {
     returnType = 'void';
     params = '';
@@ -270,8 +274,9 @@ function buildServiceMethod(
   };
 }
 
-function buildTransitionGuard(_entity: EntityDef): string {
-  return `if (!VALID_TRANSITIONS.get(entity.getStatus().name()).contains(status)) {\n          throw new RuntimeException("Invalid transition");\n        }`;
+function buildTransitionGuard(entity: EntityDef): string {
+  const e = entity.nameCamel;
+  return `if (!VALID_TRANSITIONS.get(${e}.getStatus().name()).contains(status)) {\n          throw new RuntimeException("Invalid transition from " + ${e}.getStatus().name() + " to " + status);\n        }`;
 }
 
 function buildRuleCheckBody(
@@ -365,8 +370,7 @@ function buildManyToOneResolutionBody(
 
     blocks.push(
       `if (${dtoVar}.${fkGetter}() != null) {`,
-      `    ${targetPascal} ${targetCamel} = ${targetCamel}Repository.findById(${dtoVar}.${fkGetter}()).orElseThrow(() -> new RuntimeException("${targetPascal} not found: " + ${dtoVar}.${fkGetter}()));`,
-      `    ${entityVar}.${setter}(${targetCamel});`,
+      `    ${entityVar}.${setter}(${targetCamel}Repository.getReferenceById(${dtoVar}.${fkGetter}()));`,
       '}',
     );
   }

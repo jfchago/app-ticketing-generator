@@ -130,6 +130,7 @@ export class SpringGenerator extends BaseGenerator {
 
   #renderEntity(entity: EntityDef, pkgPath: string, genCtx: Record<string, unknown>): void {
     const ctx = { entity, ...genCtx };
+    const gen = (genCtx.genEntities as Record<string, any>)?.[entity.name];
 
     this.renderEjs(
       'entity/Entity.java.ejs',
@@ -141,12 +142,14 @@ export class SpringGenerator extends BaseGenerator {
       `src/main/java/${pkgPath}/repository/${entity.namePascal}Repository.java`,
       ctx,
     );
-    this.renderEjs(
+    this.renderEjsIf(
+      gen?.serviceMethods?.length > 0,
       'service/EntityService.java.ejs',
       `src/main/java/${pkgPath}/service/${entity.namePascal}Service.java`,
       ctx,
     );
-    this.renderEjs(
+    this.renderEjsIf(
+      gen?.endpoints?.length > 0,
       'controller/EntityController.java.ejs',
       `src/main/java/${pkgPath}/controller/${entity.namePascal}Controller.java`,
       ctx,

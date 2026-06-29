@@ -4,10 +4,22 @@ package <%= ir.application.basePackage %>.dto;
 import <%= ir.application.basePackage %>.entity.<%= entity.namePascal %>;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.ReportingPolicy;
 
-@Mapper(componentModel = "spring")
+<%
+const usesList = [];
+for (const rel of entity.relationships) {
+  if (rel.type === 'one_to_many') usesList.push(rel.targetPascal + 'Mapper.class');
+}
+const mapperOpts = ['componentModel = "spring"', 'unmappedSourcePolicy = ReportingPolicy.IGNORE'];
+if (usesList.length > 0) mapperOpts.push('uses = {' + usesList.join(', ') + '}');
+%>
+@Mapper(<%- mapperOpts.join(', ') %>)
 public interface <%= entity.namePascal %>Mapper {
 
+<% for (const rel of entity.relationships) { if (rel.type === 'many_to_one') { %>
+    @Mapping(target = "<%= rel.foreignKey %>", source = "<%= rel.name %>.id")
+<% } } %>
     <%= entity.namePascal %>DTO toDTO(<%= entity.namePascal %> entity);
 
     @Mapping(target = "<%= entity.primaryKey.name %>", ignore = true)

@@ -1,6 +1,5 @@
 <%# controller/EntityController.java.ejs — REST controller %><%
 const gen = genEntities?.[entity.name];
-if (!gen || gen.endpoints.length === 0) { return; }
 
 const needsMap = gen.endpoints.some(ep => ep.needsMap);
 const needsList = gen.endpoints.some(ep => ep.returnType.startsWith('List<'));

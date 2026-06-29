@@ -1,6 +1,6 @@
 <%# components/EntityForm.vue.ejs — Create/edit form component %>
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import FormField from '../components/FormField.vue';
 import type { <%= entity.namePascal %> } from '../domain/<%= entity.nameCamel %>/<%= entity.nameCamel %>.types';
 <% const enumAttrs = entity.attributes.filter(a => a.isEnum); if (enumAttrs.length > 0) { %>
@@ -44,7 +44,7 @@ const refs: Record<string, any> = {<% for (const attr of formAttrs) { %>
   <%= attr.name %>: <%= attr.name %>,<% } %>
 };
 
-const formFields = [<% for (const attr of formAttrs) { %>
+const formFields = computed(() => [<% for (const attr of formAttrs) { %>
   {
     htmlId: '<%= attr.name %>',
     label: '<%= attr.label ?? attr.namePascal.replace(/([a-z])([A-Z])/g, '$1 $2') %>',
@@ -57,7 +57,7 @@ const formFields = [<% for (const attr of formAttrs) { %>
 %>(<%- targetCamel %>Store.<%- targetCamel %>s || []).map(item => ({ value: item.id, label: item.<%- displayField %> }))<% } else { %>undefined<% } %>,
     required: <%= attr.required %>,
   },<% } %>
-];
+]);
 
 function handleSubmit() {
   emit('submit', {<%_ const submitAttrs = entity.attributes.filter(a => !a.primary && a.name !== 'id' && a.name !== 'createdAt' && a.name !== 'updatedAt' && !a.isEntityRef); for (let i = 0; i < submitAttrs.length; i++) { const a = submitAttrs[i]; _%>

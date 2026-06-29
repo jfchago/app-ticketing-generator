@@ -1,6 +1,5 @@
 <%# service/EntityService.java.ejs — Business logic service layer %><%
 const gen = genEntities?.[entity.name];
-if (!gen || gen.serviceMethods.length === 0) { return; }
 const hasCommentSupport = gen.serviceMethods.some(m => m.returnType === 'CommentDTO' && `${entity.namePascal}DTO` !== 'CommentDTO');
 const hasTransitions = Object.keys(gen.transitions).length > 0;
 const hasAddComment = entity.useCases?.some(uc => uc.name === 'add_comment');
