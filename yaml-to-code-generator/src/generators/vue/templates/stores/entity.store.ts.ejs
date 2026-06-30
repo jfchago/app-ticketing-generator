@@ -16,7 +16,7 @@ import { <%= entity.namePascal %>RepositoryImpl } from '../infrastructure/reposi
 const service = new <%= entity.namePascal %>Service(new <%= entity.namePascal %>RepositoryImpl());
 
 <% if (gen?.transitions && Object.keys(gen.transitions).length > 0) { -%>
-const VALID_TRANSITIONS: Record<string, string[]> = {
+export const VALID_TRANSITIONS: Record<string, string[]> = {
 <% for (const [from, to] of Object.entries(gen.transitions)) { %>
   '<%= from %>': [<%- to.map(s => `'${s}'`).join(', ') %>],
 <% } %>

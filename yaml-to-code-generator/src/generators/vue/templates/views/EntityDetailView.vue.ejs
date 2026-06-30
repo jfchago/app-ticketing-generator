@@ -17,7 +17,10 @@ import { formatDate } from '../shared/date-utils';
 import LoaderSpinner from '../components/LoaderSpinner.vue';
 import ErrorState from '../components/ErrorState.vue';
 import EmptyState from '../components/EmptyState.vue';
-
+<% if (gen?.transitions && Object.keys(gen.transitions).length > 0) { %>
+import { computed, ref } from 'vue';
+import { VALID_TRANSITIONS } from '../stores/<%= entity.nameCamel %>.store';
+<% } %>
 
 const store = use<%= entity.namePascal %>Store();
 const route = useRoute();
@@ -38,6 +41,27 @@ function retryLoad() {
   store.getById(route.params.id as string);
 <% } %>
 }
+<% if (gen?.transitions && Object.keys(gen.transitions).length > 0) { %>
+const newStatus = ref('');
+const transitioning = ref(false);
+
+const availableTransitions = computed(() => {
+  if (!<%= selected %>) return [];
+  const transitions = VALID_TRANSITIONS[<%= selected %>.status] ?? [];
+  return transitions.filter(s => s !== <%= selected %>.status);
+});
+
+async function handleStatusChange() {
+  if (!newStatus.value || !<%= selected %>) return;
+  transitioning.value = true;
+  try {
+    await store.updateStatus(<%= selected %>.id, newStatus.value as any);
+    newStatus.value = '';
+  } finally {
+    transitioning.value = false;
+  }
+}
+<% } %>
 </script>
 
 <template>
@@ -86,7 +110,92 @@ function retryLoad() {
 <% } %>
       </div>
 <% } %>
+<% if (gen?.transitions && Object.keys(gen.transitions).length > 0) { %>
+      <div class="status-transition">
+        <label for="status-select">Change status:</label>
+        <select
+          id="status-select"
+          v-model="newStatus"
+          @change="handleStatusChange"
+          :disabled="transitioning || availableTransitions.length === 0"
+          aria-describedby="status-select-desc"
+        >
+          <option value="" disabled>{{ availableTransitions.length === 0 ? 'No transitions available' : 'Select target status...' }}</option>
+          <option v-for="s in availableTransitions" :key="s" :value="s">{{ s }}</option>
+        </select>
+        <span id="status-select-desc" class="sr-only">Select a new status for this <%= entity.namePascal %></span>
+        <p v-if="store.error" class="transition-error" role="alert">{{ store.error }}</p>
+      </div>
+<% } %>
     </div>
     </div>
   </div>
 </template>
+
+<style scoped>
+.detail-view {
+  max-width: var(--content-max-width, 800px);
+  margin: 0 auto;
+  padding: var(--space-xl, 20px);
+}
+.btn-back {
+  padding: var(--space-sm, 8px) var(--space-lg, 16px);
+  background: transparent;
+  border: 1px solid var(--color-border, #ddd);
+  border-radius: var(--radius-sm, 4px);
+  cursor: pointer;
+  margin-bottom: var(--space-lg, 16px);
+}
+.description {
+  color: var(--color-text-secondary, #666);
+  margin: var(--space-md, 12px) 0;
+}
+.meta {
+  display: flex;
+  gap: var(--space-lg, 16px);
+  margin: var(--space-lg, 16px) 0;
+  flex-wrap: wrap;
+}
+.error {
+  color: var(--color-danger, #dc3545);
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Status transition dropdown */
+.status-transition {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs, 4px);
+  margin-top: var(--space-md, 12px);
+}
+.status-transition label {
+  font-weight: var(--font-weight-semibold, 600);
+}
+.status-transition select {
+  padding: var(--space-sm, 8px);
+  border: 1px solid var(--color-border, #ddd);
+  border-radius: var(--radius-sm, 4px);
+  font-size: var(--font-size-base, 1em);
+  min-height: 44px;
+  min-width: 44px;
+}
+.status-transition select:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.transition-error {
+  color: var(--color-danger, #dc3545);
+  font-size: var(--font-size-sm, 0.85em);
+  margin: 0;
+}
+</style>

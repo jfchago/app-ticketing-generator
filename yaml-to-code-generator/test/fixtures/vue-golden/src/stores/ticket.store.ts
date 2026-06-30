@@ -13,7 +13,7 @@ import { TicketRepositoryImpl } from '../infrastructure/repositories/ticket.repo
 const service = new TicketService(new TicketRepositoryImpl());
 
 // ── Transition table (from YAML) ──
-const VALID_TRANSITIONS: Record<string, string[]> = {
+export const VALID_TRANSITIONS: Record<string, string[]> = {
   OPEN: ['IN_PROGRESS', 'CLOSED'],
 
   IN_PROGRESS: ['RESOLVED', 'OPEN'],
