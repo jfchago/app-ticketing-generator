@@ -3,8 +3,37 @@
 exports[`Vue Generation Model > sanitized model matches snapshot 1`] = `
 {
   "entities": {
+    "ActivityLog": {
+      "componentFlags": {
+        "hasAnyBadgeField": false,
+        "hasTimestampField": true,
+        "shouldRenderAssigneeBadge": false,
+        "shouldRenderCard": true,
+        "shouldRenderForm": false,
+        "shouldRenderPriorityBadge": false,
+        "shouldRenderStatusBadge": false,
+      },
+      "displayFieldCount": 8,
+      "enumAttributeCount": 0,
+      "formFieldCount": 7,
+      "hasAssignee": false,
+      "hasCommentSupport": false,
+      "ruleCheckCount": 0,
+      "selectedPropertyName": "current",
+      "statePropertyName": "activityLogs",
+      "storeActionCount": 1,
+      "transitionKeys": [],
+      "useCaseCategories": {
+        "get_by_id": "readById",
+      },
+      "useCaseNames": [
+        "get_by_id",
+      ],
+    },
     "Comment": {
       "componentFlags": {
+        "hasAnyBadgeField": false,
+        "hasTimestampField": true,
         "shouldRenderAssigneeBadge": false,
         "shouldRenderCard": false,
         "shouldRenderForm": false,
@@ -19,17 +48,15 @@ exports[`Vue Generation Model > sanitized model matches snapshot 1`] = `
       "ruleCheckCount": 0,
       "selectedPropertyName": "current",
       "statePropertyName": "comments",
-      "storeActionCount": 1,
+      "storeActionCount": 0,
       "transitionKeys": [],
-      "useCaseCategories": {
-        "add_comment": "comment",
-      },
-      "useCaseNames": [
-        "add_comment",
-      ],
+      "useCaseCategories": {},
+      "useCaseNames": [],
     },
     "Ticket": {
       "componentFlags": {
+        "hasAnyBadgeField": true,
+        "hasTimestampField": true,
         "shouldRenderAssigneeBadge": true,
         "shouldRenderCard": true,
         "shouldRenderForm": true,
@@ -74,6 +101,8 @@ exports[`Vue Generation Model > sanitized model matches snapshot 1`] = `
     },
     "User": {
       "componentFlags": {
+        "hasAnyBadgeField": false,
+        "hasTimestampField": false,
         "shouldRenderAssigneeBadge": false,
         "shouldRenderCard": true,
         "shouldRenderForm": false,
@@ -88,20 +117,23 @@ exports[`Vue Generation Model > sanitized model matches snapshot 1`] = `
       "ruleCheckCount": 0,
       "selectedPropertyName": "current",
       "statePropertyName": "users",
-      "storeActionCount": 1,
+      "storeActionCount": 2,
       "transitionKeys": [],
       "useCaseCategories": {
+        "get_by_id": "readById",
         "load_users": "read",
       },
       "useCaseNames": [
         "load_users",
+        "get_by_id",
       ],
     },
   },
   "entityNames": [
-    "User",
     "Ticket",
+    "User",
     "Comment",
+    "ActivityLog",
   ],
   "enums": [
     {

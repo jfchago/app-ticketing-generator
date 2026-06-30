@@ -11,7 +11,7 @@ describe('inspect command stages', () => {
     const result = inspectStage(SPEC_PATH, 'raw') as Record<string, unknown>;
     const app = result['application'] as Record<string, unknown>;
     expect(app['name']).toBe('Mini HelpDesk');
-    expect((result['entities'] as unknown[]).length).toBe(3);
+    expect((result['entities'] as unknown[]).length).toBe(4);
   });
 
   it('validated stage returns validated spec with normalized fields', () => {
@@ -19,42 +19,42 @@ describe('inspect command stages', () => {
     const app = result['application'] as Record<string, unknown>;
     expect(app['name']).toBe('Mini HelpDesk');
     const entities = result['entities'] as unknown[];
-    expect(entities.length).toBe(3);
+    expect(entities.length).toBe(4);
   });
 
   it('semantic stage returns SemanticSnapshot with entity summary', () => {
     const result = inspectStage(SPEC_PATH, 'semantic') as Record<string, unknown>;
     const summary = result['summary'] as Record<string, unknown>;
-    expect(summary['entities']).toBe(3);
+    expect(summary['entities']).toBe(4);
     expect(summary['enums']).toBe(2);
     expect(summary['diagnostics']).toBeDefined();
     const entities = result['entities'] as unknown[];
-    expect(entities.length).toBe(3);
+    expect(entities.length).toBe(4);
   });
 
   it('ir stage returns IRSnapshot with entity summary', () => {
     const result = inspectStage(SPEC_PATH, 'ir') as Record<string, unknown>;
     const summary = result['summary'] as Record<string, unknown>;
-    expect(summary['entities']).toBe(3);
+    expect(summary['entities']).toBe(4);
     expect(summary['enums']).toBe(2);
     const entities = result['entities'] as unknown[];
-    expect(entities.length).toBe(3);
+    expect(entities.length).toBe(4);
   });
 
   it('vue-model stage returns sanitized generation model', () => {
     const result = inspectStage(SPEC_PATH, 'vue-model') as Record<string, unknown>;
     const entityNames = result['entityNames'] as string[];
-    expect(entityNames.sort()).toEqual(['Comment', 'Ticket', 'User']);
+    expect(entityNames.sort()).toEqual(['ActivityLog', 'Comment', 'Ticket', 'User']);
     const entities = result['entities'] as Record<string, unknown>;
-    expect(Object.keys(entities).length).toBe(3);
+    expect(Object.keys(entities).length).toBe(4);
   });
 
   it('spring-model stage returns sanitized generation model', () => {
     const result = inspectStage(SPEC_PATH, 'spring-model') as Record<string, unknown>;
     const entityNames = result['entityNames'] as string[];
-    expect(entityNames.sort()).toEqual(['Comment', 'Ticket', 'User']);
+    expect(entityNames.sort()).toEqual(['ActivityLog', 'Comment', 'Ticket', 'User']);
     const entities = result['entities'] as Record<string, unknown>;
-    expect(Object.keys(entities).length).toBe(3);
+    expect(Object.keys(entities).length).toBe(4);
   });
 
   it('throws on unknown stage', () => {

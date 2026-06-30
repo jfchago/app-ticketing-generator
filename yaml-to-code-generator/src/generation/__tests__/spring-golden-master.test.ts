@@ -41,11 +41,11 @@ describe('Spring Golden Master', () => {
   const { ir, springGen } = buildGenModel();
 
   it('generates correct entity count', () => {
-    expect(ir.entities.length).toBe(3);
+    expect(ir.entities.length).toBe(4);
   });
 
   it('spring gen model has all entities', () => {
-    expect(Object.keys(springGen.entities).sort()).toEqual(['Comment', 'Ticket', 'User']);
+    expect(Object.keys(springGen.entities).sort()).toEqual(['ActivityLog', 'Comment', 'Ticket', 'User']);
   });
 
   it('Ticket gen entity has service methods', () => {
@@ -54,7 +54,7 @@ describe('Spring Golden Master', () => {
     expect(t.pkJavaType).toBe('String');
     expect(t.hasCreatedAt).toBe(true);
     expect(t.hasUpdatedAt).toBe(true);
-    expect(t.oneToManyRelations.length).toBe(1);
+    expect(t.oneToManyRelations.length).toBe(2);
     expect(t.manyToOneRelations.length).toBe(1);
   });
 

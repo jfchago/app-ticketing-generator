@@ -36,6 +36,10 @@ export interface VueGeneratedEntity extends GeneratedEntity {
   hasCommentSupport: boolean;
   /** Comment entity ref if hasCommentSupport */
   commentEntity?: { namePascal: string; nameCamel: string };
+  /** Whether this entity has activity logging support */
+  hasActivityLog: boolean;
+  /** ActivityLog entity ref if hasActivityLog */
+  activityLogEntity?: { namePascal: string; nameCamel: string };
   /** Relation to User entity for assignee feature */
   hasAssignee: boolean;
   /** Enums referenced by this entity's attributes */

@@ -60,7 +60,7 @@ describe('Spring Generation Model', () => {
   const model = buildModel();
 
   it('has all entity names', () => {
-    expect(Object.keys(model.entities).sort()).toEqual(['Comment', 'Ticket', 'User']);
+    expect(Object.keys(model.entities).sort()).toEqual(['ActivityLog', 'Comment', 'Ticket', 'User']);
   });
 
   it('Ticket entity has correct properties', () => {
@@ -68,7 +68,7 @@ describe('Spring Generation Model', () => {
     expect(ticket.pkJavaType).toBe('String');
     expect(ticket.hasCreatedAt).toBe(true);
     expect(ticket.hasUpdatedAt).toBe(true);
-    expect(ticket.oneToManyRelations.length).toBe(1);
+    expect(ticket.oneToManyRelations.length).toBe(2);
     expect(ticket.manyToOneRelations.length).toBe(1);
     expect(ticket.eventPublishers.length).toBeGreaterThanOrEqual(0);
     expect(ticket.serviceMethods.length).toBeGreaterThan(0);

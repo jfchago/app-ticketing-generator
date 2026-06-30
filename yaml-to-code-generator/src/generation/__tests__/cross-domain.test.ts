@@ -23,11 +23,11 @@ function buildModels(specPath: string) {
 }
 
 describe('Cross-domain generation', () => {
-  it('helpdesk spec produces valid models with 3 entities', () => {
+  it('helpdesk spec produces valid models with 4 entities', () => {
     const { ir, vueGen, springGen } = buildModels(HELPDESK_PATH);
-    expect(ir.entities.length).toBe(3);
-    expect(Object.keys(vueGen.entities).length).toBe(3);
-    expect(Object.keys(springGen.entities).length).toBe(3);
+    expect(ir.entities.length).toBe(4);
+    expect(Object.keys(vueGen.entities).length).toBe(4);
+    expect(Object.keys(springGen.entities).length).toBe(4);
   });
 
   it('inventory spec produces valid models with 2 entities and no errors', () => {

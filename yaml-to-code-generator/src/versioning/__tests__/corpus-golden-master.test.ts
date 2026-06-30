@@ -64,14 +64,14 @@ describe('Corpus Golden Master — Versioned', () => {
   it('canonicalized spec has expected structure', () => {
     const cspec = ctx.versioned.spec as Record<string, unknown>;
     expect(cspec['version']).toBe('1.0.0');
-    expect(cspec['entities']).toHaveLength(3);
+    expect(cspec['entities']).toHaveLength(4);
     const enums = cspec['enums'] as Record<string, unknown>;
     expect(Object.keys(enums).sort()).toEqual(['TicketPriority', 'TicketStatus']);
   });
 
   it('generates same IR structure as canonical spec', () => {
     const ir = ctx.ir;
-    expect(ir.entities.length).toBe(3);
+    expect(ir.entities.length).toBe(4);
     expect(ir.enums.length).toBe(2);
     expect(ir.application.appClassName).toBe('MiniHelpDesk');
     const ticket = ir.entities.find((e) => e.name === 'Ticket');
@@ -82,10 +82,10 @@ describe('Corpus Golden Master — Versioned', () => {
   it('IR snapshot matches golden master', () => {
     if (!fs.existsSync(IR_GOLDEN)) return;
     const golden = JSON.parse(fs.readFileSync(IR_GOLDEN, 'utf-8'));
-    expect(golden.summary.entities).toBe(3);
+    expect(golden.summary.entities).toBe(4);
     expect(golden.summary.enums).toBe(2);
     expect(golden.entities).toBeDefined();
-    expect(golden.entities.length).toBe(3);
+    expect(golden.entities.length).toBe(4);
     const ticket = golden.entities.find((e: { name: string }) => e.name === 'Ticket');
     expect(ticket).toBeDefined();
   });
