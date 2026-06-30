@@ -70,6 +70,7 @@ function buildVueEntity(entity: EntityDef, ir: IR): VueGeneratedEntity {
     useCases,
     storeActions,
     transitions: entity.transitions ?? {},
+    transitionOptionsExpr: buildTransitionOptionsExpr(entity),
     ruleChecks,
     hasCommentSupport,
     commentEntity: commentEntity
@@ -129,6 +130,20 @@ function computeFieldRole(attr: AttributeDef): string {
   return 'field';
 }
 
+function buildTransitionOptionsExpr(entity: EntityDef): string | undefined {
+  if (!entity.transitions || Object.keys(entity.transitions).length === 0) {
+    return undefined;
+  }
+  // Find the status field to get the enum type
+  const statusField = entity.attributes.find((a) => a.name === 'status' && a.isEnum);
+  if (!statusField) {
+    return undefined;
+  }
+  // Template: VALID_TRANSITIONS[{STATUS}].map(s => ({ value: s, label: EnumType_LABELS[s] ?? s }))
+  // The template will replace {STATUS} with the actual status expression
+  return `VALID_TRANSITIONS[{STATUS}].map(s => ({ value: s, label: ${statusField.type}_LABELS[s] ?? s }))`;
+}
+
 function buildDisplayFields(entity: EntityDef): VueDisplayField[] {
   return entity.attributes
     .filter((a) => !a.primary)
@@ -138,6 +153,9 @@ function buildDisplayFields(entity: EntityDef): VueDisplayField[] {
       tsType: mapToTSType(a),
       isEnum: a.isEnum,
       fieldRole: computeFieldRole(a),
+      // Pre-compute label expression for enum fields
+      // Template will replace {VALUE} with the actual value expression
+      labelExpr: a.isEnum ? `${a.type}_LABELS[{VALUE}] ?? {VALUE}` : undefined,
     }));
 }
 

@@ -10,6 +10,14 @@ import { useRoute, useRouter } from 'vue-router';
 import { use<%= entity.namePascal %>Store } from '../stores/<%= entity.nameCamel %>.store';
 <% if (gen.components.hasAnyBadgeField) { %>
 import Badge from '../components/Badge.vue';
+<% 
+  const enumBadgeFields = gen.displayFields.filter(f => 
+    (f.fieldRole === 'status' || f.fieldRole === 'priority') && f.isEnum
+  );
+  if (enumBadgeFields.length > 0) {
+%>
+import { <%- enumBadgeFields.map(f => `${f.tsType}_LABELS`).join(', ') %> } from '../domain/<%= entity.nameCamel %>/<%= entity.nameCamel %>.types';
+<% } %>
 <% } %>
 <% if (gen.components.hasTimestampField) { %>
 import { formatDate } from '../shared/date-utils';
@@ -50,6 +58,13 @@ const availableTransitions = computed(() => {
   const transitions = VALID_TRANSITIONS[<%= selected %>.status] ?? [];
   return transitions.filter(s => s !== <%= selected %>.status);
 });
+
+<% if (gen.transitionOptionsExpr) { %>
+const transitionOptions = computed(() => {
+  if (!<%= selected %>) return [];
+  return <%- gen.transitionOptionsExpr.replace(/\{STATUS\}/g, `${selected}.status`) %>;
+});
+<% } %>
 
 async function handleStatusChange() {
   if (!newStatus.value || !<%= selected %>) return;
@@ -96,8 +111,12 @@ async function handleStatusChange() {
 %>
       <div class="meta">
 <% for (const field of badgeFields) {
-  if (field.fieldRole === 'status') { %>
+  if (field.fieldRole === 'status' && field.isEnum && field.labelExpr) { %>
+        <span>Status: <Badge type="status" :value="<%= field.labelExpr.replace(/\{VALUE\}/g, `${selected}.${field.name}`) %>" /></span>
+<% } else if (field.fieldRole === 'status') { %>
         <span>Status: <Badge type="status" :value="<%= selected %>.<%= field.name %>" /></span>
+<% } else if (field.fieldRole === 'priority' && field.isEnum && field.labelExpr) { %>
+        <span>Priority: <Badge type="priority" :value="<%= field.labelExpr.replace(/\{VALUE\}/g, `${selected}.${field.name}`) %>" /></span>
 <% } else if (field.fieldRole === 'priority') { %>
         <span>Priority: <Badge type="priority" :value="<%= selected %>.<%= field.name %>" /></span>
 <% } else if (field.fieldRole === 'assignee') { %>
@@ -111,6 +130,10 @@ async function handleStatusChange() {
       </div>
 <% } %>
 <% if (gen?.transitions && Object.keys(gen.transitions).length > 0) { %>
+<%
+  const statusField = gen.displayFields.find(f => f.fieldRole === 'status');
+  const hasStatusLabels = statusField?.isEnum;
+%>
       <div class="status-transition">
         <label for="status-select">Change status:</label>
         <select
@@ -121,7 +144,11 @@ async function handleStatusChange() {
           aria-describedby="status-select-desc"
         >
           <option value="" disabled>{{ availableTransitions.length === 0 ? 'No transitions available' : 'Select target status...' }}</option>
+<% if (gen.transitionOptionsExpr) { %>
+          <option v-for="t in transitionOptions" :key="t.value" :value="t.value">{{ t.label }}</option>
+<% } else { %>
           <option v-for="s in availableTransitions" :key="s" :value="s">{{ s }}</option>
+<% } %>
         </select>
         <span id="status-select-desc" class="sr-only">Select a new status for this <%= entity.namePascal %></span>
         <p v-if="store.error" class="transition-error" role="alert">{{ store.error }}</p>

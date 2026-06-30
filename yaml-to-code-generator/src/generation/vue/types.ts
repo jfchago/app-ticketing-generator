@@ -28,6 +28,8 @@ export interface VueGeneratedEntity extends GeneratedEntity {
   storeActions: VueStoreAction[];
   /** Pre-computed transition table */
   transitions: Record<string, string[]>;
+  /** Pre-computed transition options expression for dropdown (template replaces {STATUS} with current status) */
+  transitionOptionsExpr?: string;
   /** Pre-computed rule checks (guard expressions) */
   ruleChecks: VueRuleCheck[];
   /** Whether this entity has cross-entity comment support */
@@ -46,6 +48,8 @@ export interface VueDisplayField {
   tsType: string;
   isEnum: boolean;
   fieldRole: string;
+  /** Pre-computed expression for displaying the value with label fallback */
+  labelExpr?: string;
 }
 
 export interface VueFormField {

@@ -5,6 +5,8 @@ import { useTicketStore } from '../stores/ticket.store';
 
 import Badge from '../components/Badge.vue';
 
+import { TicketStatus_LABELS, TicketPriority_LABELS } from '../domain/ticket/ticket.types';
+
 import { formatDate } from '../shared/date-utils';
 
 import LoaderSpinner from '../components/LoaderSpinner.vue';
@@ -35,6 +37,14 @@ const availableTransitions = computed(() => {
   return transitions.filter((s) => s !== store.current.status);
 });
 
+const transitionOptions = computed(() => {
+  if (!store.current) return [];
+  return VALID_TRANSITIONS[store.current.status].map((s) => ({
+    value: s,
+    label: TicketStatus_LABELS[s] ?? s,
+  }));
+});
+
 async function handleStatusChange() {
   if (!newStatus.value || !store.current) return;
   transitioning.value = true;
@@ -61,9 +71,19 @@ async function handleStatusChange() {
         <p class="description">{{ store.current.description }}</p>
 
         <div class="meta">
-          <span>Status: <Badge type="status" :value="store.current.status" /></span>
+          <span
+            >Status:
+            <Badge
+              type="status"
+              :value="TicketStatus_LABELS[store.current.status] ?? store.current.status"
+          /></span>
 
-          <span>Priority: <Badge type="priority" :value="store.current.priority" /></span>
+          <span
+            >Priority:
+            <Badge
+              type="priority"
+              :value="TicketPriority_LABELS[store.current.priority] ?? store.current.priority"
+          /></span>
 
           <span>Assigned to: <Badge type="assignee" :value="store.current.assigneeId" /></span>
 
@@ -88,7 +108,10 @@ async function handleStatusChange() {
                   : 'Select target status...'
               }}
             </option>
-            <option v-for="s in availableTransitions" :key="s" :value="s">{{ s }}</option>
+
+            <option v-for="t in transitionOptions" :key="t.value" :value="t.value">
+              {{ t.label }}
+            </option>
           </select>
           <span id="status-select-desc" class="sr-only">Select a new status for this Ticket</span>
           <p v-if="store.error" class="transition-error" role="alert">{{ store.error }}</p>
