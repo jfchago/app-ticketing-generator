@@ -2,16 +2,16 @@
   "meta": {
     "tool": "yaml2code-ir",
     "version": 1,
-    "timestamp": "2026-06-24T08:27:17.469Z",
+    "timestamp": "2026-06-30T10:32:49.561Z",
     "specPath": "specs/helpdesk.yaml",
     "semanticHash": "test-fixture"
   },
   "summary": {
-    "entities": 3,
+    "entities": 4,
     "enums": 2,
-    "attributes": 17,
-    "relationships": 4,
-    "useCases": 10,
+    "attributes": 26,
+    "relationships": 6,
+    "useCases": 11,
     "workflows": 0,
     "events": 0,
     "decisions": 0,
@@ -25,37 +25,6 @@
     }
   },
   "entities": [
-    {
-      "name": "User",
-      "nameCamel": "user",
-      "table": "users",
-      "stereotype": "entity",
-      "attributeCount": 4,
-      "attributeNames": ["avatar", "id", "name", "role"],
-      "attributeFieldRoles": {
-        "id": "id",
-        "name": "field",
-        "avatar": "field",
-        "role": "field"
-      },
-      "relationshipCount": 0,
-      "relationships": [],
-      "useCaseCount": 1,
-      "useCaseNames": ["load_users"],
-      "useCaseCategories": {
-        "load_users": "read"
-      },
-      "flags": {
-        "hasCreate": false,
-        "hasUpdate": false,
-        "hasDelete": false,
-        "hasGetAll": true,
-        "hasGetById": false
-      },
-      "pkType": "String",
-      "ruleNames": [],
-      "eventNames": []
-    },
     {
       "name": "Ticket",
       "nameCamel": "ticket",
@@ -73,16 +42,13 @@
         "updatedAt"
       ],
       "attributeFieldRoles": {
-        "id": "id",
-        "title": "text",
-        "description": "text",
         "status": "status",
         "priority": "priority",
         "assigneeId": "assignee",
         "createdAt": "timestamp",
         "updatedAt": "timestamp"
       },
-      "relationshipCount": 2,
+      "relationshipCount": 3,
       "relationships": [
         {
           "name": "assignee",
@@ -93,6 +59,11 @@
           "name": "comments",
           "type": "one_to_many",
           "target": "Comment"
+        },
+        {
+          "name": "activityLogs",
+          "type": "one_to_many",
+          "target": "ActivityLog"
         }
       ],
       "useCaseCount": 8,
@@ -119,13 +90,57 @@
       "flags": {
         "hasCreate": true,
         "hasUpdate": true,
-        "hasDelete": true,
+        "hasDelete": false,
         "hasGetAll": true,
         "hasGetById": true
       },
       "pkType": "String",
-      "transitionKeys": ["OPEN", "IN_PROGRESS", "RESOLVED", "CLOSED"],
-      "ruleNames": ["PrioridadValida", "RequiereComentarioParaCerrar", "TituloObligatorio"],
+      "transitionKeys": [
+        "OPEN",
+        "IN_PROGRESS",
+        "RESOLVED",
+        "CLOSED"
+      ],
+      "ruleNames": [
+        "PrioridadValida",
+        "RequiereComentarioParaCerrar",
+        "TituloObligatorio"
+      ],
+      "eventNames": []
+    },
+    {
+      "name": "User",
+      "nameCamel": "user",
+      "table": "users",
+      "stereotype": "entity",
+      "attributeCount": 4,
+      "attributeNames": [
+        "avatar",
+        "id",
+        "name",
+        "role"
+      ],
+      "attributeFieldRoles": {},
+      "relationshipCount": 0,
+      "relationships": [],
+      "useCaseCount": 2,
+      "useCaseNames": [
+        "get_by_id",
+        "load_users"
+      ],
+      "useCaseCategories": {
+        "load_users": "read",
+        "get_by_id": "read"
+      },
+      "flags": {
+        "hasCreate": false,
+        "hasUpdate": false,
+        "hasDelete": false,
+        "hasGetAll": true,
+        "hasGetById": true
+      },
+      "pkType": "String",
+      "ruleNames": [],
       "eventNames": []
     },
     {
@@ -134,11 +149,15 @@
       "table": "comments",
       "stereotype": "entity",
       "attributeCount": 5,
-      "attributeNames": ["authorId", "createdAt", "id", "text", "ticketId"],
+      "attributeNames": [
+        "authorId",
+        "createdAt",
+        "id",
+        "text",
+        "ticketId"
+      ],
       "attributeFieldRoles": {
-        "id": "id",
         "ticketId": "assignee",
-        "text": "text",
         "authorId": "assignee",
         "createdAt": "timestamp"
       },
@@ -155,17 +174,63 @@
           "target": "User"
         }
       ],
-      "useCaseCount": 1,
-      "useCaseNames": ["add_comment"],
-      "useCaseCategories": {
-        "add_comment": "action"
-      },
+      "useCaseCount": 0,
+      "useCaseNames": [],
+      "useCaseCategories": {},
       "flags": {
         "hasCreate": false,
         "hasUpdate": false,
         "hasDelete": false,
         "hasGetAll": false,
         "hasGetById": false
+      },
+      "pkType": "String",
+      "ruleNames": [],
+      "eventNames": []
+    },
+    {
+      "name": "ActivityLog",
+      "nameCamel": "activityLog",
+      "table": "activity_logs",
+      "stereotype": "entity",
+      "attributeCount": 9,
+      "attributeNames": [
+        "actionType",
+        "actorId",
+        "createdAt",
+        "description",
+        "fieldName",
+        "id",
+        "newValue",
+        "oldValue",
+        "ticketId"
+      ],
+      "attributeFieldRoles": {
+        "ticketId": "assignee",
+        "actorId": "assignee",
+        "createdAt": "timestamp"
+      },
+      "relationshipCount": 1,
+      "relationships": [
+        {
+          "name": "ticket",
+          "type": "many_to_one",
+          "target": "Ticket"
+        }
+      ],
+      "useCaseCount": 1,
+      "useCaseNames": [
+        "get_by_id"
+      ],
+      "useCaseCategories": {
+        "get_by_id": "read"
+      },
+      "flags": {
+        "hasCreate": false,
+        "hasUpdate": false,
+        "hasDelete": false,
+        "hasGetAll": false,
+        "hasGetById": true
       },
       "pkType": "String",
       "ruleNames": [],

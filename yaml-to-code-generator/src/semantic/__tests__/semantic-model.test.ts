@@ -27,9 +27,9 @@ describe('Resolver — Symbol resolution', () => {
   const { domain } = resolveDomain(spec);
 
   it('resolves all entities', () => {
-    expect(domain.entities).toHaveLength(3);
+    expect(domain.entities).toHaveLength(4);
     const names = domain.entities.map((e) => e.name).sort();
-    expect(names).toEqual(['Comment', 'Ticket', 'User']);
+    expect(names).toEqual(['ActivityLog', 'Comment', 'Ticket', 'User']);
   });
 
   it('resolves all enums', () => {
@@ -58,7 +58,7 @@ describe('Resolver — Symbol resolution', () => {
 
   it('resolves relationships with correct targets', () => {
     const ticket = domain.entities.find((e) => e.name === 'Ticket')!;
-    expect(ticket.relationships).toHaveLength(2);
+    expect(ticket.relationships).toHaveLength(3);
 
     const assignee = ticket.relationships.find((r) => r.name === 'assignee')!;
     expect(assignee.resolvedTarget.kind).toBe('resolved');
@@ -151,7 +151,7 @@ describe('buildSemanticModel — Integration', () => {
     const raw = parseYamlFile(SPEC_PATH);
     const spec = validateSpec(raw);
     const model = buildSemanticModel(spec);
-    expect(model.domain.entities).toHaveLength(3);
+    expect(model.domain.entities).toHaveLength(4);
     expect(model.domain.enums).toHaveLength(2);
     expect(model.meta.specName).toBe('Mini HelpDesk');
     expect(hasErrors(model.diagnostics)).toBe(false);
@@ -161,7 +161,7 @@ describe('buildSemanticModel — Integration', () => {
     const raw = parseYamlFile(SPEC_PATH);
     const spec = validateSpec(raw);
     const model = buildSemanticModelOrThrow(spec);
-    expect(model.domain.entities).toHaveLength(3);
+    expect(model.domain.entities).toHaveLength(4);
   });
 
   it('buildSemanticModelOrThrow throws on invalid spec', () => {
@@ -210,19 +210,19 @@ describe('Semantic Model Snapshot', () => {
   });
 
   it('has correct summary counts', () => {
-    expect(snapshot.summary.entities).toBe(3);
+    expect(snapshot.summary.entities).toBe(4);
     expect(snapshot.summary.enums).toBe(2);
-    expect(snapshot.summary.attributes).toBe(17);
-    expect(snapshot.summary.relationships).toBe(4);
+    expect(snapshot.summary.attributes).toBe(26);
+    expect(snapshot.summary.relationships).toBe(6);
     expect(snapshot.summary.useCases).toBeGreaterThan(0);
   });
 
   it('has entity snapshots with key data', () => {
-    expect(snapshot.entities).toHaveLength(3);
+    expect(snapshot.entities).toHaveLength(4);
     const ticket = snapshot.entities.find((e) => e.name === 'Ticket')!;
     expect(ticket.stereotype).toBe('aggregate_root');
     expect(ticket.attributeCount).toBe(8);
-    expect(ticket.relationshipCount).toBe(2);
+    expect(ticket.relationshipCount).toBe(3);
     expect(ticket.useCaseCount).toBe(8);
     expect(ticket.pkType).toBe('String');
     expect(ticket.attributes).toBeDefined();
@@ -251,7 +251,7 @@ describe('Semantic Model Snapshot', () => {
     const json = JSON.stringify(snapshot);
     expect(json).toBeTruthy();
     const parsed = JSON.parse(json);
-    expect(parsed.summary.entities).toBe(3);
+    expect(parsed.summary.entities).toBe(4);
   });
 
   it('snapshot matches golden master', () => {

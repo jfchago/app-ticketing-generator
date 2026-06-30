@@ -40,11 +40,11 @@ describe('Vue Golden Master', () => {
   const { ir, vueGen } = buildGenModel();
 
   it('generates correct entity count', () => {
-    expect(ir.entities.length).toBe(3);
+    expect(ir.entities.length).toBe(4);
   });
 
   it('vue gen model has all entities', () => {
-    expect(Object.keys(vueGen.entities).sort()).toEqual(['Comment', 'Ticket', 'User']);
+    expect(Object.keys(vueGen.entities).sort()).toEqual(['ActivityLog', 'Comment', 'Ticket', 'User']);
   });
 
   it('Ticket gen entity has state properties', () => {

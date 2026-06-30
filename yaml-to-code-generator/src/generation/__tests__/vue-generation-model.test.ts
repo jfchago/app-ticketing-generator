@@ -55,7 +55,7 @@ describe('Vue Generation Model', () => {
   const model = buildModel();
 
   it('has all entity names', () => {
-    expect(Object.keys(model.entities).sort()).toEqual(['Comment', 'Ticket', 'User']);
+    expect(Object.keys(model.entities).sort()).toEqual(['ActivityLog', 'Comment', 'Ticket', 'User']);
   });
 
   it('has all enums', () => {

@@ -41,6 +41,12 @@ function buildVueEntity(entity: EntityDef, ir: IR): VueGeneratedEntity {
     ? ir.entities.find((e) => e.name === commentRel!.target)
     : undefined;
 
+  const activityLogRel = findActivityLogRelationship(entity, ir);
+  const hasActivityLog = !!activityLogRel;
+  const activityLogEntity = hasActivityLog
+    ? ir.entities.find((e) => e.name === activityLogRel!.target)
+    : undefined;
+
   const displayFields = buildDisplayFields(entity);
   const formFields = buildFormFields(entity);
   const components = buildComponentFlags(entity, ir);
@@ -79,6 +85,10 @@ function buildVueEntity(entity: EntityDef, ir: IR): VueGeneratedEntity {
           nameCamel: commentEntity.nameCamel,
         }
       : undefined,
+    hasActivityLog,
+    activityLogEntity: activityLogEntity
+      ? { namePascal: activityLogEntity.namePascal, nameCamel: activityLogEntity.nameCamel }
+      : undefined,
     hasAssignee: entity.relationships.some((r) => r.name === 'assignee'),
     enumAttributes: buildEnumAttributes(entity, ir),
   };
@@ -95,6 +105,18 @@ function findCommentRelationship(
   );
   for (const rel of entity.relationships) {
     if (rel.type === 'one_to_many' && textEntityNames.has(rel.target)) {
+      return { target: rel.target, foreignKey: rel.foreignKey };
+    }
+  }
+  return undefined;
+}
+
+function findActivityLogRelationship(
+  entity: EntityDef,
+  _ir: IR,
+): { target: string; foreignKey: string } | undefined {
+  for (const rel of entity.relationships) {
+    if (rel.type === 'one_to_many' && rel.target === 'ActivityLog') {
       return { target: rel.target, foreignKey: rel.foreignKey };
     }
   }

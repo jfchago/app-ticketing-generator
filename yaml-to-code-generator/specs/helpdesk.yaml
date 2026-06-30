@@ -24,6 +24,11 @@ enums:
       IN_PROGRESS: 'En curso'
       RESOLVED: 'Resuelta'
       CLOSED: 'Cerrada'
+    colors:
+      OPEN: { bg: '#d4f5e0', text: '#0f3b21' }
+      IN_PROGRESS: { bg: '#fef3cd', text: '#5c4000' }
+      RESOLVED: { bg: '#d4edda', text: '#14532d' }
+      CLOSED: { bg: '#e9ecef', text: '#364153' }
 
   TicketPriority:
     values:
@@ -36,37 +41,15 @@ enums:
       MEDIUM: 'Media'
       HIGH: 'Alta'
       URGENT: 'Urgente'
+    colors:
+      LOW: { bg: '#d4edda', text: '#14532d' }
+      MEDIUM: { bg: '#d4f5e0', text: '#0f3b21' }
+      HIGH: { bg: '#fef3cd', text: '#5c4000' }
+      URGENT: { bg: '#f8d7da', text: '#7f1d1d' }
 
 # ── Entities ───────────────────────────────────────────────────────────
 
 entities:
-  - name: User
-    stereotype: entity
-    table: users
-    description: 'HelpDesk user (agent or reporter)'
-    attributes:
-      - name: id
-        type: String
-        required: true
-        primary: true
-        length: 36
-        column: id
-      - name: name
-        type: String
-        required: true
-        length: 100
-      - name: avatar
-        type: String
-        required: false
-        length: 10
-      - name: role
-        type: String
-        required: true
-        length: 20
-    relationships: []
-    use_cases:
-      - load_users
-
   - name: Ticket
     stereotype: aggregate_root
     table: tickets
@@ -82,22 +65,27 @@ entities:
         required: true
         length: 200
         unique: true
+        label: 'Title'
       - name: description
         type: String
         required: false
         length: 4000
+        label: 'Description'
       - name: status
         type: TicketStatus
         required: true
         default: 'OPEN'
+        label: 'Status'
       - name: priority
         type: TicketPriority
         required: true
         default: 'MEDIUM'
+        label: 'Priority'
       - name: assigneeId
         type: String
         required: false
         length: 36
+        label: 'Assignee'
       - name: createdAt
         type: DateTime
         required: true
@@ -151,6 +139,34 @@ entities:
         guard: "newPriority !== 'LOW' || entity.priority !== 'LOW'"
         message: 'La prioridad ya es LOW'
 
+  - name: User
+    stereotype: entity
+    table: users
+    description: 'HelpDesk user (agent or reporter)'
+    attributes:
+      - name: id
+        type: String
+        required: true
+        primary: true
+        length: 36
+        column: id
+      - name: name
+        type: String
+        required: true
+        length: 100
+      - name: avatar
+        type: String
+        required: false
+        length: 10
+      - name: role
+        type: String
+        required: true
+        length: 20
+    relationships: []
+    use_cases:
+      - load_users
+      - get_by_id
+
   - name: Comment
     stereotype: entity
     table: comments
@@ -189,8 +205,7 @@ entities:
         foreign_key: authorId
         source_cardinality: '0..*'
         target_cardinality: '0..1'
-    use_cases:
-      - add_comment
+    use_cases: []
 
   - name: ActivityLog
     stereotype: entity

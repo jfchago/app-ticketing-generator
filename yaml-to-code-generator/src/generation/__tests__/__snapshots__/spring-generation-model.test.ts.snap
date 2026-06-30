@@ -3,6 +3,72 @@
 exports[`Spring Generation Model > sanitized model matches snapshot 1`] = `
 {
   "entities": {
+    "ActivityLog": {
+      "attributeTypeNames": [
+        "id",
+        "ticketId",
+        "actionType",
+        "actorId",
+        "fieldName",
+        "oldValue",
+        "newValue",
+        "description",
+        "createdAt",
+      ],
+      "attributeTypes": {
+        "actionType": {
+          "isEnum": false,
+          "javaType": "String",
+        },
+        "actorId": {
+          "isEnum": false,
+          "javaType": "String",
+        },
+        "createdAt": {
+          "isEnum": false,
+          "javaType": "LocalDateTime",
+        },
+        "description": {
+          "isEnum": false,
+          "javaType": "String",
+        },
+        "fieldName": {
+          "isEnum": false,
+          "javaType": "String",
+        },
+        "id": {
+          "isEnum": false,
+          "javaType": "String",
+        },
+        "newValue": {
+          "isEnum": false,
+          "javaType": "String",
+        },
+        "oldValue": {
+          "isEnum": false,
+          "javaType": "String",
+        },
+        "ticketId": {
+          "isEnum": false,
+          "javaType": "String",
+        },
+      },
+      "emitsEvents": false,
+      "endpointCount": 1,
+      "eventPublisherCount": 0,
+      "hasCreatedAt": true,
+      "hasUpdatedAt": false,
+      "manyToOneRelationCount": 1,
+      "oneToManyRelationCount": 0,
+      "pkJavaType": "String",
+      "repositoryMethodCount": 0,
+      "ruleCheckCount": 0,
+      "serviceMethodCount": 1,
+      "serviceMethodNames": [
+        "getById",
+      ],
+      "transitionKeys": [],
+    },
     "Comment": {
       "attributeTypeNames": [
         "id",
@@ -34,7 +100,7 @@ exports[`Spring Generation Model > sanitized model matches snapshot 1`] = `
         },
       },
       "emitsEvents": false,
-      "endpointCount": 1,
+      "endpointCount": 0,
       "eventPublisherCount": 0,
       "hasCreatedAt": true,
       "hasUpdatedAt": false,
@@ -43,10 +109,8 @@ exports[`Spring Generation Model > sanitized model matches snapshot 1`] = `
       "pkJavaType": "String",
       "repositoryMethodCount": 0,
       "ruleCheckCount": 0,
-      "serviceMethodCount": 1,
-      "serviceMethodNames": [
-        "addComment",
-      ],
+      "serviceMethodCount": 0,
+      "serviceMethodNames": [],
       "transitionKeys": [],
     },
     "Ticket": {
@@ -100,7 +164,7 @@ exports[`Spring Generation Model > sanitized model matches snapshot 1`] = `
       "hasCreatedAt": true,
       "hasUpdatedAt": true,
       "manyToOneRelationCount": 1,
-      "oneToManyRelationCount": 1,
+      "oneToManyRelationCount": 2,
       "pkJavaType": "String",
       "repositoryMethodCount": 1,
       "ruleCheckCount": 3,
@@ -148,7 +212,7 @@ exports[`Spring Generation Model > sanitized model matches snapshot 1`] = `
         },
       },
       "emitsEvents": false,
-      "endpointCount": 1,
+      "endpointCount": 2,
       "eventPublisherCount": 0,
       "hasCreatedAt": false,
       "hasUpdatedAt": false,
@@ -157,17 +221,19 @@ exports[`Spring Generation Model > sanitized model matches snapshot 1`] = `
       "pkJavaType": "String",
       "repositoryMethodCount": 0,
       "ruleCheckCount": 0,
-      "serviceMethodCount": 1,
+      "serviceMethodCount": 2,
       "serviceMethodNames": [
         "loadUsers",
+        "getById",
       ],
       "transitionKeys": [],
     },
   },
   "entityNames": [
-    "User",
     "Ticket",
+    "User",
     "Comment",
+    "ActivityLog",
   ],
   "enums": [
     {

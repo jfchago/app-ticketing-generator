@@ -2,15 +2,15 @@
   "meta": {
     "tool": "yaml2code-semantic",
     "version": 1,
-    "timestamp": "2026-06-24T08:52:09.046Z",
+    "timestamp": "2026-06-30T10:32:43.618Z",
     "specName": "Mini HelpDesk"
   },
   "summary": {
-    "entities": 3,
+    "entities": 4,
     "enums": 2,
-    "attributes": 17,
-    "relationships": 4,
-    "useCases": 10,
+    "attributes": 26,
+    "relationships": 6,
+    "useCases": 11,
     "workflows": 0,
     "events": 0,
     "decisions": 0,
@@ -28,86 +28,6 @@
   },
   "entities": [
     {
-      "name": "User",
-      "nameCamel": "user",
-      "namePascal": "User",
-      "stereotype": "entity",
-      "table": "users",
-      "pkAttribute": "id",
-      "pkType": "String",
-      "attributeCount": 4,
-      "relationshipCount": 0,
-      "useCaseCount": 1,
-      "flags": {
-        "hasCreate": false,
-        "hasUpdate": false,
-        "hasDelete": false,
-        "hasGetAll": true,
-        "hasGetById": false,
-        "hasComments": false,
-        "relatedEntities": []
-      },
-      "attributes": [
-        {
-          "name": "id",
-          "type": "String",
-          "resolvedType": {
-            "kind": "primitive",
-            "ref": "String"
-          },
-          "fieldRole": "id",
-          "required": true,
-          "primary": true
-        },
-        {
-          "name": "name",
-          "type": "String",
-          "resolvedType": {
-            "kind": "primitive",
-            "ref": "String"
-          },
-          "fieldRole": "field",
-          "required": true,
-          "primary": false
-        },
-        {
-          "name": "avatar",
-          "type": "String",
-          "resolvedType": {
-            "kind": "primitive",
-            "ref": "String"
-          },
-          "fieldRole": "field",
-          "required": false,
-          "primary": false
-        },
-        {
-          "name": "role",
-          "type": "String",
-          "resolvedType": {
-            "kind": "primitive",
-            "ref": "String"
-          },
-          "fieldRole": "field",
-          "required": true,
-          "primary": false
-        }
-      ],
-      "relationships": [],
-      "useCases": [
-        {
-          "name": "load_users",
-          "methodName": "loadUsers",
-          "httpMethod": "GET",
-          "category": "read",
-          "pathSuffix": "",
-          "requiresComment": false,
-          "requiresUser": true,
-          "stateMutation": false
-        }
-      ]
-    },
-    {
       "name": "Ticket",
       "nameCamel": "ticket",
       "namePascal": "Ticket",
@@ -116,7 +36,7 @@
       "pkAttribute": "id",
       "pkType": "String",
       "attributeCount": 8,
-      "relationshipCount": 2,
+      "relationshipCount": 3,
       "useCaseCount": 8,
       "flags": {
         "hasCreate": true,
@@ -125,7 +45,11 @@
         "hasGetAll": true,
         "hasGetById": true,
         "hasComments": true,
-        "relatedEntities": ["User", "Comment"]
+        "relatedEntities": [
+          "User",
+          "Comment",
+          "ActivityLog"
+        ]
       },
       "attributes": [
         {
@@ -135,7 +59,7 @@
             "kind": "primitive",
             "ref": "String"
           },
-          "fieldRole": "id",
+          "fieldRole": "field",
           "required": true,
           "primary": true
         },
@@ -146,7 +70,7 @@
             "kind": "primitive",
             "ref": "String"
           },
-          "fieldRole": "text",
+          "fieldRole": "field",
           "required": true,
           "primary": false
         },
@@ -157,7 +81,7 @@
             "kind": "primitive",
             "ref": "String"
           },
-          "fieldRole": "text",
+          "fieldRole": "field",
           "required": false,
           "primary": false
         },
@@ -168,7 +92,7 @@
             "kind": "enum",
             "ref": "TicketStatus"
           },
-          "fieldRole": "status",
+          "fieldRole": "field",
           "required": true,
           "primary": false
         },
@@ -179,7 +103,7 @@
             "kind": "enum",
             "ref": "TicketPriority"
           },
-          "fieldRole": "priority",
+          "fieldRole": "field",
           "required": true,
           "primary": false
         },
@@ -190,7 +114,7 @@
             "kind": "primitive",
             "ref": "String"
           },
-          "fieldRole": "assignee",
+          "fieldRole": "field",
           "required": false,
           "primary": false
         },
@@ -201,7 +125,7 @@
             "kind": "primitive",
             "ref": "DateTime"
           },
-          "fieldRole": "timestamp",
+          "fieldRole": "field",
           "required": true,
           "primary": false
         },
@@ -212,7 +136,7 @@
             "kind": "primitive",
             "ref": "DateTime"
           },
-          "fieldRole": "timestamp",
+          "fieldRole": "field",
           "required": false,
           "primary": false
         }
@@ -233,6 +157,15 @@
           "resolvedTarget": {
             "kind": "resolved",
             "ref": "Comment"
+          },
+          "type": "one_to_many"
+        },
+        {
+          "name": "activityLogs",
+          "target": "ActivityLog",
+          "resolvedTarget": {
+            "kind": "resolved",
+            "ref": "ActivityLog"
           },
           "type": "one_to_many"
         }
@@ -321,24 +254,24 @@
       ]
     },
     {
-      "name": "Comment",
-      "nameCamel": "comment",
-      "namePascal": "Comment",
+      "name": "User",
+      "nameCamel": "user",
+      "namePascal": "User",
       "stereotype": "entity",
-      "table": "comments",
+      "table": "users",
       "pkAttribute": "id",
       "pkType": "String",
-      "attributeCount": 5,
-      "relationshipCount": 2,
-      "useCaseCount": 1,
+      "attributeCount": 4,
+      "relationshipCount": 0,
+      "useCaseCount": 2,
       "flags": {
         "hasCreate": false,
         "hasUpdate": false,
         "hasDelete": false,
-        "hasGetAll": false,
-        "hasGetById": false,
-        "hasComments": true,
-        "relatedEntities": ["Ticket", "User"]
+        "hasGetAll": true,
+        "hasGetById": true,
+        "hasComments": false,
+        "relatedEntities": []
       },
       "attributes": [
         {
@@ -348,7 +281,100 @@
             "kind": "primitive",
             "ref": "String"
           },
-          "fieldRole": "id",
+          "fieldRole": "field",
+          "required": true,
+          "primary": true
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "resolvedType": {
+            "kind": "primitive",
+            "ref": "String"
+          },
+          "fieldRole": "field",
+          "required": true,
+          "primary": false
+        },
+        {
+          "name": "avatar",
+          "type": "String",
+          "resolvedType": {
+            "kind": "primitive",
+            "ref": "String"
+          },
+          "fieldRole": "field",
+          "required": false,
+          "primary": false
+        },
+        {
+          "name": "role",
+          "type": "String",
+          "resolvedType": {
+            "kind": "primitive",
+            "ref": "String"
+          },
+          "fieldRole": "field",
+          "required": true,
+          "primary": false
+        }
+      ],
+      "relationships": [],
+      "useCases": [
+        {
+          "name": "load_users",
+          "methodName": "loadUsers",
+          "httpMethod": "GET",
+          "category": "read",
+          "pathSuffix": "",
+          "requiresComment": false,
+          "requiresUser": true,
+          "stateMutation": false
+        },
+        {
+          "name": "get_by_id",
+          "methodName": "getById",
+          "httpMethod": "GET",
+          "category": "read",
+          "pathSuffix": "/{id}",
+          "requiresComment": false,
+          "requiresUser": false,
+          "stateMutation": false
+        }
+      ]
+    },
+    {
+      "name": "Comment",
+      "nameCamel": "comment",
+      "namePascal": "Comment",
+      "stereotype": "entity",
+      "table": "comments",
+      "pkAttribute": "id",
+      "pkType": "String",
+      "attributeCount": 5,
+      "relationshipCount": 2,
+      "useCaseCount": 0,
+      "flags": {
+        "hasCreate": false,
+        "hasUpdate": false,
+        "hasDelete": false,
+        "hasGetAll": false,
+        "hasGetById": false,
+        "hasComments": false,
+        "relatedEntities": [
+          "Ticket",
+          "User"
+        ]
+      },
+      "attributes": [
+        {
+          "name": "id",
+          "type": "String",
+          "resolvedType": {
+            "kind": "primitive",
+            "ref": "String"
+          },
+          "fieldRole": "field",
           "required": true,
           "primary": true
         },
@@ -359,7 +385,7 @@
             "kind": "primitive",
             "ref": "String"
           },
-          "fieldRole": "assignee",
+          "fieldRole": "field",
           "required": true,
           "primary": false
         },
@@ -370,7 +396,7 @@
             "kind": "primitive",
             "ref": "String"
           },
-          "fieldRole": "text",
+          "fieldRole": "field",
           "required": true,
           "primary": false
         },
@@ -381,7 +407,7 @@
             "kind": "primitive",
             "ref": "String"
           },
-          "fieldRole": "assignee",
+          "fieldRole": "field",
           "required": true,
           "primary": false
         },
@@ -392,7 +418,7 @@
             "kind": "primitive",
             "ref": "DateTime"
           },
-          "fieldRole": "timestamp",
+          "fieldRole": "field",
           "required": true,
           "primary": false
         }
@@ -417,14 +443,150 @@
           "type": "many_to_one"
         }
       ],
+      "useCases": []
+    },
+    {
+      "name": "ActivityLog",
+      "nameCamel": "activityLog",
+      "namePascal": "ActivityLog",
+      "stereotype": "entity",
+      "table": "activity_logs",
+      "pkAttribute": "id",
+      "pkType": "String",
+      "attributeCount": 9,
+      "relationshipCount": 1,
+      "useCaseCount": 1,
+      "flags": {
+        "hasCreate": false,
+        "hasUpdate": false,
+        "hasDelete": false,
+        "hasGetAll": false,
+        "hasGetById": true,
+        "hasComments": false,
+        "relatedEntities": [
+          "Ticket"
+        ]
+      },
+      "attributes": [
+        {
+          "name": "id",
+          "type": "String",
+          "resolvedType": {
+            "kind": "primitive",
+            "ref": "String"
+          },
+          "fieldRole": "field",
+          "required": true,
+          "primary": true
+        },
+        {
+          "name": "ticketId",
+          "type": "String",
+          "resolvedType": {
+            "kind": "primitive",
+            "ref": "String"
+          },
+          "fieldRole": "field",
+          "required": true,
+          "primary": false
+        },
+        {
+          "name": "actionType",
+          "type": "String",
+          "resolvedType": {
+            "kind": "primitive",
+            "ref": "String"
+          },
+          "fieldRole": "field",
+          "required": true,
+          "primary": false
+        },
+        {
+          "name": "actorId",
+          "type": "String",
+          "resolvedType": {
+            "kind": "primitive",
+            "ref": "String"
+          },
+          "fieldRole": "field",
+          "required": true,
+          "primary": false
+        },
+        {
+          "name": "fieldName",
+          "type": "String",
+          "resolvedType": {
+            "kind": "primitive",
+            "ref": "String"
+          },
+          "fieldRole": "field",
+          "required": false,
+          "primary": false
+        },
+        {
+          "name": "oldValue",
+          "type": "String",
+          "resolvedType": {
+            "kind": "primitive",
+            "ref": "String"
+          },
+          "fieldRole": "field",
+          "required": false,
+          "primary": false
+        },
+        {
+          "name": "newValue",
+          "type": "String",
+          "resolvedType": {
+            "kind": "primitive",
+            "ref": "String"
+          },
+          "fieldRole": "field",
+          "required": false,
+          "primary": false
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "resolvedType": {
+            "kind": "primitive",
+            "ref": "String"
+          },
+          "fieldRole": "field",
+          "required": false,
+          "primary": false
+        },
+        {
+          "name": "createdAt",
+          "type": "DateTime",
+          "resolvedType": {
+            "kind": "primitive",
+            "ref": "DateTime"
+          },
+          "fieldRole": "field",
+          "required": true,
+          "primary": false
+        }
+      ],
+      "relationships": [
+        {
+          "name": "ticket",
+          "target": "Ticket",
+          "resolvedTarget": {
+            "kind": "resolved",
+            "ref": "Ticket"
+          },
+          "type": "many_to_one"
+        }
+      ],
       "useCases": [
         {
-          "name": "add_comment",
-          "methodName": "addComment",
-          "httpMethod": "POST",
-          "category": "action",
-          "pathSuffix": "/{id}/comments",
-          "requiresComment": true,
+          "name": "get_by_id",
+          "methodName": "getById",
+          "httpMethod": "GET",
+          "category": "read",
+          "pathSuffix": "/{id}",
+          "requiresComment": false,
           "requiresUser": false,
           "stateMutation": false
         }

@@ -89,6 +89,9 @@ function buildSpringEntity(entity: EntityDef, ir: IR): SpringGeneratedEntity {
       })),
     emitsEvents: (ir.events?.length ?? 0) > 0 || (entity.entityEvents?.length ?? 0) > 0,
     eventPublishers: buildEventPublishers(ir, entity),
+    hasActivityLog: entity.relationships.some(
+      (r) => r.type === 'one_to_many' && r.target === 'ActivityLog'
+    ),
   };
 }
 
@@ -226,7 +229,6 @@ function buildServiceMethod(
     params = `${pkJavaType} id, String userId`;
     annotations = ['@Transactional'];
     const targetCamel = assigneeRel.target.charAt(0).toLowerCase() + assigneeRel.target.slice(1);
-    const targetPascal = assigneeRel.targetPascal;
     const assigneeSetter = `set${assigneeRel.namePascal.charAt(0).toUpperCase() + assigneeRel.namePascal.slice(1)}`;
     body = `var ${entity.nameCamel} = ${entity.nameCamel}Repository.findById(id).orElseThrow(() -> new RuntimeException("${entity.namePascal} not found: " + id));\n        ${entity.nameCamel}.${assigneeSetter}(${targetCamel}Repository.getReferenceById(userId));\n        ${entity.nameCamel}Repository.save(${entity.nameCamel});\n        ${buildEventPublishBody(ir, entity, uc.name)}\n        return ${entity.nameCamel}Mapper.toDTO(${entity.nameCamel});`;
   } else if (uc.name === 'unassign_user' && assigneeRel) {
@@ -365,7 +367,6 @@ function buildManyToOneResolutionBody(
     const fk = rel.foreignKey;
     const fkGetter = `get${fk.charAt(0).toUpperCase() + fk.slice(1)}`;
     const targetCamel = rel.target.charAt(0).toLowerCase() + rel.target.slice(1);
-    const targetPascal = rel.targetPascal;
     const setter = `set${rel.namePascal.charAt(0).toUpperCase() + rel.namePascal.slice(1)}`;
 
     blocks.push(

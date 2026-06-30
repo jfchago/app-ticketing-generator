@@ -44,6 +44,8 @@ export interface SpringGeneratedEntity extends GeneratedEntity {
   emitsEvents: boolean;
   /** Event publisher names */
   eventPublishers: SpringEventPublisher[];
+  /** Whether this entity has activity logging via ActivityLog relationship */
+  hasActivityLog: boolean;
 }
 
 export interface SpringAttributeType {

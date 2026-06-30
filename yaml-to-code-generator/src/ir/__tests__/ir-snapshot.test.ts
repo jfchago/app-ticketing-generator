@@ -40,24 +40,24 @@ describe('IR Snapshot', () => {
   const snapshot = buildSnapshot(ir);
 
   it('has correct summary counts', () => {
-    expect(snapshot.summary.entities).toBe(3);
+    expect(snapshot.summary.entities).toBe(4);
     expect(snapshot.summary.enums).toBe(2);
-    expect(snapshot.summary.attributes).toBe(17);
-    expect(snapshot.summary.relationships).toBe(4);
-    expect(snapshot.summary.useCases).toBe(10);
+    expect(snapshot.summary.attributes).toBe(26);
+    expect(snapshot.summary.relationships).toBe(6);
+    expect(snapshot.summary.useCases).toBe(11);
     expect(snapshot.summary.flags.hasStateMachine).toBe(true);
     expect(snapshot.summary.flags.hasRules).toBe(true);
     expect(snapshot.summary.flags.hasValidation).toBe(true);
   });
 
   it('has correct entity names', () => {
-    expect(snapshot.entities.map((e) => e.name).sort()).toEqual(['Comment', 'Ticket', 'User']);
+    expect(snapshot.entities.map((e) => e.name).sort()).toEqual(['ActivityLog', 'Comment', 'Ticket', 'User']);
   });
 
   it('Ticket entity has correct snapshot properties', () => {
     const ticket = snapshot.entities.find((e) => e.name === 'Ticket')!;
     expect(ticket.attributeCount).toBe(8);
-    expect(ticket.relationshipCount).toBe(2);
+    expect(ticket.relationshipCount).toBe(3);
     expect(ticket.useCaseCount).toBe(8);
     expect(ticket.useCaseNames.sort()).toEqual([
       'add_comment',
@@ -81,8 +81,8 @@ describe('IR Snapshot', () => {
     const comment = snapshot.entities.find((e) => e.name === 'Comment')!;
     expect(comment.attributeCount).toBe(5);
     expect(comment.relationshipCount).toBe(2); // ticket→Ticket + author→User
-    expect(comment.useCaseCount).toBe(1);
-    expect(comment.useCaseNames).toEqual(['add_comment']);
+    expect(comment.useCaseCount).toBe(0);
+    expect(comment.useCaseNames).toEqual([]);
     expect(comment.flags.hasCreate).toBe(false);
     expect(comment.flags.hasGetAll).toBe(false);
     expect(comment.flags.hasGetById).toBe(false);
@@ -92,8 +92,8 @@ describe('IR Snapshot', () => {
     const user = snapshot.entities.find((e) => e.name === 'User')!;
     expect(user.attributeCount).toBe(4);
     expect(user.relationshipCount).toBe(0);
-    expect(user.useCaseCount).toBe(1);
-    expect(user.useCaseNames).toEqual(['load_users']);
+    expect(user.useCaseCount).toBe(2);
+    expect(user.useCaseNames).toEqual(['get_by_id', 'load_users']);
     expect(user.flags.hasGetAll).toBe(true); // load_users counts as hasGetAll
     expect(user.flags.hasCreate).toBe(false);
   });
@@ -131,13 +131,13 @@ describe('IR Snapshot', () => {
     const str = JSON.stringify(snapshot);
     expect(str).toBeTruthy();
     const parsed = JSON.parse(str) as IRSnapshot;
-    expect(parsed.summary.entities).toBe(3);
+    expect(parsed.summary.entities).toBe(4);
     expect(parsed.meta.tool).toBe('yaml2code-ir');
   });
 
   it('IR entities reference is consistent', () => {
     const entities = ir.entities;
-    expect(entities.length).toBe(3);
+    expect(entities.length).toBe(4);
     const ticket = entities.find((e) => e.name === 'Ticket')!;
     expect(ticket.namePascal).toBe('Ticket');
     expect(ticket.nameCamel).toBe('ticket');
