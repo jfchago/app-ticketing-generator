@@ -1,0 +1,74 @@
+<script setup lang="ts">
+defineEmits<{
+  navigate: [];
+}>();
+</script>
+
+<template>
+  <nav class="navbar" aria-label="Main navigation">
+    <h2 class="navbar-title">Mini HelpDesk</h2>
+    <ul class="nav-list">
+      <li>
+        <router-link
+          :to="'/tickets'"
+          class="nav-link"
+          active-class="nav-link--active"
+          @click="$emit('navigate')"
+        >
+          <span class="nav-icon" aria-hidden="true">&#9632;</span>
+          Tickets
+        </router-link>
+      </li>
+
+      <li>
+        <router-link
+          :to="'/users'"
+          class="nav-link"
+          active-class="nav-link--active"
+          @click="$emit('navigate')"
+        >
+          <span class="nav-icon" aria-hidden="true">&#9632;</span>
+          Users
+        </router-link>
+      </li>
+    </ul>
+  </nav>
+</template>
+
+<style scoped>
+.navbar {
+  padding: var(--space-lg, 16px);
+}
+.navbar-title {
+  font-size: var(--font-size-lg, 1.25em);
+  font-weight: var(--font-weight-bold, 700);
+  margin-bottom: var(--space-lg, 16px);
+  color: var(--color-text, #333);
+}
+.nav-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm, 8px);
+  padding: var(--space-md, 12px);
+  border-radius: var(--radius-sm, 4px);
+  color: var(--color-text-secondary, #666);
+  text-decoration: none;
+  transition: background var(--transition-fast, 150ms ease);
+}
+.nav-link:hover {
+  background: var(--color-bg-secondary, #f5f5f5);
+}
+.nav-link--active {
+  background: var(--color-primary-light, #d4f5e0);
+  color: var(--color-primary-text, #0f3b21);
+  font-weight: var(--font-weight-semibold, 600);
+}
+.nav-icon {
+  font-size: 0.75em;
+}
+</style>

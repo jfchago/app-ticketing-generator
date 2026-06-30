@@ -2,7 +2,10 @@
 # generate.sh — YAML-to-Code Generator entry point (Linux/macOS/Git Bash)
 # Usage: ./generate.sh generate --spec <yaml> --target <vue|spring|diagrams> --output <dir>
 #        ./generate.sh validate --spec <yaml> [--strict-behavior]
+#        ./generate.sh puml-to-yaml --input <.puml> --output <.yaml>
+#        ./generate.sh yaml-to-puml --spec <yaml> --output <.puml>
 #        ./generate.sh yaml-to-diagrams --spec <yaml> --output <dir>
+#        ./generate.sh inspect --spec <yaml> --stage <stage>
 #
 # This script wraps the TypeScript generator with prerequisite checks
 # and user-friendly error messages.
@@ -19,7 +22,7 @@ CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
 echo -e "${CYAN}╔══════════════════════════════════════╗${NC}"
-echo -e "${CYAN}║   YAML-to-Code Generator v1.0.0     ║${NC}"
+echo -e "${CYAN}║   YAML-to-Code Generator v2.0.0     ║${NC}"
 echo -e "${CYAN}╚══════════════════════════════════════╝${NC}"
 echo ""
 
