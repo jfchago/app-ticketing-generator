@@ -178,6 +178,14 @@ public class TicketService {
 
 
 
+    @Transactional(readOnly = true)
+
+    public TicketDTO getHistory(String id) {
+        return ticketRepository.findById(id).map(ticketMapper::toDTO).orElseThrow(() -> new RuntimeException("Ticket not found: " + id));
+    }
+
+
+
     private static final java.util.Map<String, java.util.Set<String>> VALID_TRANSITIONS = java.util.Map.ofEntries(
 
         java.util.Map.entry("OPEN", java.util.Set.of("IN_PROGRESS", "CLOSED")),

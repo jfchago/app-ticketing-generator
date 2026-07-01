@@ -19,6 +19,8 @@ public class ActivityLogDTO {
 
     private String actorId;
 
+    private String actorName;
+
     private String fieldName;
 
     private String oldValue;

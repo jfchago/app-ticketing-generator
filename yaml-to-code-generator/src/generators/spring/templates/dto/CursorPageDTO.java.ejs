@@ -2,11 +2,8 @@
 const needsCursorPage = Object.values(genEntities ?? {}).some(e =>
   e.serviceMethods?.some(m => m.returnType?.startsWith('CursorPageDTO<'))
 );
-
-if (!needsCursorPage) return;
-%>
-
-package <%= ir.application.basePackage %>.dto;
+if (needsCursorPage) {
+%>package <%= ir.application.basePackage %>.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -19,3 +16,4 @@ public class CursorPageDTO<T> {
     private String nextCursor;
     private boolean hasMore;
 }
+<% } %>

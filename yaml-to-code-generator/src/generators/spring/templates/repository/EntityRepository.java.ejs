@@ -1,4 +1,4 @@
-<%# repository/EntityRepository.java.ejs — Spring Data JPA Repository %><% const gen = genEntities?.[entity.name]; if (!gen) return; %>
+<%# repository/EntityRepository.java.ejs — Spring Data JPA Repository %><% const gen = genEntities?.[entity.name]; if (gen) { %>
 package <%= ir.application.basePackage %>.repository;
 
 import <%= ir.application.basePackage %>.entity.<%= entity.namePascal %>;
@@ -25,3 +25,4 @@ public interface <%= entity.namePascal %>Repository extends JpaRepository<<%= en
     boolean existsBy<%= attr.namePascal %>(<%= gen.attributeTypes?.[attr.name]?.javaType ?? 'String' %> <%= attr.name %>);
 <% } %>
 }
+<% } %>

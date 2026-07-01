@@ -82,6 +82,21 @@ public class ActivityLog {
 
 
 
+    private String actorName;
+
+
+
+
+
+
+
+
+
+
+    @Column(length = 100)
+
+
+
     private String fieldName;
 
 
