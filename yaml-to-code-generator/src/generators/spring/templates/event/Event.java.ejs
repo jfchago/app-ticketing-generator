@@ -1,6 +1,7 @@
 <%# event/Event.java.ejs — Event class (one per event type) %>
 <% const srcEntity = ir.entities.find(e => e.name === event.source);
-   const entityType = srcEntity ? srcEntity.namePascal : null; %>
+   const entityType = srcEntity ? srcEntity.namePascal : null;
+   const isTracked = event.trackedFields && event.trackedFields.length > 0; %>
 package <%= ir.application.basePackage %>.event;
 
 <% if (entityType) { %>import <%= ir.application.basePackage %>.entity.<%= entityType %>;
@@ -9,7 +10,11 @@ import org.springframework.context.ApplicationEvent;
 
 @Getter
 public class <%= event.name %>Event extends ApplicationEvent {
-<% if (entityType) { %>
+<% if (entityType && isTracked) { %>
+    private final <%= entityType %> oldEntity;
+    private final <%= entityType %> newEntity;
+    private final String actor;
+<% } else if (entityType) { %>
     private final <%= entityType %> entity;
 <% } else { %>
     private final String entityId;
@@ -18,7 +23,14 @@ public class <%= event.name %>Event extends ApplicationEvent {
 <% } %>
 <% } %>
 
-<% if (entityType) { %>
+<% if (entityType && isTracked) { %>
+    public <%= event.name %>Event(Object source, <%= entityType %> oldEntity, <%= entityType %> newEntity, String actor) {
+        super(source);
+        this.oldEntity = oldEntity;
+        this.newEntity = newEntity;
+        this.actor = actor;
+    }
+<% } else if (entityType) { %>
     public <%= event.name %>Event(Object source, <%= entityType %> entity) {
         super(source);
         this.entity = entity;

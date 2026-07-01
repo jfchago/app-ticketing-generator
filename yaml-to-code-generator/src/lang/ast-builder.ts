@@ -340,7 +340,32 @@ function buildEvent(cst: CstNode): EventAST {
     }
   }
 
-  return { kind: 'Event', name, source, payload, handlers: handlerNames };
+  // TrackedFields: evTrackedFields -> evTrackedFieldsBody -> evTrackedFieldList
+  const trackedFieldNames: string[] = [];
+  const trackedFieldsNode = body.children.evTrackedFields as CstNode[] | undefined;
+  if (trackedFieldsNode && trackedFieldsNode.length > 0) {
+    const trackedFieldsBody = trackedFieldsNode[0].children.evTrackedFieldsBody as CstNode[] | undefined;
+    if (trackedFieldsBody && trackedFieldsBody.length > 0) {
+      const trackedFieldList = trackedFieldsBody[0].children.evTrackedFieldList as CstNode[] | undefined;
+      if (trackedFieldList && trackedFieldList.length > 0) {
+        const identifiers = trackedFieldList[0].children.Identifier ?? [];
+        for (const id of identifiers) {
+          if (typeof id === 'object' && 'image' in id) {
+            trackedFieldNames.push((id as any).image as string);
+          }
+        }
+      }
+    }
+  }
+
+  return {
+    kind: 'Event',
+    name,
+    source,
+    payload,
+    handlers: handlerNames,
+    trackedFields: trackedFieldNames.length > 0 ? trackedFieldNames : undefined,
+  };
 }
 
 function buildPayloadField(cst: CstNode): { name: string; type: string; required: boolean } | null {

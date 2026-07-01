@@ -263,6 +263,8 @@ export interface EventDef extends Extensible {
   source?: string;
   payload: EventPayloadFieldDef[];
   handlers: string[];
+  /** Entity attribute names to track for change detection (before/after diff) */
+  trackedFields?: string[];
 }
 
 export interface EventPayloadFieldDef extends Extensible {

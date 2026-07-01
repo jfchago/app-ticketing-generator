@@ -21,6 +21,7 @@ import {
   Source,
   Payload,
   Handlers,
+  TrackedFields,
   Input,
   LCurly,
   RCurly,
@@ -214,6 +215,7 @@ class BehaviorParser extends CstParser {
   private evBody = this.RULE('evBody', () => {
     this.SUBRULE(this.evSource);
     this.SUBRULE(this.evPayload);
+    this.SUBRULE(this.evTrackedFields);
     this.SUBRULE(this.evHandlers);
   });
 
@@ -276,6 +278,26 @@ class BehaviorParser extends CstParser {
   });
 
   private evHandlerList = this.RULE('evHandlerList', () => {
+    this.AT_LEAST_ONE_SEP({
+      SEP: Comma,
+      DEF: () => this.CONSUME(Identifier),
+    });
+  });
+
+  private evTrackedFields = this.RULE('evTrackedFields', () => {
+    this.OPTION(() => this.SUBRULE(this.evTrackedFieldsBody));
+  });
+
+  private evTrackedFieldsBody = this.RULE('evTrackedFieldsBody', () => {
+    this.CONSUME(TrackedFields);
+    this.CONSUME(Colon);
+    this.CONSUME(LBracket);
+    this.SUBRULE(this.evTrackedFieldList);
+    this.CONSUME(RBracket);
+    this.SUBRULE(this.semi);
+  });
+
+  private evTrackedFieldList = this.RULE('evTrackedFieldList', () => {
     this.AT_LEAST_ONE_SEP({
       SEP: Comma,
       DEF: () => this.CONSUME(Identifier),

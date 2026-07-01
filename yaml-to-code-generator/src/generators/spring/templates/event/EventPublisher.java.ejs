@@ -1,6 +1,7 @@
 <%# event/EventPublisher.java.ejs — Spring event publisher (one per event type) %>
 <% const srcEntity = ir.entities.find(e => e.name === event.source);
-   const entityType = srcEntity ? srcEntity.namePascal : null; %>
+   const entityType = srcEntity ? srcEntity.namePascal : null;
+   const isTracked = event.trackedFields && event.trackedFields.length > 0; %>
 package <%= ir.application.basePackage %>.event;
 
 <% if (entityType) { %>import <%= ir.application.basePackage %>.entity.<%= entityType %>;
@@ -14,7 +15,12 @@ public class <%= event.name %>EventPublisher {
 
     private final ApplicationEventPublisher eventPublisher;
 
-<% if (entityType) { %>
+<% if (entityType && isTracked) { %>
+    public void publish(<%= entityType %> oldEntity, <%= entityType %> newEntity, String actor) {
+        <%= event.name %>Event event = new <%= event.name %>Event(this, oldEntity, newEntity, actor);
+        eventPublisher.publishEvent(event);
+    }
+<% } else if (entityType) { %>
     public void publish(<%= entityType %> entity) {
         <%= event.name %>Event event = new <%= event.name %>Event(this, entity);
         eventPublisher.publishEvent(event);
