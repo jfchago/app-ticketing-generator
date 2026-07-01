@@ -1,3 +1,5 @@
+
+
 <script setup lang="ts">
 import type { User } from '../domain/user/user.types';
 
@@ -11,16 +13,11 @@ defineEmits<{
 </script>
 
 <template>
-  <div
-    class="card"
-    role="button"
-    tabindex="0"
-    :aria-label="String(item.id)"
-    @click="$emit('click', item.id)"
-    @keydown.enter="$emit('click', item.id)"
-    @keydown.space.prevent="$emit('click', item.id)"
-  >
+  <div class="card" role="button" tabindex="0" :aria-label="String(item.id)" @click="$emit('click', item.id)" @keydown.enter="$emit('click', item.id)" @keydown.space.prevent="$emit('click', item.id)">
+
     <h3>{{ item.id }}</h3>
+
+
   </div>
 </template>
 

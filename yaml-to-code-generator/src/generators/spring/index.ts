@@ -68,6 +68,11 @@ export class SpringGenerator extends BaseGenerator {
       `src/main/java/${pkgPath}/config/DataInitializer.java`,
       genCtx,
     );
+    this.renderEjs(
+      'config/SecurityConfig.java.ejs',
+      `src/main/java/${pkgPath}/config/SecurityConfig.java`,
+      genCtx,
+    );
 
     // ── Enums ──
     for (const enumDef of ir.enums) {

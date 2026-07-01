@@ -1,7 +1,8 @@
 import type { Ticket } from '../../domain/ticket/ticket.types';
 import type { TicketStatus, TicketPriority } from '../../domain/ticket/ticket.types';
-
 import type { Comment } from '../../domain/comment/comment.types';
+import type { ActivityLog } from '../../domain/activityLog/activityLog.types';
+import type { PaginatedResponse } from '../api-client';
 
 import type { TicketRepository } from '../../domain/ticket/ticket.repository';
 import { apiClient } from '../api-client';
@@ -23,23 +24,17 @@ export class TicketRepositoryImpl implements TicketRepository {
   }
 
   async updateStatus(ticketId: string, status: TicketStatus): Promise<Ticket> {
-    const { data: responseData } = await apiClient.patch<Ticket>(`/tickets/${ticketId}/status`, {
-      status,
-    });
+    const { data: responseData } = await apiClient.patch<Ticket>(`/tickets/${ticketId}/status`, { status });
     return responseData;
   }
 
   async updatePriority(ticketId: string, priority: TicketPriority): Promise<Ticket> {
-    const { data: responseData } = await apiClient.patch<Ticket>(`/tickets/${ticketId}/priority`, {
-      priority,
-    });
+    const { data: responseData } = await apiClient.patch<Ticket>(`/tickets/${ticketId}/priority`, { priority });
     return responseData;
   }
 
   async assignUser(ticketId: string, userId: string): Promise<Ticket> {
-    const { data: responseData } = await apiClient.put<Ticket>(`/tickets/${ticketId}/assign`, {
-      userId,
-    });
+    const { data: responseData } = await apiClient.put<Ticket>(`/tickets/${ticketId}/assign`, { userId });
     return responseData;
   }
 
@@ -48,9 +43,12 @@ export class TicketRepositoryImpl implements TicketRepository {
   }
 
   async addComment(ticketId: string, text: string): Promise<Comment> {
-    const { data: responseData } = await apiClient.post<Comment>(`/tickets/${ticketId}/comments`, {
-      text,
-    });
+    const { data: responseData } = await apiClient.post<Comment>(`/tickets/${ticketId}/comments`, { text });
+    return responseData;
+  }
+
+  async getHistory(entityId: string): Promise<PaginatedResponse<ActivityLog>> {
+    const { data: responseData } = await apiClient.get<PaginatedResponse<ActivityLog>>(`/tickets/${entityId}/history`);
     return responseData;
   }
 }

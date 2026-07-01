@@ -374,6 +374,7 @@ events:
     titulo: String;
     prioridad: String;
     }
+    trackedFields: [title, status, priority];
     handlers: [ DashboardService, EmailService ];
     }'
   - 'event TicketAsignado {
@@ -383,6 +384,7 @@ events:
     asignadoId: String;
     asignadoNombre: String;
     }
+    trackedFields: [assignee];
     handlers: [ EmailService ];
     }'
   - 'event TicketCerrado {
@@ -390,7 +392,16 @@ events:
     payload {
     id: String;
     }
+    trackedFields: [status];
     handlers: [ DashboardService ];
+    }'
+  - 'event TicketModificado {
+    source: Ticket;
+    payload {
+    id: String;
+    prioridad: String;
+    }
+    trackedFields: [priority];
     }'
   - 'event UsuarioResponde {
     source: Ticket;

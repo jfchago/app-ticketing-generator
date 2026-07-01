@@ -1,5 +1,6 @@
 // ticket.types.ts — Generated from helpdesk.yaml
 import type { Comment } from '../comment/comment.types';
+import type { ActivityLog } from '../activityLog/activityLog.types';
 import type { TicketStatus } from '../enums';
 import { TicketStatus_LABELS } from '../enums';
 export type { TicketStatus };

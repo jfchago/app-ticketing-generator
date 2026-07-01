@@ -64,7 +64,7 @@ function buildSpringEntity(entity: EntityDef, ir: IR): SpringGeneratedEntity {
     serviceMethods,
     needsMapper: serviceMethods.some((m) => m.returnType.includes('DTO')),
     endpoints,
-    repositoryMethods: buildRepositoryMethods(entity),
+    repositoryMethods: buildRepositoryMethods(entity, ir),
     transitions: entity.transitions ?? {},
     ruleChecks: buildSpringRuleChecks(entity),
     hasCreatedAt: entity.attributes.some((a) => a.name === 'createdAt'),
@@ -204,6 +204,52 @@ function buildServiceMethod(
     params = '';
     annotations = ['@Transactional(readOnly = true)'];
     body = `return ${entity.nameCamel}Repository.findAll().stream().map(${entity.nameCamel}Mapper::toDTO).toList();`;
+  } else if (uc.name === 'get_history') {
+    // Must come before generic 'read + needsId' check, since get_history
+    // has httpMethod=GET → category='read' and needsId=true, which would
+    // otherwise match the get_by_id branch.
+    if (!activityLogEntity) {
+      returnType = 'void';
+      params = '';
+      annotations = [];
+      body = '';
+    } else {
+      returnType = `CursorPageDTO<${activityLogEntity.namePascal}DTO>`;
+      // Service params are plain Java — @RequestParam/@Min/@Max belong in the controller only
+      params = `${pkJavaType} id, int limit, String cursor`;
+      annotations = ['@Transactional(readOnly = true)'];
+      body = `if (!${entity.nameCamel}Repository.existsById(id)) { throw new RuntimeException("${entity.namePascal} not found: " + id); }\n` +
+             `        int pageSize = Math.min(limit, 100);\n` +
+             `        List<${activityLogEntity.namePascal}> logs;\n` +
+             `        boolean hasMore;\n\n` +
+             `        if (cursor == null || cursor.isBlank()) {\n` +
+             `          Pageable pageable = PageRequest.of(0, pageSize + 1, Sort.by(Sort.Direction.DESC, "createdAt", "id"));\n` +
+             `          logs = ${activityLogEntity.nameCamel}Repository.findByTicket_IdOrderByCreatedAtDesc(id, pageable).getContent();\n` +
+             `        } else {\n` +
+             `          try {\n` +
+             `            String decoded = new String(java.util.Base64.getUrlDecoder().decode(cursor), java.nio.charset.StandardCharsets.UTF_8);\n` +
+             `            String[] parts = decoded.split(":", 2);\n` +
+             `            if (parts.length != 2) throw new IllegalArgumentException("Invalid cursor format");\n` +
+             `            java.time.LocalDateTime cursorCreatedAt = java.time.LocalDateTime.ofInstant(\n` +
+             `              java.time.Instant.ofEpochMilli(Long.parseLong(parts[0])), java.time.ZoneOffset.UTC);\n` +
+             `            String cursorId = parts[1];\n` +
+             `            Pageable pageable = PageRequest.of(0, pageSize + 1);\n` +
+             `            logs = ${activityLogEntity.nameCamel}Repository.findByTicketIdAfterCursor(id, cursorCreatedAt, cursorId, pageable);\n` +
+             `          } catch (Exception e) {\n` +
+             `            throw new org.springframework.web.server.ResponseStatusException(\n` +
+             `              org.springframework.http.HttpStatus.BAD_REQUEST, "Invalid cursor: " + cursor);\n` +
+             `          }\n` +
+             `        }\n\n` +
+             `        hasMore = logs.size() > pageSize;\n` +
+             `        if (hasMore) logs = logs.subList(0, pageSize);\n\n` +
+             `        String nextCursor = null;\n` +
+             `        if (!logs.isEmpty()) {\n` +
+             `          ${activityLogEntity.namePascal} last = logs.get(logs.size() - 1);\n` +
+             `          nextCursor = java.util.Base64.getUrlEncoder().encodeToString(\n` +
+             `            (last.getCreatedAt().toInstant(java.time.ZoneOffset.UTC).toEpochMilli() + ":" + last.getId()).getBytes(java.nio.charset.StandardCharsets.UTF_8));\n` +
+             `        }\n\n` +
+             `        return new CursorPageDTO<>(logs.stream().map(${activityLogEntity.nameCamel}Mapper::toDTO).toList(), nextCursor, hasMore);`;
+    }
   } else if (category === 'read' && uc.needsId) {
     returnType = `${entity.namePascal}DTO`;
     params = `${pkJavaType} id`;
@@ -238,13 +284,13 @@ function buildServiceMethod(
     annotations = ['@Transactional'];
     const targetCamel = assigneeRel.target.charAt(0).toLowerCase() + assigneeRel.target.slice(1);
     const assigneeSetter = `set${assigneeRel.namePascal.charAt(0).toUpperCase() + assigneeRel.namePascal.slice(1)}`;
-    body = `var ${entity.nameCamel} = ${entity.nameCamel}Repository.findById(id).orElseThrow(() -> new RuntimeException("${entity.namePascal} not found: " + id));\n        ${entity.namePascal} old${entity.namePascal} = new ${entity.namePascal}();\n        old${entity.namePascal}.setAssigneeId(${entity.nameCamel}.getAssigneeId());\n        ${entity.nameCamel}.${assigneeSetter}(${targetCamel}Repository.getReferenceById(userId));\n        ${entity.nameCamel}Repository.save(${entity.nameCamel});\n        String actor = resolveActor();\n        ${buildEventPublishBody(ir, entity, uc.name)}\n        return ${entity.nameCamel}Mapper.toDTO(${entity.nameCamel});`;
+    body = `var ${entity.nameCamel} = ${entity.nameCamel}Repository.findById(id).orElseThrow(() -> new RuntimeException("${entity.namePascal} not found: " + id));\n        ${entity.namePascal} old${entity.namePascal} = new ${entity.namePascal}();\n        old${entity.namePascal}.${assigneeSetter}(${entity.nameCamel}.getAssignee());\n        ${entity.nameCamel}.${assigneeSetter}(${targetCamel}Repository.getReferenceById(userId));\n        ${entity.nameCamel}Repository.save(${entity.nameCamel});\n        String actor = resolveActor();\n        ${buildEventPublishBody(ir, entity, uc.name)}\n        return ${entity.nameCamel}Mapper.toDTO(${entity.nameCamel});`;
   } else if (uc.name === 'unassign_user' && assigneeRel) {
     returnType = `${entity.namePascal}DTO`;
     params = `${pkJavaType} id`;
     annotations = ['@Transactional'];
     const assigneeSetter = `set${assigneeRel.namePascal.charAt(0).toUpperCase() + assigneeRel.namePascal.slice(1)}`;
-    body = `var ${entity.nameCamel} = ${entity.nameCamel}Repository.findById(id).orElseThrow(() -> new RuntimeException("${entity.namePascal} not found: " + id));\n        ${entity.namePascal} old${entity.namePascal} = new ${entity.namePascal}();\n        old${entity.namePascal}.setAssigneeId(${entity.nameCamel}.getAssigneeId());\n        ${entity.nameCamel}.${assigneeSetter}(null);\n        ${entity.nameCamel}Repository.save(${entity.nameCamel});\n        String actor = resolveActor();\n        ${buildEventPublishBody(ir, entity, uc.name)}\n        return ${entity.nameCamel}Mapper.toDTO(${entity.nameCamel});`;
+    body = `var ${entity.nameCamel} = ${entity.nameCamel}Repository.findById(id).orElseThrow(() -> new RuntimeException("${entity.namePascal} not found: " + id));\n        ${entity.namePascal} old${entity.namePascal} = new ${entity.namePascal}();\n        old${entity.namePascal}.${assigneeSetter}(${entity.nameCamel}.getAssignee());\n        ${entity.nameCamel}.${assigneeSetter}(null);\n        ${entity.nameCamel}Repository.save(${entity.nameCamel});\n        String actor = resolveActor();\n        ${buildEventPublishBody(ir, entity, uc.name)}\n        return ${entity.nameCamel}Mapper.toDTO(${entity.nameCamel});`;
   } else if (uc.name === 'add_comment' && commentEntity && commentRel) {
     const commentPascal = commentEntity.namePascal;
     const commentCamel = commentEntity.nameCamel;
@@ -264,52 +310,6 @@ function buildServiceMethod(
     params = `${pkJavaType} id, String text`;
     annotations = ['@Transactional'];
     body = `${entity.namePascal} ${entity.nameCamel} = new ${entity.namePascal}();\n        ${entity.nameCamel}.setText(text);\n        // TODO: set ticket and author via repository lookups (requires repository injection)\n        ${entity.nameCamel}Repository.save(${entity.nameCamel});\n        return ${entity.nameCamel}Mapper.toDTO(${entity.nameCamel});`;
-  } else if (uc.name === 'get_history') {
-    if (!activityLogEntity) {
-      returnType = 'void';
-      params = '';
-      annotations = [];
-      body = '';
-    } else {
-      const logCamel = activityLogEntity.nameCamel;
-      returnType = `CursorPageDTO<${activityLogEntity.namePascal}DTO>`;
-      params = `${pkJavaType} id, @RequestParam(defaultValue = "20") @Min(1) @Max(100) int limit, @RequestParam(required = false) String cursor`;
-      annotations = ['@Transactional(readOnly = true)'];
-      body = `if (!${entity.nameCamel}Repository.existsById(id)) { throw new RuntimeException("${entity.namePascal} not found: " + id); }\n` +
-             `        int pageSize = Math.min(limit, 100);\n` +
-             `        List<${activityLogEntity.namePascal}> logs;\n` +
-             `        boolean hasMore;\n\n` +
-             `        if (cursor == null || cursor.isBlank()) {\n` +
-             `          Pageable pageable = PageRequest.of(0, pageSize + 1, Sort.by(Sort.Direction.DESC, "createdAt", "id"));\n` +
-             `          logs = ${logCamel}Repository.findByTicketIdOrderByCreatedAtDesc(id, pageable).getContent();\n` +
-             `        } else {\n` +
-             `          try {\n` +
-             `            String decoded = new String(java.util.Base64.getUrlDecoder().decode(cursor), java.nio.charset.StandardCharsets.UTF_8);\n` +
-             `            String[] parts = decoded.split(":", 2);\n` +
-             `            if (parts.length != 2) throw new IllegalArgumentException("Invalid cursor format");\n` +
-             `            java.time.LocalDateTime cursorCreatedAt = java.time.LocalDateTime.ofInstant(\n` +
-             `              java.time.Instant.ofEpochMilli(Long.parseLong(parts[0])), java.time.ZoneOffset.UTC);\n` +
-             `            String cursorId = parts[1];\n` +
-             `            Pageable pageable = PageRequest.of(0, pageSize + 1);\n` +
-             `            logs = ${logCamel}Repository.findByTicketIdAfterCursor(id, cursorCreatedAt, cursorId, pageable);\n` +
-             `          } catch (Exception e) {\n` +
-             `            throw new org.springframework.web.server.ResponseStatusException(\n` +
-             `              org.springframework.http.HttpStatus.BAD_REQUEST, "Invalid cursor: " + cursor);\n` +
-             `          }\n` +
-             `        }\n\n` +
-             `        hasMore = logs.size() > pageSize;\n` +
-             `        if (hasMore) logs = logs.subList(0, pageSize);\n\n` +
-             `        String nextCursor = null;\n` +
-             `        if (!logs.isEmpty()) {\n` +
-             `          ${activityLogEntity.namePascal} last = logs.get(logs.size() - 1);\n` +
-             `          String raw = last.getCreatedAt().toInstant(java.time.ZoneOffset.UTC).toEpochMilli() + ":" + last.getId();\n` +
-             `          nextCursor = java.util.Base64.getUrlEncoder().encodeToString(raw.getBytes(java.nio.charset.StandardCharsets.UTF_8));\n` +
-             `        }\n\n` +
-             `        List<${activityLogEntity.namePascal}DTO> items = logs.stream()\n` +
-             `          .map(${logCamel}Mapper::toDTO)\n` +
-             `          .toList();\n\n` +
-             `        return new CursorPageDTO<>(items, nextCursor, hasMore);`;
-    }
   } else {
     returnType = 'void';
     params = '';
@@ -500,7 +500,7 @@ function categoryIsCreate(uc: UseCaseDef): boolean {
   return uc.name === 'create' || (uc.httpMethod === 'POST' && !uc.needsId && uc.needsPayload);
 }
 
-function buildRepositoryMethods(entity: EntityDef): SpringRepositoryMethod[] {
+function buildRepositoryMethods(entity: EntityDef, ir: IR): SpringRepositoryMethod[] {
   const methods: SpringRepositoryMethod[] = [];
   if (entity.useCases.some((uc) => uc.name === 'get_all')) {
     methods.push({
@@ -509,10 +509,20 @@ function buildRepositoryMethods(entity: EntityDef): SpringRepositoryMethod[] {
       isCustom: false,
     });
   }
-  if (entity.useCases.some((uc) => uc.name === 'get_history')) {
+  // Custom ActivityLog query methods must be on the ActivityLog repository ONLY,
+  // not on the entity that declares get_history nor on other one_to_many targets
+  // (e.g. Ticket has one_to_many to both Comment and ActivityLog).
+  const historyEntity = ir.entities.find((e: EntityDef) =>
+    e.useCases?.some((uc) => uc.name === 'get_history')
+  );
+  const logEntity = historyEntity ? findActivityLogEntity(historyEntity, ir) : undefined;
+  const isLogRepository = logEntity !== undefined && entity.name === logEntity.name;
+  if (isLogRepository) {
+    // NOTE: ActivityLog has no direct 'ticketId' field — it uses 'ticket' @ManyToOne.
+    // Spring Data method name derivation uses 'Ticket_Id' to traverse the association.
     methods.push({
-      name: 'findByTicketIdOrderByCreatedAtDesc',
-      signature: `org.springframework.data.domain.Page<${entity.namePascal}> findByTicketIdOrderByCreatedAtDesc(String ticketId, org.springframework.data.domain.Pageable pageable)`,
+      name: 'findByTicket_IdOrderByCreatedAtDesc',
+      signature: `org.springframework.data.domain.Page<${entity.namePascal}> findByTicket_IdOrderByCreatedAtDesc(String ticketId, org.springframework.data.domain.Pageable pageable)`,
       isCustom: false,
     });
     methods.push({

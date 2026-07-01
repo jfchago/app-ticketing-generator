@@ -22,6 +22,7 @@ export interface TargetAdapter {
   readonly displayName: string;
   readonly generatorModulePath: string;
   readonly generatorNamespace: string;
+  readonly generatorClass: new (args: string[], opts: any) => any;
 
   buildRunOptions(ir: IR, baseOpts: GenerationOpts): Record<string, unknown>;
 }

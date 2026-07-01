@@ -4,6 +4,7 @@ exports[`Vue Generation Model > sanitized model matches snapshot 1`] = `
 {
   "entities": {
     "ActivityLog": {
+      "activityLogActionName": undefined,
       "componentFlags": {
         "hasAnyBadgeField": false,
         "hasTimestampField": true,
@@ -16,6 +17,7 @@ exports[`Vue Generation Model > sanitized model matches snapshot 1`] = `
       "displayFieldCount": 9,
       "enumAttributeCount": 0,
       "formFieldCount": 8,
+      "hasActivityLog": false,
       "hasAssignee": false,
       "hasCommentSupport": false,
       "ruleCheckCount": 0,
@@ -31,6 +33,7 @@ exports[`Vue Generation Model > sanitized model matches snapshot 1`] = `
       ],
     },
     "Comment": {
+      "activityLogActionName": undefined,
       "componentFlags": {
         "hasAnyBadgeField": false,
         "hasTimestampField": true,
@@ -43,6 +46,7 @@ exports[`Vue Generation Model > sanitized model matches snapshot 1`] = `
       "displayFieldCount": 4,
       "enumAttributeCount": 0,
       "formFieldCount": 3,
+      "hasActivityLog": false,
       "hasAssignee": false,
       "hasCommentSupport": false,
       "ruleCheckCount": 0,
@@ -54,6 +58,7 @@ exports[`Vue Generation Model > sanitized model matches snapshot 1`] = `
       "useCaseNames": [],
     },
     "Ticket": {
+      "activityLogActionName": "getHistory",
       "componentFlags": {
         "hasAnyBadgeField": true,
         "hasTimestampField": true,
@@ -66,12 +71,13 @@ exports[`Vue Generation Model > sanitized model matches snapshot 1`] = `
       "displayFieldCount": 7,
       "enumAttributeCount": 2,
       "formFieldCount": 5,
+      "hasActivityLog": true,
       "hasAssignee": true,
       "hasCommentSupport": true,
       "ruleCheckCount": 3,
       "selectedPropertyName": "current",
       "statePropertyName": "tickets",
-      "storeActionCount": 9,
+      "storeActionCount": 11,
       "transitionKeys": [
         "OPEN",
         "IN_PROGRESS",
@@ -84,7 +90,7 @@ exports[`Vue Generation Model > sanitized model matches snapshot 1`] = `
         "create": "create",
         "get_all": "read",
         "get_by_id": "readById",
-        "get_history": "default",
+        "get_history": "history",
         "unassign_user": "unassign",
         "update_priority": "updatePriority",
         "update_status": "updateStatus",
@@ -102,6 +108,7 @@ exports[`Vue Generation Model > sanitized model matches snapshot 1`] = `
       ],
     },
     "User": {
+      "activityLogActionName": undefined,
       "componentFlags": {
         "hasAnyBadgeField": false,
         "hasTimestampField": false,
@@ -114,6 +121,7 @@ exports[`Vue Generation Model > sanitized model matches snapshot 1`] = `
       "displayFieldCount": 3,
       "enumAttributeCount": 0,
       "formFieldCount": 3,
+      "hasActivityLog": false,
       "hasAssignee": false,
       "hasCommentSupport": false,
       "ruleCheckCount": 0,

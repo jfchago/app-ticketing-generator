@@ -51,7 +51,7 @@ function buildVueEntity(entity: EntityDef, ir: IR): VueGeneratedEntity {
   const formFields = buildFormFields(entity);
   const components = buildComponentFlags(entity, ir);
   const ruleChecks = buildRuleChecks(entity);
-  const useCases = buildUseCases(entity, ir, commentEntity);
+  const useCases = buildUseCases(entity, ir, commentEntity, activityLogEntity);
   const storeActions = deriveStoreActions(entity, useCases, hasCommentSupport);
 
   return {
@@ -88,6 +88,9 @@ function buildVueEntity(entity: EntityDef, ir: IR): VueGeneratedEntity {
     hasActivityLog,
     activityLogEntity: activityLogEntity
       ? { namePascal: activityLogEntity.namePascal, nameCamel: activityLogEntity.nameCamel }
+      : undefined,
+    activityLogActionName: hasActivityLog
+      ? entity.useCases.find((uc) => uc.name === 'get_history')?.methodName
       : undefined,
     hasAssignee: entity.relationships.some((r) => r.name === 'assignee'),
     enumAttributes: buildEnumAttributes(entity, ir),
@@ -163,7 +166,7 @@ function buildTransitionOptionsExpr(entity: EntityDef): string | undefined {
   }
   // Template: VALID_TRANSITIONS[{STATUS}].map(s => ({ value: s, label: EnumType_LABELS[s] ?? s }))
   // The template will replace {STATUS} with the actual status expression
-  return `VALID_TRANSITIONS[{STATUS}].map(s => ({ value: s, label: ${statusField.type}_LABELS[s] ?? s }))`;
+  return `VALID_TRANSITIONS[{STATUS}].map(s => ({ value: s, label: ${statusField.type}_LABELS[s as ${statusField.type}] ?? s }))`;
 }
 
 function buildDisplayFields(entity: EntityDef): VueDisplayField[] {
@@ -268,6 +271,7 @@ function mapActionCategory(uc: UseCaseDef): string {
   if (name === 'assign_user') return 'assign';
   if (name === 'unassign_user') return 'unassign';
   if (name === 'add_comment') return 'comment';
+  if (name === 'get_history') return 'history';
   return 'default';
 }
 
@@ -294,8 +298,10 @@ function buildResponseType(
   uc: UseCaseDef,
   isList: boolean,
   commentEntity: EntityDef | undefined,
+  activityLogEntity: EntityDef | undefined,
 ): string {
   if (uc.name === 'add_comment' && commentEntity) return commentEntity.namePascal;
+  if (uc.name === 'get_history' && activityLogEntity) return `PaginatedResponse<${activityLogEntity.namePascal}>`;
   if (!uc.needsPayload && uc.needsId && uc.httpMethod === 'DELETE') return 'void';
   if (isList) return `${entity.namePascal}[]`;
   return entity.namePascal;
@@ -306,6 +312,7 @@ function buildParamNames(entity: EntityDef, uc: UseCaseDef): string[] {
   if (uc.name === 'get_by_id') return ['id'];
   if (uc.name === 'create') return ['data'];
   if (uc.name === 'add_comment') return [`${entity.nameCamel}Id`, 'text'];
+  if (uc.name === 'get_history') return ['entityId'];
   if (uc.needsId && uc.needsPayload) {
     if (uc.name === 'update_status') return [`${entity.nameCamel}Id`, 'status'];
     if (uc.name === 'update_priority') return [`${entity.nameCamel}Id`, 'priority'];
@@ -321,6 +328,7 @@ function buildParamTypes(entity: EntityDef, uc: UseCaseDef): string[] {
   if (!uc.needsId && uc.httpMethod === 'GET') return [];
   if (uc.name === 'get_by_id') return ['string'];
   if (uc.name === 'add_comment') return ['string', 'string'];
+  if (uc.name === 'get_history') return ['string'];
   if (uc.name === 'create') return [`Omit<${entity.namePascal}, 'id' | 'createdAt'>`];
   if (uc.needsId && uc.needsPayload) {
     let valType = 'string';
@@ -343,6 +351,7 @@ function buildMethodParams(entity: EntityDef, uc: UseCaseDef): string {
   if (!uc.needsId && uc.httpMethod === 'GET') return '';
   if (uc.name === 'get_by_id') return 'id: string';
   if (uc.name === 'add_comment') return `${entity.nameCamel}Id: string, text: string`;
+  if (uc.name === 'get_history') return 'entityId: string';
   if (uc.name === 'create') return `data: Omit<${entity.namePascal}, 'id' | 'createdAt'>`;
   if (uc.needsId && uc.needsPayload) {
     let valType = 'string';
@@ -366,6 +375,7 @@ function buildUseCases(
   entity: EntityDef,
   ir: IR,
   commentEntity: EntityDef | undefined,
+  activityLogEntity: EntityDef | undefined,
 ): Record<string, VueUseCaseDef> {
   const result: Record<string, VueUseCaseDef> = {};
 
@@ -390,7 +400,7 @@ function buildUseCases(
         ),
         hasBody: uc.needsPayload,
         bodyType: uc.needsPayload ? 'Record<string, string>' : 'void',
-        responseType: buildResponseType(entity, uc, isList, commentEntity),
+        responseType: buildResponseType(entity, uc, isList, commentEntity, activityLogEntity),
       },
       storeAction: {
         actionName: uc.methodName,
@@ -409,11 +419,11 @@ function buildUseCases(
       },
       methodSignature: {
         params: buildMethodParams(entity, uc),
-        returnType: buildResponseType(entity, uc, isList, commentEntity),
+        returnType: buildResponseType(entity, uc, isList, commentEntity, activityLogEntity),
       },
       actionCategory,
       needsId: uc.needsId,
-      returnType: buildResponseType(entity, uc, isList, commentEntity),
+      returnType: buildResponseType(entity, uc, isList, commentEntity, activityLogEntity),
     };
   }
 
@@ -569,6 +579,19 @@ function buildStoreActionBody(
     bodyParts.push(
       `} catch (e) { this.error = e instanceof Error ? e.message : 'Error adding comment'; throw e; }`,
     );
+  } else if (actionCategory === 'history') {
+    bodyParts.push(`this.error = null;`);
+    bodyParts.push(`if (!this.history) this.history = { entries: [], cursor: null, hasMore: false, loadingInitial: false, loadingMore: false, error: null };`);
+    bodyParts.push(`if (this.history.entries.length === 0) {`);
+    bodyParts.push(`  this.history.loadingInitial = true;`);
+    bodyParts.push(`  try {`);
+    bodyParts.push(`    const page = await service.${uc.methodName}(${uc.storeAction.paramNames.join(', ')});`);
+    bodyParts.push(`    this.history.entries = page.items;`);
+    bodyParts.push(`    this.history.cursor = page.nextCursor;`);
+    bodyParts.push(`    this.history.hasMore = page.hasMore;`);
+    bodyParts.push(`  } catch (e) { this.history.error = e instanceof Error ? e.message : 'Failed to load history'; }`);
+    bodyParts.push(`  finally { this.history.loadingInitial = false; }`);
+    bodyParts.push(`}`);
   } else {
     bodyParts.push(...buildRuleCheckLines(actionCategory));
     bodyParts.push(`this.error = null;`);
@@ -588,11 +611,15 @@ function deriveStoreActions(
   useCases: Record<string, VueUseCaseDef>,
   hasCommentSupport: boolean,
 ): VueStoreAction[] {
-  return Object.values(useCases).map((uc) => {
+  const actions: VueStoreAction[] = [];
+  let hasHistory = false;
+  const entityNameCamel = entity.nameCamel;
+
+  for (const uc of Object.values(useCases)) {
     const actionCategory = uc.actionCategory;
-    const stateList = entity.nameCamel + 's';
+    const stateList = entityNameCamel + 's';
     const body = buildStoreActionBody(entity, uc, actionCategory, stateList, hasCommentSupport);
-    return {
+    actions.push({
       name: uc.storeAction.actionName,
       params: uc.storeAction.paramNames.map((name, i) => ({
         name,
@@ -601,8 +628,41 @@ function deriveStoreActions(
       body,
       hasRuleChecks: uc.storeAction.ruleChecks.length > 0,
       actionCategory,
-    };
-  });
+    });
+    if (actionCategory === 'history') hasHistory = true;
+  }
+
+  if (hasHistory) {
+    // fetchNextPage — appends next page using cursor
+    actions.push({
+      name: 'fetchNextPage',
+      params: [{ name: 'entityId', type: 'string' }],
+      body: `this.error = null;
+if (!this.history) this.history = { entries: [], cursor: null, hasMore: false, loadingInitial: false, loadingMore: false, error: null };
+if (!this.history.hasMore || this.history.loadingMore) return;
+this.history.loadingMore = true;
+try {
+  const page = await service.getHistory(entityId);
+  this.history.entries.push(...page.items);
+  this.history.cursor = page.nextCursor;
+  this.history.hasMore = page.hasMore;
+} catch (e) { this.history.error = e instanceof Error ? e.message : 'Failed to load more history'; }
+finally { this.history.loadingMore = false; }`,
+      hasRuleChecks: false,
+      actionCategory: 'history',
+    });
+
+    // clearHistory — resets history state
+    actions.push({
+      name: 'clearHistory',
+      params: [],
+      body: `this.history = { entries: [], cursor: null, hasMore: false, loadingInitial: false, loadingMore: false, error: null };`,
+      hasRuleChecks: false,
+      actionCategory: 'history',
+    });
+  }
+
+  return actions;
 }
 
 function buildRuleChecks(entity: EntityDef): VueRuleCheck[] {

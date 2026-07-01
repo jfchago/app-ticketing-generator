@@ -4,6 +4,18 @@ const gen = genEntities?.[entity.name];
 const needsMap = gen.endpoints.some(ep => ep.needsMap);
 const needsList = gen.endpoints.some(ep => ep.returnType.startsWith('List<'));
 const needsHttpStatus = gen.serviceMethods.some(m => m.name === 'create' || m.name === 'addComment');
+const needsCursorPage = gen.endpoints.some(ep => ep.returnType.includes('CursorPageDTO'));
+const needsMinMax = gen.endpoints.some(ep => ep.params?.includes('@Min'));
+
+// Collect all DTO class names referenced in return types (generic params, etc.)
+// excluding the entity's own DTO which is always imported
+const dtoRefs = new Set();
+for (const ep of gen.endpoints) {
+  const matches = ep.returnType.matchAll(/[A-Z]\w+DTO/g);
+  for (const m of matches) {
+    if (m[0] !== entity.namePascal + 'DTO') dtoRefs.add(m[0]);
+  }
+}
 %>
 package <%= ir.application.basePackage %>.controller;
 
@@ -14,6 +26,12 @@ import <%= ir.application.basePackage %>.entity.<%= attr.type %>;
 <% } %>
 <% if (gen.serviceMethods.some(m => m.name === 'addComment')) { %>
 import <%= ir.application.basePackage %>.dto.CommentDTO;
+<% } %>
+<% if (needsCursorPage) { %>
+import <%= ir.application.basePackage %>.dto.CursorPageDTO;
+<% } %>
+<% for (const dtoName of dtoRefs) { %>
+import <%= ir.application.basePackage %>.dto.<%= dtoName %>;
 <% } %>
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -26,6 +44,10 @@ import java.util.List;
 <% } %>
 <% if (needsMap) { %>
 import java.util.Map;
+<% } %>
+<% if (needsMinMax) { %>
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Max;
 <% } %>
 
 @RestController

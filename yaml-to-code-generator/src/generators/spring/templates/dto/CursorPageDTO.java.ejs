@@ -1,6 +1,10 @@
 <%
+// Check via endpoints (more reliable than serviceMethods since endpoints
+// always carry the resolved return type including generic params)
 const needsCursorPage = Object.values(genEntities ?? {}).some(e =>
   e.serviceMethods?.some(m => m.returnType?.startsWith('CursorPageDTO<'))
+  ||
+  e.endpoints?.some(ep => ep.returnType?.startsWith('CursorPageDTO<'))
 );
 if (needsCursorPage) {
 %>package <%= ir.application.basePackage %>.dto;

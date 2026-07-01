@@ -103,6 +103,13 @@ export class VueGenerator extends BaseGenerator {
           ctx,
         );
       }
+      if (genEntity?.hasActivityLog) {
+        this.renderEjs(
+          'components/ActivityTimeline.vue.ejs',
+          `src/components/ActivityTimeline.vue`,
+          ctx,
+        );
+      }
     }
 
     if (genEntity?.hasGetAll) {

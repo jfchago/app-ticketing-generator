@@ -2,13 +2,14 @@
 defineProps<{
   entityName: string;
   message?: string;
+  title?: string;
 }>();
 </script>
 
 <template>
   <div class="empty-state" aria-live="polite">
     <div class="empty-icon" aria-hidden="true">&#9744;</div>
-    <h2>No {{ entityName }}s found</h2>
+    <h2>{{ title ?? `No ${entityName}s found` }}</h2>
     <p class="empty-message">{{ message ?? `There are no ${entityName}s yet.` }}</p>
   </div>
 </template>

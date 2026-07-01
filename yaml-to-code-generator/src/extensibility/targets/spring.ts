@@ -15,6 +15,7 @@ export const SPRING_ADAPTER: TargetAdapter = {
   displayName: 'Spring Boot 3',
   generatorModulePath: SPRING_PATH,
   generatorNamespace: 'yaml2code:spring',
+  generatorClass: SpringGenerator,
 
   buildRunOptions(ir: IR, baseOpts: GenerationOpts): Record<string, unknown> {
     const springGen = buildSpringGenerationModel(ir);

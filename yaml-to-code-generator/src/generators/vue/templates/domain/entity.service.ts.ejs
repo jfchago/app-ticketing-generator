@@ -7,6 +7,10 @@ import type { <%= entity.namePascal %><%= ea.namePascal %> } from './<%= entity.
 <% if (gen?.hasCommentSupport && gen?.commentEntity) { %>
 import type { <%= gen.commentEntity.namePascal %> } from '../<%= gen.commentEntity.nameCamel %>/<%= gen.commentEntity.nameCamel %>.types';
 <% } %>
+<% if (gen?.hasActivityLog && gen?.activityLogEntity) { %>
+import type { <%= gen.activityLogEntity.namePascal %> } from '../<%= gen.activityLogEntity.nameCamel %>/<%= gen.activityLogEntity.nameCamel %>.types';
+import type { PaginatedResponse } from '../../infrastructure/api-client';
+<% } %>
 import type { <%= entity.namePascal %>Repository } from './<%= entity.nameCamel %>.repository';
 
 export interface <%= entity.namePascal %>ServiceHooks {

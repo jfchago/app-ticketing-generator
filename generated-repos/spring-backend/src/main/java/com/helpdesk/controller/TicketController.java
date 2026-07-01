@@ -11,6 +11,16 @@ import com.helpdesk.entity.TicketPriority;
 
 import com.helpdesk.dto.CommentDTO;
 
+
+import com.helpdesk.dto.CursorPageDTO;
+
+
+import com.helpdesk.dto.CommentDTO;
+
+import com.helpdesk.dto.CursorPageDTO;
+
+import com.helpdesk.dto.ActivityLogDTO;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,6 +32,10 @@ import java.util.List;
 
 
 import java.util.Map;
+
+
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Max;
 
 
 @RestController

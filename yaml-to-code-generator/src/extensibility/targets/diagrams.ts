@@ -14,6 +14,7 @@ const DIAGRAMS_ADAPTER: TargetAdapter = {
   displayName: 'PlantUML Diagrams',
   generatorModulePath: DIAGRAMS_PATH,
   generatorNamespace: 'yaml2code:diagrams',
+  generatorClass: DiagramGenerator,
 
   buildRunOptions(_ir: IR, baseOpts: GenerationOpts): Record<string, unknown> {
     return {
@@ -27,6 +28,7 @@ const DIAGRAMS_ALIAS_ADAPTER: TargetAdapter = {
   displayName: 'PlantUML Diagrams (alias)',
   generatorModulePath: DIAGRAMS_PATH,
   generatorNamespace: 'yaml2code:diagrams',
+  generatorClass: DiagramGenerator,
 
   buildRunOptions(_ir: IR, baseOpts: GenerationOpts): Record<string, unknown> {
     return {

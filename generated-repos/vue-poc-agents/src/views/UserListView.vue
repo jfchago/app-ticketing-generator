@@ -1,3 +1,5 @@
+
+
 <script setup lang="ts">
 import { onMounted } from 'vue';
 import { useRouter } from 'vue-router';
@@ -11,31 +13,42 @@ const store = useUserStore();
 const router = useRouter();
 
 onMounted(() => {
+
   store.loadUsers();
+
 });
 
 function retryLoad() {
+
   store.loadUsers();
+
 }
 
 function goToDetail(id: string) {
   router.push('/users/' + id);
 }
+
 </script>
 
 <template>
   <div class="list-view">
     <header>
       <h1>Users</h1>
+
     </header>
 
     <div aria-live="polite">
-      <LoaderSpinner v-if="store.loading" />
-      <ErrorState v-else-if="store.error" :message="store.error" :retry-fn="retryLoad" />
-      <EmptyState v-else-if="store.users.length === 0" :entity-name="'User'" />
-      <div v-else class="card-grid">
-        <UserCard v-for="item in store.users" :key="item.id" :item="item" @click="goToDetail" />
-      </div>
+    <LoaderSpinner v-if="store.loading" />
+    <ErrorState v-else-if="store.error" :message="store.error" :retry-fn="retryLoad" />
+    <EmptyState v-else-if="store.users.length === 0" :entity-name="'User'" />
+    <div v-else class="card-grid">
+      <UserCard
+        v-for="item in store.users"
+        :key="item.id"
+        :item="item"
+        @click="goToDetail"
+      />
+    </div>
     </div>
   </div>
 </template>

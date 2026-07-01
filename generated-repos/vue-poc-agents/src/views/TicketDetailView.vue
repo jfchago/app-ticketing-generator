@@ -1,3 +1,5 @@
+
+
 <script setup lang="ts">
 import { onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
@@ -5,7 +7,12 @@ import { useTicketStore } from '../stores/ticket.store';
 
 import Badge from '../components/Badge.vue';
 
+
+import type { TicketStatus } from '../domain/ticket/ticket.types';
+
 import { TicketStatus_LABELS, TicketPriority_LABELS } from '../domain/ticket/ticket.types';
+
+
 
 import { formatDate } from '../shared/date-utils';
 
@@ -13,48 +20,62 @@ import LoaderSpinner from '../components/LoaderSpinner.vue';
 import ErrorState from '../components/ErrorState.vue';
 import EmptyState from '../components/EmptyState.vue';
 
+import ActivityTimeline from '../components/ActivityTimeline.vue';
+
+
 import { computed, ref } from 'vue';
 import { VALID_TRANSITIONS } from '../stores/ticket.store';
+
 
 const store = useTicketStore();
 const route = useRoute();
 const router = useRouter();
 
 onMounted(() => {
+
   store.getById(route.params.id as string);
+
+
+  if (store.current) store.getHistory(store.current.id);
+
 });
 
 function retryLoad() {
+
   store.getById(route.params.id as string);
+
 }
 
 const newStatus = ref('');
 const transitioning = ref(false);
 
 const availableTransitions = computed(() => {
-  if (!store.current) return [];
-  const transitions = VALID_TRANSITIONS[store.current.status] ?? [];
-  return transitions.filter((s) => s !== store.current.status);
+  const current = store.current;
+  if (!current) return [];
+  const transitions = VALID_TRANSITIONS[current.status] ?? [];
+  return transitions.filter(s => s !== current.status);
 });
+
 
 const transitionOptions = computed(() => {
-  if (!store.current) return [];
-  return VALID_TRANSITIONS[store.current.status].map((s) => ({
-    value: s,
-    label: TicketStatus_LABELS[s] ?? s,
-  }));
+  const current = store.current;
+  if (!current) return [];
+  return VALID_TRANSITIONS[current.status].map(s => ({ value: s, label: TicketStatus_LABELS[s as TicketStatus] ?? s }));
 });
 
+
 async function handleStatusChange() {
-  if (!newStatus.value || !store.current) return;
+  const current = store.current;
+  if (!newStatus.value || !current) return;
   transitioning.value = true;
   try {
-    await store.updateStatus(store.current.id, newStatus.value as any);
+    await store.updateStatus(current.id, newStatus.value as any);
     newStatus.value = '';
   } finally {
     transitioning.value = false;
   }
 }
+
 </script>
 
 <template>
@@ -62,61 +83,66 @@ async function handleStatusChange() {
     <button @click="router.back()" class="btn-back" aria-label="Go back">← Back</button>
 
     <div aria-live="polite">
-      <LoaderSpinner v-if="store.loading" />
-      <ErrorState v-else-if="store.error" :message="store.error" :retry-fn="retryLoad" />
-      <EmptyState v-else-if="!store.current" :entity-name="'Ticket Detail'" message="Not found" />
-      <div v-else>
-        <h1>{{ store.current.title }}</h1>
+    <LoaderSpinner v-if="store.loading" />
+    <ErrorState v-else-if="store.error" :message="store.error" :retry-fn="retryLoad" />
+    <EmptyState v-else-if="!store.current" :entity-name="'Ticket Detail'" message="Not found" />
+    <div v-else>
 
-        <p class="description">{{ store.current.description }}</p>
+      <h1>{{ store.current.title }}</h1>
 
-        <div class="meta">
-          <span
-            >Status:
-            <Badge
-              type="status"
-              :value="TicketStatus_LABELS[store.current.status] ?? store.current.status"
-          /></span>
 
-          <span
-            >Priority:
-            <Badge
-              type="priority"
-              :value="TicketPriority_LABELS[store.current.priority] ?? store.current.priority"
-          /></span>
+      <p class="description">{{ store.current.description }}</p>
 
-          <span>Assigned to: <Badge type="assignee" :value="store.current.assigneeId" /></span>
 
-          <span>CreatedAt: {{ formatDate(store.current.createdAt) }}</span>
 
-          <span>UpdatedAt: {{ formatDate(store.current.updatedAt) }}</span>
-        </div>
+      <div class="meta">
 
-        <div class="status-transition">
-          <label for="status-select">Change status:</label>
-          <select
-            id="status-select"
-            v-model="newStatus"
-            @change="handleStatusChange"
-            :disabled="transitioning || availableTransitions.length === 0"
-            aria-describedby="status-select-desc"
-          >
-            <option value="" disabled>
-              {{
-                availableTransitions.length === 0
-                  ? 'No transitions available'
-                  : 'Select target status...'
-              }}
-            </option>
+        <span>Status: <Badge type="status" :value="TicketStatus_LABELS[store.current.status] ?? store.current.status" /></span>
 
-            <option v-for="t in transitionOptions" :key="t.value" :value="t.value">
-              {{ t.label }}
-            </option>
-          </select>
-          <span id="status-select-desc" class="sr-only">Select a new status for this Ticket</span>
-          <p v-if="store.error" class="transition-error" role="alert">{{ store.error }}</p>
-        </div>
+
+        <span>Priority: <Badge type="priority" :value="TicketPriority_LABELS[store.current.priority] ?? store.current.priority" /></span>
+
+
+        <span>Assigned to: <Badge type="assignee" :value="store.current.assigneeId" /></span>
+
+
+        <span>CreatedAt: {{ formatDate(store.current.createdAt) }}</span>
+
+
+        <span>UpdatedAt: {{ formatDate(store.current.updatedAt) }}</span>
+
+
       </div>
+
+
+      <section class="timeline-section">
+        <h2>Activity</h2>
+        <ActivityTimeline
+          :entity-id="store.current.id"
+        />
+      </section>
+
+
+
+      <div class="status-transition">
+        <label for="status-select">Change status:</label>
+        <select
+          id="status-select"
+          v-model="newStatus"
+          @change="handleStatusChange"
+          :disabled="transitioning || availableTransitions.length === 0"
+          aria-describedby="status-select-desc"
+        >
+          <option value="" disabled>{{ availableTransitions.length === 0 ? 'No transitions available' : 'Select target status...' }}</option>
+
+          <option v-for="t in transitionOptions" :key="t.value" :value="t.value">{{ t.label }}</option>
+
+        </select>
+        <span id="status-select-desc" class="sr-only">Select a new status for this Ticket</span>
+        <p v-if="store.error" class="transition-error" role="alert">{{ store.error }}</p>
+      </div>
+
+    </div>
     </div>
   </div>
 </template>

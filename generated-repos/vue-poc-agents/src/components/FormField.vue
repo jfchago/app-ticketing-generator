@@ -1,21 +1,19 @@
+
 <script setup lang="ts">
 import { computed } from 'vue';
 
 const model = defineModel<string | null>({ required: true });
 
-const props = withDefaults(
-  defineProps<{
-    label: string;
-    type: 'text' | 'textarea' | 'select' | 'fk-select';
-    htmlId: string;
-    options?: { label: string; value: string }[];
-    required?: boolean;
-  }>(),
-  {
-    required: false,
-    options: () => [],
-  },
-);
+const props = withDefaults(defineProps<{
+  label: string;
+  type: 'text' | 'textarea' | 'select' | 'fk-select';
+  htmlId: string;
+  options?: { label: string; value: string }[];
+  required?: boolean;
+}>(), {
+  required: false,
+  options: () => [],
+});
 
 const helperText = computed(() => `Enter the ${props.label}`);
 </script>
@@ -40,7 +38,11 @@ const helperText = computed(() => `Enter the ${props.label}`);
       :aria-describedby="htmlId + '-desc'"
     >
       <option value="" disabled>Select...</option>
-      <option v-for="opt in options" :key="opt.value" :value="opt.value">
+      <option
+        v-for="opt in options"
+        :key="opt.value"
+        :value="opt.value"
+      >
         {{ opt.label }}
       </option>
     </select>

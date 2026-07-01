@@ -8,6 +8,10 @@ import type { <%= gen.enumAttributes.map(a => a.type).join(', ') %> } from './<%
 <% if (gen?.hasCommentSupport && gen.commentEntity && gen.commentEntity.nameCamel !== entity.nameCamel) { -%>
 import type { Comment } from '../<%= gen.commentEntity.nameCamel %>/<%= gen.commentEntity.nameCamel %>.types';
 <% } -%>
+<% if (gen?.hasActivityLog && gen?.activityLogEntity) { -%>
+import type { <%= gen.activityLogEntity.namePascal %> } from '../<%= gen.activityLogEntity.nameCamel %>/<%= gen.activityLogEntity.nameCamel %>.types';
+import type { PaginatedResponse } from '../../infrastructure/api-client';
+<% } -%>
 
 export interface <%= entity.namePascal %>Repository {
 <% for (const uc of entity.useCases) {

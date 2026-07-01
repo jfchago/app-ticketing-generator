@@ -1,3 +1,5 @@
+
+
 <script setup lang="ts">
 import { onMounted } from 'vue';
 import { useRouter } from 'vue-router';
@@ -11,11 +13,15 @@ const store = useTicketStore();
 const router = useRouter();
 
 onMounted(() => {
+
   store.getAll();
+
 });
 
 function retryLoad() {
+
   store.getAll();
+
 }
 
 function goToDetail(id: string) {
@@ -25,6 +31,7 @@ function goToDetail(id: string) {
 function goToCreate() {
   router.push('/tickets/new');
 }
+
 </script>
 
 <template>
@@ -32,18 +39,22 @@ function goToCreate() {
     <header>
       <h1>Tickets</h1>
 
-      <button @click="goToCreate" class="btn-primary" aria-label="Create new Ticket">
-        + New Ticket
-      </button>
+      <button @click="goToCreate" class="btn-primary" aria-label="Create new Ticket">+ New Ticket</button>
+
     </header>
 
     <div aria-live="polite">
-      <LoaderSpinner v-if="store.loading" />
-      <ErrorState v-else-if="store.error" :message="store.error" :retry-fn="retryLoad" />
-      <EmptyState v-else-if="store.tickets.length === 0" :entity-name="'Ticket'" />
-      <div v-else class="card-grid">
-        <TicketCard v-for="item in store.tickets" :key="item.id" :item="item" @click="goToDetail" />
-      </div>
+    <LoaderSpinner v-if="store.loading" />
+    <ErrorState v-else-if="store.error" :message="store.error" :retry-fn="retryLoad" />
+    <EmptyState v-else-if="store.tickets.length === 0" :entity-name="'Ticket'" />
+    <div v-else class="card-grid">
+      <TicketCard
+        v-for="item in store.tickets"
+        :key="item.id"
+        :item="item"
+        @click="goToDetail"
+      />
+    </div>
     </div>
   </div>
 </template>

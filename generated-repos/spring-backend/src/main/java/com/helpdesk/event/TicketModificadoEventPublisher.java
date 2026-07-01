@@ -9,13 +9,13 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class ManagerApruebaEventPublisher {
+public class TicketModificadoEventPublisher {
 
     private final ApplicationEventPublisher eventPublisher;
 
 
-    public void publish(Ticket entity) {
-        ManagerApruebaEvent event = new ManagerApruebaEvent(this, entity);
+    public void publish(Ticket oldEntity, Ticket newEntity, String actor) {
+        TicketModificadoEvent event = new TicketModificadoEvent(this, oldEntity, newEntity, actor);
         eventPublisher.publishEvent(event);
     }
 

@@ -7,8 +7,11 @@ import type { <%= entity.namePascal %> } from '../../domain/<%= entity.nameCamel
 import type { <%= gen.enumAttributes.map(a => a.type).join(', ') %> } from '../../domain/<%= entity.nameCamel %>/<%= entity.nameCamel %>.types';
 <% } -%>
 <% if (gen?.hasCommentSupport && gen.commentEntity && gen.commentEntity.nameCamel !== entity.nameCamel) { -%>
-
 import type { Comment } from '../../domain/<%= gen.commentEntity.nameCamel %>/<%= gen.commentEntity.nameCamel %>.types';
+<% } -%>
+<% if (gen?.hasActivityLog && gen?.activityLogEntity) { -%>
+import type { <%= gen.activityLogEntity.namePascal %> } from '../../domain/<%= gen.activityLogEntity.nameCamel %>/<%= gen.activityLogEntity.nameCamel %>.types';
+import type { PaginatedResponse } from '../api-client';
 <% } -%>
 
 import type { <%= entity.namePascal %>Repository } from '../../domain/<%= entity.nameCamel %>/<%= entity.nameCamel %>.repository';
@@ -30,11 +33,11 @@ for (let _i = 0; _i < useCases.length; _i++) {
   const bodyNames = paramNames.filter(p => !path.includes('$' + '{' + p + '}'));
   const needsInterpolation = path.includes('$' + '{');
 -%>
-  async <%= uc.methodName %>(<%- params %>): Promise<<%= returnType %>> {
+  async <%= uc.methodName %>(<%- params %>): Promise<<%- returnType %>> {
 <% if (isVoid) { -%>
     await apiClient.<%= httpMethod %>(<%- needsInterpolation ? '`' : "'" %><%- path %><%- needsInterpolation ? '`' : "'" %><% if (uc.needsPayload) { %>, { <%= bodyNames.join(', ') %> }<% } %>);
 <% } else { -%>
-    const { data: responseData } = await apiClient.<%= httpMethod %><<%= returnType %>>(<%- needsInterpolation ? '`' : "'" %><%- path %><%- needsInterpolation ? '`' : "'" %><% if (uc.needsPayload) { %>, <%
+    const { data: responseData } = await apiClient.<%= httpMethod %><<%- returnType %>>(<%- needsInterpolation ? '`' : "'" %><%- path %><%- needsInterpolation ? '`' : "'" %><% if (uc.needsPayload) { %>, <%
       if (bodyNames.length === 1 && bodyNames[0] === 'data') { %>data<%
       } else { %>{ <%= bodyNames.join(', ') %> }<% }
     %><% } %>);

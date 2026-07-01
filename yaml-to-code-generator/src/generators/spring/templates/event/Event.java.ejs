@@ -1,7 +1,12 @@
 <%# event/Event.java.ejs — Event class (one per event type) %>
 <% const srcEntity = ir.entities.find(e => e.name === event.source);
    const entityType = srcEntity ? srcEntity.namePascal : null;
-   const isTracked = event.trackedFields && event.trackedFields.length > 0; %>
+   const trackedSuffixes = ['Creado', 'Asignado', 'Cerrado', 'Modificado', 'Desasignado'];
+   // Tracked mode (old/new/actor) is needed for entity events that the builder
+   // will call with 3 args (oldEntity, newEntity, actor). Enable it by default
+   // when the event has a source entity matching a known action suffix.
+   const isTracked = (event.trackedFields && event.trackedFields.length > 0)
+       || (entityType && trackedSuffixes.some(s => event.namePascal.endsWith(s))); %>
 package <%= ir.application.basePackage %>.event;
 
 <% if (entityType) { %>import <%= ir.application.basePackage %>.entity.<%= entityType %>;
