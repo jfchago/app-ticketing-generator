@@ -154,6 +154,13 @@ public class Ticket {
 
 
 
+    @OneToMany(mappedBy = "ticket", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<ActivityLog> activityLogs = new ArrayList<>();
+
+
+
+
     @PrePersist
     protected void onCreate() {
 

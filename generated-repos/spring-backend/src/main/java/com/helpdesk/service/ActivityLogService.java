@@ -1,10 +1,13 @@
 
 package com.helpdesk.service;
 
-import com.helpdesk.dto.UserDTO;
-import com.helpdesk.dto.UserMapper;
-import com.helpdesk.entity.User;
-import com.helpdesk.repository.UserRepository;
+import com.helpdesk.dto.ActivityLogDTO;
+import com.helpdesk.dto.ActivityLogMapper;
+import com.helpdesk.entity.ActivityLog;
+import com.helpdesk.repository.ActivityLogRepository;
+
+import com.helpdesk.entity.Ticket;
+import com.helpdesk.repository.TicketRepository;
 
 
 
@@ -19,13 +22,15 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class UserService {
+public class ActivityLogService {
 
-    private final UserRepository userRepository;
+    private final ActivityLogRepository activityLogRepository;
+
+    private final TicketRepository ticketRepository;
 
 
 
-    private final UserMapper userMapper;
+    private final ActivityLogMapper activityLogMapper;
 
 
 
@@ -36,16 +41,8 @@ public class UserService {
 
     @Transactional(readOnly = true)
 
-    public List<UserDTO> loadUsers() {
-        return userRepository.findAll().stream().map(userMapper::toDTO).toList();
-    }
-
-
-
-    @Transactional(readOnly = true)
-
-    public UserDTO getById(String id) {
-        return userRepository.findById(id).map(userMapper::toDTO).orElseThrow(() -> new RuntimeException("User not found: " + id));
+    public ActivityLogDTO getById(String id) {
+        return activityLogRepository.findById(id).map(activityLogMapper::toDTO).orElseThrow(() -> new RuntimeException("ActivityLog not found: " + id));
     }
 
 

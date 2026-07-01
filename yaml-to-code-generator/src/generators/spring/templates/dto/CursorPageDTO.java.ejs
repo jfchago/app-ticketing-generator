@@ -1,12 +1,12 @@
-<%# dto/CursorPageDTO.java.ejs — Generic cursor-based pagination wrapper %>
-<%#
-  // Only render if any entity uses cursor pagination
-  const entities = Object.values(genEntities ?? {});
-  const needsCursorPage = entities.some(e =>
-    e.serviceMethods?.some(m => m.returnType?.startsWith('CursorPageDTO<'))
-  );
-  if (needsCursorPage) {
-%>package <%= ir.application.basePackage %>.dto;
+<%
+const needsCursorPage = Object.values(genEntities ?? {}).some(e =>
+  e.serviceMethods?.some(m => m.returnType?.startsWith('CursorPageDTO<'))
+);
+
+if (!needsCursorPage) return;
+%>
+
+package <%= ir.application.basePackage %>.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -19,4 +19,3 @@ public class CursorPageDTO<T> {
     private String nextCursor;
     private boolean hasMore;
 }
-<% } %>

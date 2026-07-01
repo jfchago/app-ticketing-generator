@@ -7,7 +7,7 @@ import org.mapstruct.Mapping;
 import org.mapstruct.ReportingPolicy;
 
 
-@Mapper(componentModel = "spring", unmappedSourcePolicy = ReportingPolicy.IGNORE, uses = {CommentMapper.class})
+@Mapper(componentModel = "spring", unmappedSourcePolicy = ReportingPolicy.IGNORE, uses = {CommentMapper.class, ActivityLogMapper.class})
 public interface TicketMapper {
 
 
@@ -20,6 +20,8 @@ public interface TicketMapper {
     @Mapping(target = "assignee", ignore = true)
 
     @Mapping(target = "comments", ignore = true)
+
+    @Mapping(target = "activityLogs", ignore = true)
 
     Ticket toEntity(TicketDTO dto);
 }
