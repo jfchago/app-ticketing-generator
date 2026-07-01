@@ -72,7 +72,7 @@ describe('Resolver — Symbol resolution', () => {
 
   it('resolves use cases with categories', () => {
     const ticket = domain.entities.find((e) => e.name === 'Ticket')!;
-    expect(ticket.useCases).toHaveLength(8);
+    expect(ticket.useCases).toHaveLength(9);
 
     const getAll = ticket.useCases.find((u) => u.name === 'get_all')!;
     expect(getAll.category).toBe('read');
@@ -212,7 +212,7 @@ describe('Semantic Model Snapshot', () => {
   it('has correct summary counts', () => {
     expect(snapshot.summary.entities).toBe(4);
     expect(snapshot.summary.enums).toBe(2);
-    expect(snapshot.summary.attributes).toBe(26);
+    expect(snapshot.summary.attributes).toBe(27);
     expect(snapshot.summary.relationships).toBe(6);
     expect(snapshot.summary.useCases).toBeGreaterThan(0);
   });
@@ -223,7 +223,7 @@ describe('Semantic Model Snapshot', () => {
     expect(ticket.stereotype).toBe('aggregate_root');
     expect(ticket.attributeCount).toBe(8);
     expect(ticket.relationshipCount).toBe(3);
-    expect(ticket.useCaseCount).toBe(8);
+    expect(ticket.useCaseCount).toBe(9);
     expect(ticket.pkType).toBe('String');
     expect(ticket.attributes).toBeDefined();
     const statusAttr = ticket.attributes.find((a: any) => a.name === 'status');

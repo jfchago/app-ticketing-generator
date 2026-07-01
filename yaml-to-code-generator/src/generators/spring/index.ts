@@ -87,6 +87,18 @@ export class SpringGenerator extends BaseGenerator {
       );
     }
 
+    // ── Global DTOs ──
+    const needsCursorPageDTO = ir.entities.some((e) =>
+      e.useCases?.some((uc) => uc.name === 'get_history')
+    );
+    if (needsCursorPageDTO) {
+      this.renderEjs(
+        'dto/CursorPageDTO.java.ejs',
+        `src/main/java/${pkgPath}/dto/CursorPageDTO.java`,
+        genCtx,
+      );
+    }
+
     // ── Mappers ──
     for (const entity of ir.entities) {
       this.renderEjs(

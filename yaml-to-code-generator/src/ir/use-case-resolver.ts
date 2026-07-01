@@ -102,6 +102,14 @@ const USE_CASE_MAP: Record<string, UseCaseTemplate> = {
     pathSuffix: '',
     actionLabel: 'Load users',
   },
+  get_history: {
+    methodName: 'getHistory',
+    httpMethod: 'GET',
+    needsPayload: false,
+    needsId: true,
+    pathSuffix: '/{id}/history',
+    actionLabel: 'Get history',
+  },
 };
 
 const KNOWN_USE_CASES = new Set(Object.keys(USE_CASE_MAP));

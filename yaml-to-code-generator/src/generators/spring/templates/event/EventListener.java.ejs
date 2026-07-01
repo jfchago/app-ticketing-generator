@@ -1,4 +1,12 @@
-<%# event/EventListener.java.ejs — @EventListener methods for all events %><% const allEvents = [...(ir.events || []), ...ir.entities.flatMap(e => e.entityEvents || [])]; if (allEvents.length > 0) { -%>
+<%# event/EventListener.java.ejs — @EventListener methods for all events %>
+<%
+const allEvents = [
+    ...(ir.events || []),
+    ...((ir.entities || []).flatMap(e => e.entityEvents || []))
+];
+
+if (allEvents.length > 0) {
+-%>
 package <%= ir.application.basePackage %>.event;
 
 import lombok.RequiredArgsConstructor;
@@ -19,59 +27,106 @@ public class <%= ir.application.appClassName %>EventListener {
     private final ActivityLogRepository activityLogRepository;
 
 <% for (const ev of allEvents) { -%>
-<%-   // Determine if this is a tracked event (has trackedFields or is TicketCreado)
-      const srcEntity = ir.entities.find(e => e.name === ev.source);
-      const entityType = srcEntity ? srcEntity.namePascal : null;
-      const isTracked = ev.trackedFields && ev.trackedFields.length > 0;
-      const isCreation = ev.namePascal.endsWith('Creado') && entityType;
-      const isNonTracked = !isTracked && !isCreation; %>
-<%-   if (isCreation) { %>
+<%
+const srcEntity = (ir.entities || []).find(e => e.name === ev.source);
+const entityType = srcEntity ? srcEntity.namePascal : null;
+const isTracked = ev.trackedFields && ev.trackedFields.length > 0;
+const isCreation = ev.namePascal.endsWith('Creado') && entityType;
+const isNonTracked = !isTracked && !isCreation;
+%>
+
+<% if (isCreation) { %>
     @Async("auditTaskExecutor")
     @EventListener
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void on<%= ev.namePascal %>(<%= ev.namePascal %>Event event) {
         log.info("Event received: {}", "<%= ev.name %>");
+
         ActivityLog logEntry = new ActivityLog();
         logEntry.setTicketId(event.getNewEntity().getId());
         logEntry.setActionType("created");
         logEntry.setActorId(event.getActor());
         logEntry.setCreatedAt(java.time.LocalDateTime.now());
+
         activityLogRepository.save(logEntry);
     }
 
-<%-   } else if (isTracked) { %>
+<% } else if (isTracked) { %>
     @Async("auditTaskExecutor")
     @EventListener
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void on<%= ev.namePascal %>(<%= ev.namePascal %>Event event) {
         log.info("Event received: {}", "<%= ev.name %>");
+
         var oldEntity = event.getOldEntity();
         var newEntity = event.getNewEntity();
-<%-     for (const field of ev.trackedFields) {
-          const fieldPascal = field.charAt(0).toUpperCase() + field.slice(1);
-          const isEnum = srcEntity && srcEntity.attributes.some(a => a.name === field && a.isEnum); %>
-        if (!java.util.Objects.equals(oldEntity.get<%= fieldPascal %>()<%= isEnum ? '.name()' : '' %>, newEntity.get<%= fieldPascal %>()<%= isEnum ? '.name()' : '' %>)) {
+
+<%
+for (const field of ev.trackedFields) {
+    const fieldPascal = field.charAt(0).toUpperCase() + field.slice(1);
+    const isEnum =
+        srcEntity &&
+        srcEntity.attributes &&
+        srcEntity.attributes.some(
+            a => a.name === field && a.isEnum
+        );
+%>
+        if (!java.util.Objects.equals(
+                <%= isEnum
+                    ? `(oldEntity.get${fieldPascal}() != null ? oldEntity.get${fieldPascal}().name() : null)`
+                    : `oldEntity.get${fieldPascal}()`
+                %>,
+                <%= isEnum
+                    ? `(newEntity.get${fieldPascal}() != null ? newEntity.get${fieldPascal}().name() : null)`
+                    : `newEntity.get${fieldPascal}()`
+                %>
+        )) {
+
             ActivityLog logEntry = new ActivityLog();
             logEntry.setTicketId(newEntity.getId());
-            logEntry.setActionType("<%= ev.nameCamel === 'ticketModificado' ? 'priority_changed' : ev.nameCamel === 'ticketCerrado' ? 'status_changed' : ev.nameCamel === 'ticketAsignado' ? 'assigned' : ev.nameCamel === 'ticketDesasignado' ? 'unassigned' : 'changed' %>");
+
+            logEntry.setActionType(
+                "<%= ev.nameCamel === 'ticketModificado'
+                    ? 'priority_changed'
+                    : ev.nameCamel === 'ticketCerrado'
+                    ? 'status_changed'
+                    : ev.nameCamel === 'ticketAsignado'
+                    ? 'assigned'
+                    : ev.nameCamel === 'ticketDesasignado'
+                    ? 'unassigned'
+                    : 'changed'
+                %>"
+            );
+
             logEntry.setFieldName("<%= field %>");
-            logEntry.setOldValue(oldEntity.get<%= fieldPascal %>() != null ? String.valueOf(oldEntity.get<%= fieldPascal %>()) : null);
-            logEntry.setNewValue(newEntity.get<%= fieldPascal %>() != null ? String.valueOf(newEntity.get<%= fieldPascal %>()) : null);
+            logEntry.setOldValue(
+                oldEntity.get<%= fieldPascal %>() != null
+                    ? String.valueOf(oldEntity.get<%= fieldPascal %>())
+                    : null
+            );
+            logEntry.setNewValue(
+                newEntity.get<%= fieldPascal %>() != null
+                    ? String.valueOf(newEntity.get<%= fieldPascal %>())
+                    : null
+            );
             logEntry.setActorId(event.getActor());
             logEntry.setCreatedAt(java.time.LocalDateTime.now());
+
             activityLogRepository.save(logEntry);
         }
-<%-     } %>
+
+<% } %>
     }
 
-<%-   } else if (isNonTracked) { %>
+<% } else if (isNonTracked) { %>
     @EventListener
     public void on<%= ev.namePascal %>(<%= ev.namePascal %>Event event) {
         log.info("Event received: {}", "<%= ev.name %>");
         log.debug("  source: {}", event.getSource());
     }
 
-<%-   } %>
+<% } %>
+
 <% } -%>
 }
 <% } -%>

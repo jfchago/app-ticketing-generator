@@ -64,6 +64,7 @@ describe('Vue Golden Master', () => {
       'create',
       'getAll',
       'getById',
+      'getHistory',
       'unassignUser',
       'updatePriority',
       'updateStatus',

@@ -2,16 +2,16 @@
   "meta": {
     "tool": "yaml2code-ir",
     "version": 1,
-    "timestamp": "2026-06-30T10:32:49.561Z",
+    "timestamp": "2026-07-01T06:49:42.885Z",
     "specPath": "specs/helpdesk.yaml",
     "semanticHash": "test-fixture"
   },
   "summary": {
     "entities": 4,
     "enums": 2,
-    "attributes": 26,
+    "attributes": 27,
     "relationships": 6,
-    "useCases": 11,
+    "useCases": 12,
     "workflows": 0,
     "events": 0,
     "decisions": 0,
@@ -66,13 +66,14 @@
           "target": "ActivityLog"
         }
       ],
-      "useCaseCount": 8,
+      "useCaseCount": 9,
       "useCaseNames": [
         "add_comment",
         "assign_user",
         "create",
         "get_all",
         "get_by_id",
+        "get_history",
         "unassign_user",
         "update_priority",
         "update_status"
@@ -85,7 +86,8 @@
         "update_priority": "update",
         "assign_user": "action",
         "unassign_user": "delete",
-        "add_comment": "action"
+        "add_comment": "action",
+        "get_history": "read"
       },
       "flags": {
         "hasCreate": true,
@@ -193,10 +195,11 @@
       "nameCamel": "activityLog",
       "table": "activity_logs",
       "stereotype": "entity",
-      "attributeCount": 9,
+      "attributeCount": 10,
       "attributeNames": [
         "actionType",
         "actorId",
+        "actorName",
         "createdAt",
         "description",
         "fieldName",

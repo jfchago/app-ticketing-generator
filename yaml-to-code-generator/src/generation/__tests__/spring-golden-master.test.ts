@@ -50,7 +50,7 @@ describe('Spring Golden Master', () => {
 
   it('Ticket gen entity has service methods', () => {
     const t = springGen.entities['Ticket'];
-    expect(t.serviceMethods.length).toBe(8);
+    expect(t.serviceMethods.length).toBe(9);
     expect(t.pkJavaType).toBe('String');
     expect(t.hasCreatedAt).toBe(true);
     expect(t.hasUpdatedAt).toBe(true);
