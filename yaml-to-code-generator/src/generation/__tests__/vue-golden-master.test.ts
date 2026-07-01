@@ -61,7 +61,9 @@ describe('Vue Golden Master', () => {
     expect(names).toEqual([
       'addComment',
       'assignUser',
+      'clearHistory',
       'create',
+      'fetchNextPage',
       'getAll',
       'getById',
       'getHistory',
@@ -82,7 +84,7 @@ describe('Vue Golden Master', () => {
   it('generated golden master files match', () => {
     if (!fs.existsSync(GOLDEN_DIR)) return;
     const golden = collectFiles(GOLDEN_DIR);
-    expect(golden.size).toBe(28);
+    expect(golden.size).toBe(32);
     const goldenPaths = [...golden.keys()].sort();
     expect(goldenPaths).toContain('src/stores/ticket.store.ts');
     expect(goldenPaths).toContain('src/domain/ticket/ticket.types.ts');
@@ -96,6 +98,7 @@ describe('Vue Golden Master', () => {
     expect(goldenPaths).toContain('src/domain/enums.ts');
     expect(goldenPaths).toContain('src/infrastructure/api-client.ts');
     expect(goldenPaths).toContain('src/app/router/index.ts');
+    expect(goldenPaths).toContain('src/components/ActivityTimeline.vue');
   });
 
   it('ticket store uses gen model naming', () => {

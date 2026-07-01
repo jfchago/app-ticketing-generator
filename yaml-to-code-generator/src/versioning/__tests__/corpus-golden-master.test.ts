@@ -105,7 +105,7 @@ describe('Corpus Golden Master — Versioned', () => {
   it('Vue golden master has all expected files', () => {
     if (!fs.existsSync(VUE_GOLDEN_DIR)) return;
     const golden = collectFiles(VUE_GOLDEN_DIR);
-    expect(golden.size).toBe(28);
+    expect(golden.size).toBe(32);
     const paths = [...golden.keys()].map((p) => p.replace(/\\/g, '/')).sort();
     expect(paths).toContain('src/stores/ticket.store.ts');
     expect(paths).toContain('src/domain/ticket/ticket.types.ts');

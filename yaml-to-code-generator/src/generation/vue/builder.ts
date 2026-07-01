@@ -89,6 +89,9 @@ function buildVueEntity(entity: EntityDef, ir: IR): VueGeneratedEntity {
     activityLogEntity: activityLogEntity
       ? { namePascal: activityLogEntity.namePascal, nameCamel: activityLogEntity.nameCamel }
       : undefined,
+    activityLogActionName: hasActivityLog
+      ? entity.useCases.find((uc) => uc.name === 'get_history')?.methodName
+      : undefined,
     hasAssignee: entity.relationships.some((r) => r.name === 'assignee'),
     enumAttributes: buildEnumAttributes(entity, ir),
   };
@@ -268,6 +271,7 @@ function mapActionCategory(uc: UseCaseDef): string {
   if (name === 'assign_user') return 'assign';
   if (name === 'unassign_user') return 'unassign';
   if (name === 'add_comment') return 'comment';
+  if (name === 'get_history') return 'history';
   return 'default';
 }
 
@@ -306,6 +310,7 @@ function buildParamNames(entity: EntityDef, uc: UseCaseDef): string[] {
   if (uc.name === 'get_by_id') return ['id'];
   if (uc.name === 'create') return ['data'];
   if (uc.name === 'add_comment') return [`${entity.nameCamel}Id`, 'text'];
+  if (uc.name === 'get_history') return ['entityId'];
   if (uc.needsId && uc.needsPayload) {
     if (uc.name === 'update_status') return [`${entity.nameCamel}Id`, 'status'];
     if (uc.name === 'update_priority') return [`${entity.nameCamel}Id`, 'priority'];
@@ -321,6 +326,7 @@ function buildParamTypes(entity: EntityDef, uc: UseCaseDef): string[] {
   if (!uc.needsId && uc.httpMethod === 'GET') return [];
   if (uc.name === 'get_by_id') return ['string'];
   if (uc.name === 'add_comment') return ['string', 'string'];
+  if (uc.name === 'get_history') return ['string'];
   if (uc.name === 'create') return [`Omit<${entity.namePascal}, 'id' | 'createdAt'>`];
   if (uc.needsId && uc.needsPayload) {
     let valType = 'string';
@@ -343,6 +349,7 @@ function buildMethodParams(entity: EntityDef, uc: UseCaseDef): string {
   if (!uc.needsId && uc.httpMethod === 'GET') return '';
   if (uc.name === 'get_by_id') return 'id: string';
   if (uc.name === 'add_comment') return `${entity.nameCamel}Id: string, text: string`;
+  if (uc.name === 'get_history') return 'entityId: string';
   if (uc.name === 'create') return `data: Omit<${entity.namePascal}, 'id' | 'createdAt'>`;
   if (uc.needsId && uc.needsPayload) {
     let valType = 'string';
@@ -569,6 +576,19 @@ function buildStoreActionBody(
     bodyParts.push(
       `} catch (e) { this.error = e instanceof Error ? e.message : 'Error adding comment'; throw e; }`,
     );
+  } else if (actionCategory === 'history') {
+    bodyParts.push(`this.error = null;`);
+    bodyParts.push(`if (!this.history) this.history = { entries: [], cursor: null, hasMore: false, loadingInitial: false, loadingMore: false, error: null };`);
+    bodyParts.push(`if (this.history.entries.length === 0) {`);
+    bodyParts.push(`  this.history.loadingInitial = true;`);
+    bodyParts.push(`  try {`);
+    bodyParts.push(`    const page = await service.${uc.methodName}(${uc.storeAction.paramNames.join(', ')});`);
+    bodyParts.push(`    this.history.entries = page.items;`);
+    bodyParts.push(`    this.history.cursor = page.nextCursor;`);
+    bodyParts.push(`    this.history.hasMore = page.hasMore;`);
+    bodyParts.push(`  } catch (e) { this.history.error = e instanceof Error ? e.message : 'Failed to load history'; }`);
+    bodyParts.push(`  finally { this.history.loadingInitial = false; }`);
+    bodyParts.push(`}`);
   } else {
     bodyParts.push(...buildRuleCheckLines(actionCategory));
     bodyParts.push(`this.error = null;`);
@@ -588,11 +608,15 @@ function deriveStoreActions(
   useCases: Record<string, VueUseCaseDef>,
   hasCommentSupport: boolean,
 ): VueStoreAction[] {
-  return Object.values(useCases).map((uc) => {
+  const actions: VueStoreAction[] = [];
+  let hasHistory = false;
+  const entityNameCamel = entity.nameCamel;
+
+  for (const uc of Object.values(useCases)) {
     const actionCategory = uc.actionCategory;
-    const stateList = entity.nameCamel + 's';
+    const stateList = entityNameCamel + 's';
     const body = buildStoreActionBody(entity, uc, actionCategory, stateList, hasCommentSupport);
-    return {
+    actions.push({
       name: uc.storeAction.actionName,
       params: uc.storeAction.paramNames.map((name, i) => ({
         name,
@@ -601,8 +625,41 @@ function deriveStoreActions(
       body,
       hasRuleChecks: uc.storeAction.ruleChecks.length > 0,
       actionCategory,
-    };
-  });
+    });
+    if (actionCategory === 'history') hasHistory = true;
+  }
+
+  if (hasHistory) {
+    // fetchNextPage — appends next page using cursor
+    actions.push({
+      name: 'fetchNextPage',
+      params: [{ name: 'entityId', type: 'string' }],
+      body: `this.error = null;
+if (!this.history) this.history = { entries: [], cursor: null, hasMore: false, loadingInitial: false, loadingMore: false, error: null };
+if (!this.history.hasMore || this.history.loadingMore) return;
+this.history.loadingMore = true;
+try {
+  const page = await service.getHistory(this.entityId, undefined, this.history.cursor ?? undefined);
+  this.history.entries.push(...page.items);
+  this.history.cursor = page.nextCursor;
+  this.history.hasMore = page.hasMore;
+} catch (e) { this.history.error = e instanceof Error ? e.message : 'Failed to load more history'; }
+finally { this.history.loadingMore = false; }`,
+      hasRuleChecks: false,
+      actionCategory: 'history',
+    });
+
+    // clearHistory — resets history state
+    actions.push({
+      name: 'clearHistory',
+      params: [],
+      body: `this.history = { entries: [], cursor: null, hasMore: false, loadingInitial: false, loadingMore: false, error: null };`,
+      hasRuleChecks: false,
+      actionCategory: 'history',
+    });
+  }
+
+  return actions;
 }
 
 function buildRuleChecks(entity: EntityDef): VueRuleCheck[] {

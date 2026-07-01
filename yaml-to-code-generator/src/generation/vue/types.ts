@@ -40,6 +40,8 @@ export interface VueGeneratedEntity extends GeneratedEntity {
   hasActivityLog: boolean;
   /** ActivityLog entity ref if hasActivityLog */
   activityLogEntity?: { namePascal: string; nameCamel: string };
+  /** Store action name for fetching activity history */
+  activityLogActionName?: string;
   /** Relation to User entity for assignee feature */
   hasAssignee: boolean;
   /** Enums referenced by this entity's attributes */
