@@ -106,6 +106,7 @@ describe('Vue Generation Model', () => {
       create: 'create',
       get_all: 'read',
       get_by_id: 'readById',
+      get_history: 'default',
       unassign_user: 'unassign',
       update_priority: 'updatePriority',
       update_status: 'updateStatus',

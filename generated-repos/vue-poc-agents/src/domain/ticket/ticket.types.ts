@@ -19,4 +19,5 @@ export interface Ticket {
   createdAt: string;
   updatedAt: string | null;
   comments: Comment[];
+  activityLogs: ActivityLog[];
 }

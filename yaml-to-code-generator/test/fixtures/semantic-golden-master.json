@@ -2,15 +2,15 @@
   "meta": {
     "tool": "yaml2code-semantic",
     "version": 1,
-    "timestamp": "2026-06-30T10:32:43.618Z",
+    "timestamp": "2026-07-01T06:49:42.894Z",
     "specName": "Mini HelpDesk"
   },
   "summary": {
     "entities": 4,
     "enums": 2,
-    "attributes": 26,
+    "attributes": 27,
     "relationships": 6,
-    "useCases": 11,
+    "useCases": 12,
     "workflows": 0,
     "events": 0,
     "decisions": 0,
@@ -37,7 +37,7 @@
       "pkType": "String",
       "attributeCount": 8,
       "relationshipCount": 3,
-      "useCaseCount": 8,
+      "useCaseCount": 9,
       "flags": {
         "hasCreate": true,
         "hasUpdate": true,
@@ -250,6 +250,16 @@
           "requiresComment": true,
           "requiresUser": false,
           "stateMutation": false
+        },
+        {
+          "name": "get_history",
+          "methodName": "getHistory",
+          "httpMethod": "GET",
+          "category": "read",
+          "pathSuffix": "/{id}/history",
+          "requiresComment": false,
+          "requiresUser": false,
+          "stateMutation": false
         }
       ]
     },
@@ -453,7 +463,7 @@
       "table": "activity_logs",
       "pkAttribute": "id",
       "pkType": "String",
-      "attributeCount": 9,
+      "attributeCount": 10,
       "relationshipCount": 1,
       "useCaseCount": 1,
       "flags": {
@@ -510,6 +520,17 @@
           },
           "fieldRole": "field",
           "required": true,
+          "primary": false
+        },
+        {
+          "name": "actorName",
+          "type": "String",
+          "resolvedType": {
+            "kind": "primitive",
+            "ref": "String"
+          },
+          "fieldRole": "field",
+          "required": false,
           "primary": false
         },
         {

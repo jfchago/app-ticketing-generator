@@ -117,4 +117,12 @@ public class TicketController {
 
 
 
+
+    @GetMapping("/{id}/history")
+    public ResponseEntity<CursorPageDTO<ActivityLogDTO>> getHistory(@PathVariable String id, @RequestParam(defaultValue = "20") @Min(1) @Max(100) int limit, @RequestParam(required = false) String cursor) {
+        return ResponseEntity.ok(ticketService.getHistory(id, limit, cursor));
+    }
+
+
+
 }

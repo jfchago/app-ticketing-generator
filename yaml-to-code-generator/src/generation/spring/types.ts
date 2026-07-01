@@ -95,6 +95,13 @@ export interface SpringRepositoryMethod {
   isCustom: boolean;
 }
 
+export interface SpringPaginationInfo {
+  hasPagination: boolean;
+  cursorType: string;          // e.g. "String" for opaque cursor
+  responseWrapperType: string; // e.g. "CursorPageDTO<ActivityLogDTO>"
+  pageSize: number;
+}
+
 export interface SpringRuleCheck {
   nameCamel: string;
   namePascal: string;

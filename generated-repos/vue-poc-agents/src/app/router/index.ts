@@ -51,6 +51,13 @@ const router = createRouter({
           component: () => import('../../views/UserDetailView.vue'),
           meta: { breadcrumb: 'User Detail' },
         },
+
+        {
+          path: 'activity-logs/:id',
+          name: 'activityLog-detail',
+          component: () => import('../../views/ActivityLogDetailView.vue'),
+          meta: { breadcrumb: 'ActivityLog Detail' },
+        },
       ],
     },
   ],

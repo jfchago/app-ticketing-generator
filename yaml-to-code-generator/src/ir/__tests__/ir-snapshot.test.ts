@@ -42,9 +42,9 @@ describe('IR Snapshot', () => {
   it('has correct summary counts', () => {
     expect(snapshot.summary.entities).toBe(4);
     expect(snapshot.summary.enums).toBe(2);
-    expect(snapshot.summary.attributes).toBe(26);
+    expect(snapshot.summary.attributes).toBe(27);
     expect(snapshot.summary.relationships).toBe(6);
-    expect(snapshot.summary.useCases).toBe(11);
+    expect(snapshot.summary.useCases).toBe(12);
     expect(snapshot.summary.flags.hasStateMachine).toBe(true);
     expect(snapshot.summary.flags.hasRules).toBe(true);
     expect(snapshot.summary.flags.hasValidation).toBe(true);
@@ -58,13 +58,14 @@ describe('IR Snapshot', () => {
     const ticket = snapshot.entities.find((e) => e.name === 'Ticket')!;
     expect(ticket.attributeCount).toBe(8);
     expect(ticket.relationshipCount).toBe(3);
-    expect(ticket.useCaseCount).toBe(8);
+    expect(ticket.useCaseCount).toBe(9);
     expect(ticket.useCaseNames.sort()).toEqual([
       'add_comment',
       'assign_user',
       'create',
       'get_all',
       'get_by_id',
+      'get_history',
       'unassign_user',
       'update_priority',
       'update_status',

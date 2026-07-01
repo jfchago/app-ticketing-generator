@@ -99,7 +99,7 @@ describe('Corpus Golden Master — Versioned', () => {
       (e: { name: string }) => e.name === 'Ticket',
     ) as any;
     expect(ticket).toBeDefined();
-    expect(ticket!.useCaseCount).toBe(8);
+    expect(ticket!.useCaseCount).toBe(9);
   });
 
   it('Vue golden master has all expected files', () => {

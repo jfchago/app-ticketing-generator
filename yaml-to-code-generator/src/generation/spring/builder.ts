@@ -144,6 +144,13 @@ function findCommentEntity(entity: EntityDef, ir: IR): EntityDef | undefined {
   return commentRel ? ir.entities.find((e) => e.name === commentRel.target) : undefined;
 }
 
+function findActivityLogEntity(entity: EntityDef, ir: IR): EntityDef | undefined {
+  const activityLogRel = entity.relationships.find(
+    (r) => r.type === 'one_to_many' && r.target === 'ActivityLog',
+  );
+  return activityLogRel ? ir.entities.find((e) => e.name === activityLogRel.target) : undefined;
+}
+
 function buildServiceMethods(entity: EntityDef, ir: IR): SpringServiceMethod[] {
   const methods: SpringServiceMethod[] = [];
   const commentEntity = findCommentEntity(entity, ir);
@@ -190,6 +197,7 @@ function buildServiceMethod(
   const statusAttr = entity.attributes.find((a) => a.name === 'status' && a.isEnum);
   const priorityAttr = entity.attributes.find((a) => a.name === 'priority' && a.isEnum);
   const assigneeRel = entity.relationships.find((r) => r.name === 'assignee');
+  const activityLogEntity = findActivityLogEntity(entity, ir);
 
   if (category === 'read' && !uc.needsId) {
     returnType = `List<${entity.namePascal}DTO>`;
@@ -256,6 +264,52 @@ function buildServiceMethod(
     params = `${pkJavaType} id, String text`;
     annotations = ['@Transactional'];
     body = `${entity.namePascal} ${entity.nameCamel} = new ${entity.namePascal}();\n        ${entity.nameCamel}.setText(text);\n        // TODO: set ticket and author via repository lookups (requires repository injection)\n        ${entity.nameCamel}Repository.save(${entity.nameCamel});\n        return ${entity.nameCamel}Mapper.toDTO(${entity.nameCamel});`;
+  } else if (uc.name === 'get_history') {
+    if (!activityLogEntity) {
+      returnType = 'void';
+      params = '';
+      annotations = [];
+      body = '';
+    } else {
+      const logCamel = activityLogEntity.nameCamel;
+      returnType = `CursorPageDTO<${activityLogEntity.namePascal}DTO>`;
+      params = `${pkJavaType} id, @RequestParam(defaultValue = "20") @Min(1) @Max(100) int limit, @RequestParam(required = false) String cursor`;
+      annotations = ['@Transactional(readOnly = true)'];
+      body = `if (!${entity.nameCamel}Repository.existsById(id)) { throw new RuntimeException("${entity.namePascal} not found: " + id); }\n` +
+             `        int pageSize = Math.min(limit, 100);\n` +
+             `        List<${activityLogEntity.namePascal}> logs;\n` +
+             `        boolean hasMore;\n\n` +
+             `        if (cursor == null || cursor.isBlank()) {\n` +
+             `          Pageable pageable = PageRequest.of(0, pageSize + 1, Sort.by(Sort.Direction.DESC, "createdAt", "id"));\n` +
+             `          logs = ${logCamel}Repository.findByTicketIdOrderByCreatedAtDesc(id, pageable).getContent();\n` +
+             `        } else {\n` +
+             `          try {\n` +
+             `            String decoded = new String(java.util.Base64.getUrlDecoder().decode(cursor), java.nio.charset.StandardCharsets.UTF_8);\n` +
+             `            String[] parts = decoded.split(":", 2);\n` +
+             `            if (parts.length != 2) throw new IllegalArgumentException("Invalid cursor format");\n` +
+             `            java.time.LocalDateTime cursorCreatedAt = java.time.LocalDateTime.ofInstant(\n` +
+             `              java.time.Instant.ofEpochMilli(Long.parseLong(parts[0])), java.time.ZoneOffset.UTC);\n` +
+             `            String cursorId = parts[1];\n` +
+             `            Pageable pageable = PageRequest.of(0, pageSize + 1);\n` +
+             `            logs = ${logCamel}Repository.findByTicketIdAfterCursor(id, cursorCreatedAt, cursorId, pageable);\n` +
+             `          } catch (Exception e) {\n` +
+             `            throw new org.springframework.web.server.ResponseStatusException(\n` +
+             `              org.springframework.http.HttpStatus.BAD_REQUEST, "Invalid cursor: " + cursor);\n` +
+             `          }\n` +
+             `        }\n\n` +
+             `        hasMore = logs.size() > pageSize;\n` +
+             `        if (hasMore) logs = logs.subList(0, pageSize);\n\n` +
+             `        String nextCursor = null;\n` +
+             `        if (!logs.isEmpty()) {\n` +
+             `          ${activityLogEntity.namePascal} last = logs.get(logs.size() - 1);\n` +
+             `          String raw = last.getCreatedAt().toInstant(java.time.ZoneOffset.UTC).toEpochMilli() + ":" + last.getId();\n` +
+             `          nextCursor = java.util.Base64.getUrlEncoder().encodeToString(raw.getBytes(java.nio.charset.StandardCharsets.UTF_8));\n` +
+             `        }\n\n` +
+             `        List<${activityLogEntity.namePascal}DTO> items = logs.stream()\n` +
+             `          .map(${logCamel}Mapper::toDTO)\n` +
+             `          .toList();\n\n` +
+             `        return new CursorPageDTO<>(items, nextCursor, hasMore);`;
+    }
   } else {
     returnType = 'void';
     params = '';
@@ -383,6 +437,7 @@ function buildManyToOneResolutionBody(
 
 function buildEndpoints(entity: EntityDef, ir: IR): SpringEndpoint[] {
   const commentEntity = findCommentEntity(entity, ir);
+  const activityLogEntity = findActivityLogEntity(entity, ir);
   return entity.useCases.map((uc) => {
     const pkJavaType = mapToJavaType(entity.primaryKey?.type ?? 'String');
     const needsMap =
@@ -417,6 +472,16 @@ function buildEndpoints(entity: EntityDef, ir: IR): SpringEndpoint[] {
     } else if (uc.name === 'create' || categoryIsCreate(uc)) {
       params = `@RequestBody ${entity.namePascal}DTO dto`;
       body = `return ResponseEntity.ok(${entity.nameCamel}Service.${uc.methodName}(dto));`;
+    } else if (uc.name === 'get_history') {
+      if (!activityLogEntity) {
+        returnType = `${entity.namePascal}DTO`;
+        params = `@PathVariable ${pkJavaType} id`;
+        body = '';
+      } else {
+        returnType = `CursorPageDTO<${activityLogEntity.namePascal}DTO>`;
+        params = `@PathVariable ${pkJavaType} id, @RequestParam(defaultValue = "20") @Min(1) @Max(100) int limit, @RequestParam(required = false) String cursor`;
+        body = `return ResponseEntity.ok(${entity.nameCamel}Service.${uc.methodName}(id, limit, cursor));`;
+      }
     }
 
     return {
@@ -442,6 +507,18 @@ function buildRepositoryMethods(entity: EntityDef): SpringRepositoryMethod[] {
       name: 'findAllByOrderByCreatedAtDesc',
       signature: `List<${entity.namePascal}> findAllByOrderByCreatedAtDesc()`,
       isCustom: false,
+    });
+  }
+  if (entity.useCases.some((uc) => uc.name === 'get_history')) {
+    methods.push({
+      name: 'findByTicketIdOrderByCreatedAtDesc',
+      signature: `org.springframework.data.domain.Page<${entity.namePascal}> findByTicketIdOrderByCreatedAtDesc(String ticketId, org.springframework.data.domain.Pageable pageable)`,
+      isCustom: false,
+    });
+    methods.push({
+      name: 'findByTicketIdAfterCursor',
+      signature: `java.util.List<${entity.namePascal}> findByTicketIdAfterCursor(String ticketId, java.time.LocalDateTime cursorCreatedAt, String cursorId, org.springframework.data.domain.Pageable pageable)`,
+      isCustom: true,
     });
   }
   return methods;

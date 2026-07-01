@@ -1,14 +1,14 @@
 
 package com.helpdesk.repository;
 
-import com.helpdesk.entity.Comment;
+import com.helpdesk.entity.ActivityLog;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 
 
 @Repository
-public interface CommentRepository extends JpaRepository<Comment, String> {
+public interface ActivityLogRepository extends JpaRepository<ActivityLog, String> {
 
 
 }

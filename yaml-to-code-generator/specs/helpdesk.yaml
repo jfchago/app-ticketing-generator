@@ -120,6 +120,7 @@ entities:
       - assign_user
       - unassign_user
       - add_comment
+      - get_history
     transitions:
       OPEN: [IN_PROGRESS, CLOSED]
       IN_PROGRESS: [RESOLVED, OPEN]
@@ -229,6 +230,10 @@ entities:
         type: String
         required: true
         length: 36
+      - name: actorName
+        type: String
+        required: false
+        length: 100
       - name: fieldName
         type: String
         required: false

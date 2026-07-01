@@ -1,19 +1,28 @@
-<%# repository/EntityRepository.java.ejs — Spring Data JPA Repository %><% const gen = genEntities?.[entity.name]; %>
+<%# repository/EntityRepository.java.ejs — Spring Data JPA Repository %><% const gen = genEntities?.[entity.name]; if (gen) { %>
 package <%= ir.application.basePackage %>.repository;
 
 import <%= ir.application.basePackage %>.entity.<%= entity.namePascal %>;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
-<% if (gen.repositoryMethods.length > 0) { %>
+<% if (gen.repositoryMethods?.some(m => !m.isCustom)) { %>
 import java.util.List;
+<% } %>
+<% if (gen.repositoryMethods?.some(m => m.isCustom)) { %>
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Sort;
 <% } %>
 
 @Repository
 public interface <%= entity.namePascal %>Repository extends JpaRepository<<%= entity.namePascal %>, <%= gen.pkJavaType %>> {
-<% for (const m of gen.repositoryMethods) { %>
+<% for (const m of gen.repositoryMethods ?? []) { %>
+<%   if (m.isCustom) { %>
+    @org.springframework.data.jpa.repository.Query("SELECT a FROM <%= entity.namePascal %> a WHERE a.ticketId = :ticketId AND (a.createdAt < :cursorCreatedAt OR (a.createdAt = :cursorCreatedAt AND a.id < :cursorId)) ORDER BY a.createdAt DESC, a.id DESC")
+<%   } %>
     <%- m.signature %>;
 <% } %>
 <% for (const attr of entity.attributes.filter(a => a.unique)) { %>
-    boolean existsBy<%= attr.namePascal %>(<%= gen.attributeTypes[attr.name].javaType %> <%= attr.name %>);
+    boolean existsBy<%= attr.namePascal %>(<%= gen.attributeTypes?.[attr.name]?.javaType ?? 'String' %> <%= attr.name %>);
 <% } %>
 }
+<% } %>
