@@ -15,6 +15,7 @@ export const VUE_ADAPTER: TargetAdapter = {
   displayName: 'Vue 3 + TypeScript',
   generatorModulePath: VUE_PATH,
   generatorNamespace: 'yaml2code:vue',
+  generatorClass: VueGenerator,
 
   buildRunOptions(ir: IR, baseOpts: GenerationOpts): Record<string, unknown> {
     const vueGen = buildVueGenerationModel(ir);

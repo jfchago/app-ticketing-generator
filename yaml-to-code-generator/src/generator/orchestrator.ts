@@ -55,20 +55,6 @@ export interface GenerateResult {
   warnings: string[];
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type GeneratorConstructor = new (args: string[], opts: any) => any;
-
-import { VueGenerator } from '../extensibility/targets/vue.js';
-import { SpringGenerator } from '../extensibility/targets/spring.js';
-import { DiagramGenerator } from '../extensibility/targets/diagrams.js';
-
-const GENERATOR_CLASSES: Record<string, GeneratorConstructor> = {
-  vue: VueGenerator,
-  spring: SpringGenerator,
-  puml: DiagramGenerator,
-  diagrams: DiagramGenerator,
-};
-
 function resolveAdapter(target: string): TargetAdapter {
   const adapter = DEFAULT_REGISTRY.get(target);
   if (!adapter) {
@@ -271,7 +257,7 @@ export async function generate(options: GenerateOptions): Promise<GenerateResult
     `📝 Step 5/6: Rendering templates (target: ${options.target}, adapter: ${adapter.displayName})...`,
   );
 
-  const GeneratorClass = GENERATOR_CLASSES[options.target];
+  const GeneratorClass = adapter.generatorClass;
   console.log('🚀 Step 6/6: Generating files...');
 
   const env = getEnv();
@@ -431,7 +417,7 @@ export async function yamlToDiagrams(yamlPath: string, outputDir: string): Promi
   const adapter = resolveAdapter('diagrams');
   const env = getEnv();
   env.registerStub(
-    GENERATOR_CLASSES['diagrams'],
+    adapter.generatorClass,
     adapter.generatorNamespace,
     adapter.generatorModulePath,
   );
