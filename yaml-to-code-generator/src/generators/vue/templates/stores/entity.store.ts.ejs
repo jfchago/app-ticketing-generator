@@ -10,6 +10,9 @@ import type { <%= entity.namePascal %><%= ea.namePascal %> } from '../domain/<%=
 <% if (gen?.hasCommentSupport && gen?.commentEntity) { %>
 import type { <%= gen.commentEntity.namePascal %> } from '../domain/<%= gen.commentEntity.nameCamel %>/<%= gen.commentEntity.nameCamel %>.types';
 <% } %>
+<% if (gen?.hasActivityLog && gen?.activityLogEntity) { %>
+import type { <%= gen.activityLogEntity.namePascal %> } from '../domain/<%= gen.activityLogEntity.nameCamel %>/<%= gen.activityLogEntity.nameCamel %>.types';
+<% } %>
 import { <%= entity.namePascal %>Service } from '../domain/<%= entity.nameCamel %>/<%= entity.nameCamel %>.service';
 import { <%= entity.namePascal %>RepositoryImpl } from '../infrastructure/repositories/<%= entity.nameCamel %>.repository.impl';
 
@@ -23,11 +26,25 @@ export const VALID_TRANSITIONS: Record<string, string[]> = {
 };
 <% } -%>
 
+<% if (gen?.hasActivityLog) { %>
+interface HistoryState {
+  entries: <%= gen.activityLogEntity.namePascal %>[];
+  cursor: string | null;
+  hasMore: boolean;
+  loadingInitial: boolean;
+  loadingMore: boolean;
+  error: string | null;
+}
+<% } %>
+
 interface <%= entity.namePascal %>State {
   <%= stateList %>: <%= entity.namePascal %>[];
   <%= stateSelected %>: <%= entity.namePascal %> | null;
   loading: boolean;
   error: string | null;
+<% if (gen?.hasActivityLog) { %>
+  history?: HistoryState;
+<% } %>
 }
 
 export const use<%= entity.namePascal %>Store = defineStore('<%= entity.nameCamel %>', {

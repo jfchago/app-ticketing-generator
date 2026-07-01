@@ -20,6 +20,18 @@ import com.helpdesk.repository.CommentRepository;
 import com.helpdesk.dto.CommentMapper;
 import com.helpdesk.dto.CommentDTO;
 
+
+import com.helpdesk.dto.CursorPageDTO;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+
+
+import com.helpdesk.entity.ActivityLog;
+import com.helpdesk.repository.ActivityLogRepository;
+import com.helpdesk.dto.ActivityLogDTO;
+import com.helpdesk.dto.ActivityLogMapper;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,6 +43,8 @@ import com.helpdesk.event.TicketCreadoEventPublisher;
 import com.helpdesk.event.TicketAsignadoEventPublisher;
 
 import com.helpdesk.event.TicketCerradoEventPublisher;
+
+import com.helpdesk.event.TicketModificadoEventPublisher;
 
 import java.util.List;
 
@@ -50,10 +64,16 @@ public class TicketService {
     private final CommentRepository commentRepository;
 
 
+    private final ActivityLogRepository activityLogRepository;
+
+
     private final TicketMapper ticketMapper;
 
 
     private final CommentMapper commentMapper;
+
+
+    private final ActivityLogMapper activityLogMapper;
 
 
     private final TicketCreadoEventPublisher ticketCreadoEventPublisher;
@@ -61,6 +81,8 @@ public class TicketService {
     private final TicketAsignadoEventPublisher ticketAsignadoEventPublisher;
 
     private final TicketCerradoEventPublisher ticketCerradoEventPublisher;
+
+    private final TicketModificadoEventPublisher ticketModificadoEventPublisher;
 
 
 
@@ -128,7 +150,7 @@ public class TicketService {
         ticket.setPriority(TicketPriority.valueOf(priority));
         ticketRepository.save(ticket);
         String actor = resolveActor();
-        
+        ticketModificadoEventPublisher.publish(oldTicket, ticket, actor);
         return ticketMapper.toDTO(ticket);
     }
 
@@ -139,7 +161,7 @@ public class TicketService {
     public TicketDTO assignUser(String id, String userId) {
         var ticket = ticketRepository.findById(id).orElseThrow(() -> new RuntimeException("Ticket not found: " + id));
         Ticket oldTicket = new Ticket();
-        oldTicket.setAssigneeId(ticket.getAssigneeId());
+        oldTicket.setAssignee(ticket.getAssignee());
         ticket.setAssignee(userRepository.getReferenceById(userId));
         ticketRepository.save(ticket);
         String actor = resolveActor();
@@ -154,7 +176,7 @@ public class TicketService {
     public TicketDTO unassignUser(String id) {
         var ticket = ticketRepository.findById(id).orElseThrow(() -> new RuntimeException("Ticket not found: " + id));
         Ticket oldTicket = new Ticket();
-        oldTicket.setAssigneeId(ticket.getAssigneeId());
+        oldTicket.setAssignee(ticket.getAssignee());
         ticket.setAssignee(null);
         ticketRepository.save(ticket);
         String actor = resolveActor();
@@ -180,8 +202,42 @@ public class TicketService {
 
     @Transactional(readOnly = true)
 
-    public TicketDTO getHistory(String id) {
-        return ticketRepository.findById(id).map(ticketMapper::toDTO).orElseThrow(() -> new RuntimeException("Ticket not found: " + id));
+    public CursorPageDTO<ActivityLogDTO> getHistory(String id, int limit, String cursor) {
+        if (!ticketRepository.existsById(id)) { throw new RuntimeException("Ticket not found: " + id); }
+        int pageSize = Math.min(limit, 100);
+        List<ActivityLog> logs;
+        boolean hasMore;
+
+        if (cursor == null || cursor.isBlank()) {
+          Pageable pageable = PageRequest.of(0, pageSize + 1, Sort.by(Sort.Direction.DESC, "createdAt", "id"));
+          logs = activityLogRepository.findByTicket_IdOrderByCreatedAtDesc(id, pageable).getContent();
+        } else {
+          try {
+            String decoded = new String(java.util.Base64.getUrlDecoder().decode(cursor), java.nio.charset.StandardCharsets.UTF_8);
+            String[] parts = decoded.split(":", 2);
+            if (parts.length != 2) throw new IllegalArgumentException("Invalid cursor format");
+            java.time.LocalDateTime cursorCreatedAt = java.time.LocalDateTime.ofInstant(
+              java.time.Instant.ofEpochMilli(Long.parseLong(parts[0])), java.time.ZoneOffset.UTC);
+            String cursorId = parts[1];
+            Pageable pageable = PageRequest.of(0, pageSize + 1);
+            logs = activityLogRepository.findByTicketIdAfterCursor(id, cursorCreatedAt, cursorId, pageable);
+          } catch (Exception e) {
+            throw new org.springframework.web.server.ResponseStatusException(
+              org.springframework.http.HttpStatus.BAD_REQUEST, "Invalid cursor: " + cursor);
+          }
+        }
+
+        hasMore = logs.size() > pageSize;
+        if (hasMore) logs = logs.subList(0, pageSize);
+
+        String nextCursor = null;
+        if (!logs.isEmpty()) {
+          ActivityLog last = logs.get(logs.size() - 1);
+          nextCursor = java.util.Base64.getUrlEncoder().encodeToString(
+            (last.getCreatedAt().toInstant(java.time.ZoneOffset.UTC).toEpochMilli() + ":" + last.getId()).getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        }
+
+        return new CursorPageDTO<>(logs.stream().map(activityLogMapper::toDTO).toList(), nextCursor, hasMore);
     }
 
 

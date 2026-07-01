@@ -5,6 +5,7 @@ export interface ActivityLog {
   ticketId: string;
   actionType: string;
   actorId: string;
+  actorName: string | null;
   fieldName: string | null;
   oldValue: string | null;
   newValue: string | null;

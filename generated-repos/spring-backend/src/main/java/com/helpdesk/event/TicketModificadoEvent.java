@@ -7,7 +7,7 @@ import lombok.Getter;
 import org.springframework.context.ApplicationEvent;
 
 @Getter
-public class TicketCerradoEvent extends ApplicationEvent {
+public class TicketModificadoEvent extends ApplicationEvent {
 
     private final Ticket oldEntity;
     private final Ticket newEntity;
@@ -15,7 +15,7 @@ public class TicketCerradoEvent extends ApplicationEvent {
 
 
 
-    public TicketCerradoEvent(Object source, Ticket oldEntity, Ticket newEntity, String actor) {
+    public TicketModificadoEvent(Object source, Ticket oldEntity, Ticket newEntity, String actor) {
         super(source);
         this.oldEntity = oldEntity;
         this.newEntity = newEntity;

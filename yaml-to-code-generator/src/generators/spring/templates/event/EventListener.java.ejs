@@ -12,12 +12,29 @@ package <%= ir.application.basePackage %>.event;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
+import org.springframework.transaction.event.TransactionalEventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.annotation.Propagation;
 import <%= ir.application.basePackage %>.entity.ActivityLog;
 import <%= ir.application.basePackage %>.repository.ActivityLogRepository;
+<%
+// Collect unique source entity repositories needed for ActivityLog FK resolution
+// When creating ActivityLog entries, we need to set the entity relationship
+// (e.g. setTicket(ticket)) rather than the FK column directly (setTicketId(string))
+// since the entity template omits FK fields in favor of @ManyToOne relationships.
+const srcEntityRepos = new Set();
+for (const ev of allEvents) {
+  const srcEntity = (ir.entities || []).find(e => e.name === ev.source);
+  if (srcEntity) {
+    srcEntityRepos.add(srcEntity.namePascal + 'Repository');
+  }
+}
+%>
+<% for (const repoName of srcEntityRepos) { %>
+import <%= ir.application.basePackage %>.repository.<%= repoName %>;
+<% } %>
 
 @Slf4j
 @Component
@@ -25,25 +42,44 @@ import <%= ir.application.basePackage %>.repository.ActivityLogRepository;
 public class <%= ir.application.appClassName %>EventListener {
 
     private final ActivityLogRepository activityLogRepository;
+<% for (const repoName of srcEntityRepos) { %>
+    private final <%= repoName %> <%= repoName.charAt(0).toLowerCase() + repoName.slice(1) %>;
+<% } %>
 
 <% for (const ev of allEvents) { -%>
 <%
 const srcEntity = (ir.entities || []).find(e => e.name === ev.source);
 const entityType = srcEntity ? srcEntity.namePascal : null;
-const isTracked = ev.trackedFields && ev.trackedFields.length > 0;
+const trackedSuffixes = ['Creado', 'Asignado', 'Cerrado', 'Modificado', 'Desasignado'];
+// Tracked mode must match what the builder generates in buildEventPublishBody
+// and what Event.java/EventPublisher.java generate for entity events.
+const isTracked = (ev.trackedFields && ev.trackedFields.length > 0)
+    || (entityType && trackedSuffixes.some(s => ev.namePascal.endsWith(s)));
 const isCreation = ev.namePascal.endsWith('Creado') && entityType;
 const isNonTracked = !isTracked && !isCreation;
+// ActivityLog uses entity relationship (e.g., setTicket(Ticket)) not FK column (setTicketId)
+// because the entity template omits FK fields in favor of @ManyToOne relationship fields.
+const logEntity = (ir.entities || []).find(e => e.name === 'ActivityLog');
+const relToSrc = srcEntity && logEntity
+    ? logEntity.relationships.find(r => r.type === 'many_to_one' && r.target === srcEntity.name)
+    : undefined;
+const relFieldPascal = relToSrc ? relToSrc.namePascal : null;
+const srcNameCamel = srcEntity ? srcEntity.nameCamel : null;
 %>
 
 <% if (isCreation) { %>
     @Async("auditTaskExecutor")
-    @EventListener
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void on<%= ev.namePascal %>(<%= ev.namePascal %>Event event) {
         log.info("Event received: {}", "<%= ev.name %>");
 
         ActivityLog logEntry = new ActivityLog();
+<% if (relFieldPascal && srcNameCamel) { %>
+        logEntry.set<%= relFieldPascal %>(<%= srcNameCamel %>Repository.getReferenceById(event.getNewEntity().getId()));
+<% } else { %>
         logEntry.setTicketId(event.getNewEntity().getId());
+<% } %>
         logEntry.setActionType("created");
         logEntry.setActorId(event.getActor());
         logEntry.setCreatedAt(java.time.LocalDateTime.now());
@@ -53,7 +89,7 @@ const isNonTracked = !isTracked && !isCreation;
 
 <% } else if (isTracked) { %>
     @Async("auditTaskExecutor")
-    @EventListener
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void on<%= ev.namePascal %>(<%= ev.namePascal %>Event event) {
         log.info("Event received: {}", "<%= ev.name %>");
@@ -62,7 +98,8 @@ const isNonTracked = !isTracked && !isCreation;
         var newEntity = event.getNewEntity();
 
 <%
-for (const field of ev.trackedFields) {
+const trackedFields = ev.trackedFields || [];
+for (const field of trackedFields) {
     const fieldPascal = field.charAt(0).toUpperCase() + field.slice(1);
     const isEnum =
         srcEntity &&
@@ -83,7 +120,11 @@ for (const field of ev.trackedFields) {
         )) {
 
             ActivityLog logEntry = new ActivityLog();
+<% if (relFieldPascal && srcNameCamel) { %>
+            logEntry.set<%= relFieldPascal %>(<%= srcNameCamel %>Repository.getReferenceById(newEntity.getId()));
+<% } else { %>
             logEntry.setTicketId(newEntity.getId());
+<% } %>
 
             logEntry.setActionType(
                 "<%= ev.nameCamel === 'ticketModificado'

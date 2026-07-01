@@ -1,3 +1,4 @@
+
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import FormField from '../components/FormField.vue';
@@ -6,14 +7,21 @@ import type { Ticket } from '../domain/ticket/ticket.types';
 import type { TicketStatus, TicketPriority } from '../domain/ticket/ticket.types';
 import { TicketStatus_LABELS, TicketPriority_LABELS } from '../domain/ticket/ticket.types';
 
+
 import { onMounted } from 'vue';
 
 import { useUserStore } from '../stores/user.store';
 const userStore = useUserStore();
 
 onMounted(() => {
+
   userStore.loadUsers();
+
 });
+
+
+
+
 
 const title = ref<string>('');
 
@@ -24,6 +32,7 @@ const status = ref<TicketStatus>('OPEN');
 const priority = ref<TicketPriority>('MEDIUM');
 
 const assigneeId = ref<string | null>(null);
+
 
 const emit = defineEmits<{
   submit: [data: Partial<Ticket>];
@@ -70,18 +79,17 @@ const formFields = computed(() => [
     htmlId: 'assigneeId',
     label: 'Assignee Id',
     type: 'fk-select' as const,
-    options: (userStore.users || []).map((item) => ({ value: item.id, label: item.name })),
+    options: (userStore.users || []).map(item => ({ value: item.id, label: item.name })),
     required: false,
   },
 ]);
 
 function handleSubmit() {
-  emit('submit', {
-    title: title.value,
+  emit('submit', {    title: title.value,
     description: description.value,
     status: status.value,
     priority: priority.value,
-    assigneeId: assigneeId.value,
+    assigneeId: assigneeId.value
   });
 }
 </script>
@@ -90,47 +98,25 @@ function handleSubmit() {
   <form @submit.prevent="handleSubmit" class="entity-form">
     <fieldset>
       <legend>Ticket Details</legend>
-      <FormField
-        v-for="field in formFields"
-        :key="field.htmlId"
-        v-model="refs[field.htmlId].value"
-        v-bind="field"
-      />
+    <FormField
+      v-for="field in formFields"
+      :key="field.htmlId"
+      v-model="refs[field.htmlId].value"
+      v-bind="field"
+    />
     </fieldset>
     <button type="submit" aria-label="Save Ticket">Save</button>
   </form>
 </template>
 
 <style scoped>
-.entity-form {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  max-width: 500px;
-}
-button {
-  padding: 10px 16px;
-  background: var(--color-primary, #42b883);
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
+.entity-form { display: flex; flex-direction: column; gap: 12px; max-width: 500px; }
+button { padding: 10px 16px; background: var(--color-primary, #42b883); color: white; border: none; border-radius: 4px; cursor: pointer; }
 @media (min-width: 768px) {
-  .entity-form {
-    max-width: 500px;
-  }
+  .entity-form { max-width: 500px; }
 }
 @media (max-width: 576px) {
-  button {
-    width: 100%;
-    min-height: 44px;
-    min-width: 44px;
-  }
-  .form-group input,
-  .form-group textarea,
-  .form-group select {
-    font-size: 16px;
-  }
+  button { width: 100%; min-height: 44px; min-width: 44px; }
+  .form-group input, .form-group textarea, .form-group select { font-size: 16px; }
 }
 </style>

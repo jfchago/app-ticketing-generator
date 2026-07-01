@@ -1,3 +1,5 @@
+
+
 <script setup lang="ts">
 import { useRouter } from 'vue-router';
 import { useTicketStore } from '../stores/ticket.store';
@@ -9,8 +11,10 @@ const router = useRouter();
 
 async function handleSubmit(data: Partial<Ticket>) {
   try {
+
     const result = await store.create(data as Omit<Ticket, 'id' | 'createdAt'>);
     router.push('/tickets/' + result?.id);
+
   } catch (e) {
     console.error('Failed to create', e);
   }
@@ -24,3 +28,4 @@ async function handleSubmit(data: Partial<Ticket>) {
     <TicketForm @submit="handleSubmit" />
   </div>
 </template>
+

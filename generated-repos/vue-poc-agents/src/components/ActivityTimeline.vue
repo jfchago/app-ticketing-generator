@@ -1,7 +1,7 @@
-<%# components/ActivityTimeline.vue.ejs — Scoped timeline feed for entity activity logs %>
+
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref, watch } from 'vue';
-import { use<%= entity.namePascal %>Store } from '../stores/<%= entity.nameCamel %>.store';
+import { useTicketStore } from '../stores/ticket.store';
 import { formatRelativeTime } from '../shared/date-utils';
 import LoaderSpinner from '../components/LoaderSpinner.vue';
 import ErrorState from '../components/ErrorState.vue';
@@ -11,7 +11,7 @@ const props = defineProps<{
   entityId: string;
 }>();
 
-const store = use<%= entity.namePascal %>Store();
+const store = useTicketStore();
 
 const sentinel = ref<HTMLElement | null>(null);
 let observer: IntersectionObserver | null = null;

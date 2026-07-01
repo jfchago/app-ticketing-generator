@@ -1,14 +1,12 @@
+
 <script setup lang="ts">
-const props = withDefaults(
-  defineProps<{
-    type: 'status' | 'priority' | 'assignee';
-    value: string | null | undefined;
-    colors?: Record<string, { bg: string; text: string }>;
-  }>(),
-  {
-    colors: () => ({}),
-  },
-);
+const props = withDefaults(defineProps<{
+  type: 'status' | 'priority' | 'assignee';
+  value: string | null | undefined;
+  colors?: Record<string, { bg: string; text: string }>;
+}>(), {
+  colors: () => ({}),
+});
 
 const STATUS_COLORS: Record<string, { bg: string; text: string }> = {
   open: { bg: 'var(--color-primary-light)', text: 'var(--color-primary-text)' },
@@ -46,27 +44,13 @@ const PRIORITY_COLORS: Record<string, { bg: string; text: string }> = {
     v-if="type !== 'assignee'"
     class="badge"
     :style="{
-      background:
-        colors?.[value?.toLowerCase() ?? '']?.bg ??
-        (type === 'status'
-          ? STATUS_COLORS[value?.toLowerCase() ?? '']?.bg
-          : PRIORITY_COLORS[value?.toLowerCase() ?? '']?.bg) ??
-        'var(--color-neutral-light)',
-      color:
-        colors?.[value?.toLowerCase() ?? '']?.text ??
-        (type === 'status'
-          ? STATUS_COLORS[value?.toLowerCase() ?? '']?.text
-          : PRIORITY_COLORS[value?.toLowerCase() ?? '']?.text) ??
-        'var(--color-neutral-text)',
+      background: colors?.[value?.toLowerCase() ?? '']?.bg ?? (type === 'status' ? STATUS_COLORS[value?.toLowerCase() ?? '']?.bg : PRIORITY_COLORS[value?.toLowerCase() ?? '']?.bg) ?? 'var(--color-neutral-light)',
+      color: colors?.[value?.toLowerCase() ?? '']?.text ?? (type === 'status' ? STATUS_COLORS[value?.toLowerCase() ?? '']?.text : PRIORITY_COLORS[value?.toLowerCase() ?? '']?.text) ?? 'var(--color-neutral-text)',
     }"
   >
     {{ value }}
   </span>
-  <span
-    v-else-if="value"
-    class="badge"
-    :style="{ background: 'var(--color-primary-light)', color: 'var(--color-primary-text)' }"
-  >
+  <span v-else-if="value" class="badge" :style="{ background: 'var(--color-primary-light)', color: 'var(--color-primary-text)' }">
     {{ value }}
   </span>
   <span v-else class="badge unassigned" :style="{ color: 'var(--color-neutral-text)' }">

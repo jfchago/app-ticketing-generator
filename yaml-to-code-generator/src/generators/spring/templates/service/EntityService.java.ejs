@@ -3,6 +3,9 @@ const gen = genEntities?.[entity.name];
 const hasCommentSupport = gen.serviceMethods.some(m => m.returnType === 'CommentDTO' && `${entity.namePascal}DTO` !== 'CommentDTO');
 const hasTransitions = Object.keys(gen.transitions).length > 0;
 const hasAddComment = entity.useCases?.some(uc => uc.name === 'add_comment');
+const hasHistory = entity.useCases?.some(uc => uc.name === 'get_history');
+const hasCursorPage = gen.serviceMethods.some(m => m.returnType?.startsWith('CursorPageDTO<'));
+const activityLogEntityName = hasHistory ? 'ActivityLog' : null;
 %>
 package <%= ir.application.basePackage %>.service;
 
@@ -23,6 +26,18 @@ import <%= ir.application.basePackage %>.repository.CommentRepository;
 import <%= ir.application.basePackage %>.dto.CommentMapper;
 import <%= ir.application.basePackage %>.dto.CommentDTO;
 <% } %>
+<% if (hasCursorPage) { %>
+import <%= ir.application.basePackage %>.dto.CursorPageDTO;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+<% } %>
+<% if (hasHistory && gen.hasActivityLog) { %>
+import <%= ir.application.basePackage %>.entity.ActivityLog;
+import <%= ir.application.basePackage %>.repository.ActivityLogRepository;
+import <%= ir.application.basePackage %>.dto.ActivityLogDTO;
+import <%= ir.application.basePackage %>.dto.ActivityLogMapper;
+<% } %>
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,7 +49,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import <%= ir.application.basePackage %>.event.<%= ev.namePascal %>EventPublisher;
 <% } } } %>
 import java.util.List;
-<% if (hasAddComment) { %>
+<% if (hasAddComment || hasHistory) { %>
 import java.util.UUID;
 import java.time.LocalDateTime;
 <% } %>
@@ -50,11 +65,17 @@ public class <%= entity.namePascal %>Service {
 <% if (hasCommentSupport) { %>
     private final CommentRepository commentRepository;
 <% } %>
+<% if (hasHistory && gen.hasActivityLog) { %>
+    private final ActivityLogRepository activityLogRepository;
+<% } %>
 <% if (gen.needsMapper) { %>
     private final <%= entity.namePascal %>Mapper <%= entity.nameCamel %>Mapper;
 <% } %>
 <% if (hasCommentSupport) { %>
     private final CommentMapper commentMapper;
+<% } %>
+<% if (hasHistory && gen.hasActivityLog) { %>
+    private final ActivityLogMapper activityLogMapper;
 <% } %>
 <% if (gen.emitsEvents && ir.events) {
   const matchingEvents = ir.events.filter(ev => ev.namePascal.startsWith(entity.namePascal));

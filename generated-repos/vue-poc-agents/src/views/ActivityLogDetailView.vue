@@ -1,7 +1,10 @@
+
+
 <script setup lang="ts">
 import { onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useActivityLogStore } from '../stores/activityLog.store';
+
 
 import { formatDate } from '../shared/date-utils';
 
@@ -9,17 +12,25 @@ import LoaderSpinner from '../components/LoaderSpinner.vue';
 import ErrorState from '../components/ErrorState.vue';
 import EmptyState from '../components/EmptyState.vue';
 
+
+
 const store = useActivityLogStore();
 const route = useRoute();
 const router = useRouter();
 
 onMounted(() => {
+
   store.getById(route.params.id as string);
+
+
 });
 
 function retryLoad() {
+
   store.getById(route.params.id as string);
+
 }
+
 </script>
 
 <template>
@@ -27,28 +38,41 @@ function retryLoad() {
     <button @click="router.back()" class="btn-back" aria-label="Go back">← Back</button>
 
     <div aria-live="polite">
-      <LoaderSpinner v-if="store.loading" />
-      <ErrorState v-else-if="store.error" :message="store.error" :retry-fn="retryLoad" />
-      <EmptyState
-        v-else-if="!store.current"
-        :entity-name="'ActivityLog Detail'"
-        message="Not found"
-      />
-      <div v-else>
-        <h1>{{ store.current.description }}</h1>
+    <LoaderSpinner v-if="store.loading" />
+    <ErrorState v-else-if="store.error" :message="store.error" :retry-fn="retryLoad" />
+    <EmptyState v-else-if="!store.current" :entity-name="'ActivityLog Detail'" message="Not found" />
+    <div v-else>
 
-        <div class="meta">
-          <span>ActionType: {{ store.current.actionType }}</span>
+      <h1>{{ store.current.description }}</h1>
 
-          <span>FieldName: {{ store.current.fieldName }}</span>
 
-          <span>OldValue: {{ store.current.oldValue }}</span>
 
-          <span>NewValue: {{ store.current.newValue }}</span>
 
-          <span>CreatedAt: {{ formatDate(store.current.createdAt) }}</span>
-        </div>
+      <div class="meta">
+
+        <span>ActionType: {{ store.current.actionType }}</span>
+
+
+        <span>ActorName: {{ store.current.actorName }}</span>
+
+
+        <span>FieldName: {{ store.current.fieldName }}</span>
+
+
+        <span>OldValue: {{ store.current.oldValue }}</span>
+
+
+        <span>NewValue: {{ store.current.newValue }}</span>
+
+
+        <span>CreatedAt: {{ formatDate(store.current.createdAt) }}</span>
+
+
       </div>
+
+
+
+    </div>
     </div>
   </div>
 </template>

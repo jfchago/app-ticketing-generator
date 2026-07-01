@@ -51,7 +51,7 @@ function buildVueEntity(entity: EntityDef, ir: IR): VueGeneratedEntity {
   const formFields = buildFormFields(entity);
   const components = buildComponentFlags(entity, ir);
   const ruleChecks = buildRuleChecks(entity);
-  const useCases = buildUseCases(entity, ir, commentEntity);
+  const useCases = buildUseCases(entity, ir, commentEntity, activityLogEntity);
   const storeActions = deriveStoreActions(entity, useCases, hasCommentSupport);
 
   return {
@@ -166,7 +166,7 @@ function buildTransitionOptionsExpr(entity: EntityDef): string | undefined {
   }
   // Template: VALID_TRANSITIONS[{STATUS}].map(s => ({ value: s, label: EnumType_LABELS[s] ?? s }))
   // The template will replace {STATUS} with the actual status expression
-  return `VALID_TRANSITIONS[{STATUS}].map(s => ({ value: s, label: ${statusField.type}_LABELS[s] ?? s }))`;
+  return `VALID_TRANSITIONS[{STATUS}].map(s => ({ value: s, label: ${statusField.type}_LABELS[s as ${statusField.type}] ?? s }))`;
 }
 
 function buildDisplayFields(entity: EntityDef): VueDisplayField[] {
@@ -298,8 +298,10 @@ function buildResponseType(
   uc: UseCaseDef,
   isList: boolean,
   commentEntity: EntityDef | undefined,
+  activityLogEntity: EntityDef | undefined,
 ): string {
   if (uc.name === 'add_comment' && commentEntity) return commentEntity.namePascal;
+  if (uc.name === 'get_history' && activityLogEntity) return `PaginatedResponse<${activityLogEntity.namePascal}>`;
   if (!uc.needsPayload && uc.needsId && uc.httpMethod === 'DELETE') return 'void';
   if (isList) return `${entity.namePascal}[]`;
   return entity.namePascal;
@@ -373,6 +375,7 @@ function buildUseCases(
   entity: EntityDef,
   ir: IR,
   commentEntity: EntityDef | undefined,
+  activityLogEntity: EntityDef | undefined,
 ): Record<string, VueUseCaseDef> {
   const result: Record<string, VueUseCaseDef> = {};
 
@@ -397,7 +400,7 @@ function buildUseCases(
         ),
         hasBody: uc.needsPayload,
         bodyType: uc.needsPayload ? 'Record<string, string>' : 'void',
-        responseType: buildResponseType(entity, uc, isList, commentEntity),
+        responseType: buildResponseType(entity, uc, isList, commentEntity, activityLogEntity),
       },
       storeAction: {
         actionName: uc.methodName,
@@ -416,11 +419,11 @@ function buildUseCases(
       },
       methodSignature: {
         params: buildMethodParams(entity, uc),
-        returnType: buildResponseType(entity, uc, isList, commentEntity),
+        returnType: buildResponseType(entity, uc, isList, commentEntity, activityLogEntity),
       },
       actionCategory,
       needsId: uc.needsId,
-      returnType: buildResponseType(entity, uc, isList, commentEntity),
+      returnType: buildResponseType(entity, uc, isList, commentEntity, activityLogEntity),
     };
   }
 
@@ -639,7 +642,7 @@ if (!this.history) this.history = { entries: [], cursor: null, hasMore: false, l
 if (!this.history.hasMore || this.history.loadingMore) return;
 this.history.loadingMore = true;
 try {
-  const page = await service.getHistory(this.entityId, undefined, this.history.cursor ?? undefined);
+  const page = await service.getHistory(entityId);
   this.history.entries.push(...page.items);
   this.history.cursor = page.nextCursor;
   this.history.hasMore = page.hasMore;

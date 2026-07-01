@@ -2,6 +2,8 @@
 import type { Ticket } from './ticket.types';
 import type { TicketStatus, TicketPriority } from './ticket.types';
 import type { Comment } from '../comment/comment.types';
+import type { ActivityLog } from '../activityLog/activityLog.types';
+import type { PaginatedResponse } from '../../infrastructure/api-client';
 
 export interface TicketRepository {
   getAll(): Promise<Ticket[]>;
@@ -12,4 +14,5 @@ export interface TicketRepository {
   assignUser(ticketId: string, userId: string): Promise<Ticket>;
   unassignUser(ticketId: string): Promise<void>;
   addComment(ticketId: string, text: string): Promise<Comment>;
+  getHistory(entityId: string): Promise<PaginatedResponse<ActivityLog>>;
 }

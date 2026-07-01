@@ -1,3 +1,5 @@
+
+
 <script setup lang="ts">
 import type { ActivityLog } from '../domain/activityLog/activityLog.types';
 
@@ -11,16 +13,11 @@ defineEmits<{
 </script>
 
 <template>
-  <div
-    class="card"
-    role="button"
-    tabindex="0"
-    :aria-label="item.description"
-    @click="$emit('click', item.id)"
-    @keydown.enter="$emit('click', item.id)"
-    @keydown.space.prevent="$emit('click', item.id)"
-  >
+  <div class="card" role="button" tabindex="0" :aria-label="item.description ?? ''" @click="$emit('click', item.id)" @keydown.enter="$emit('click', item.id)" @keydown.space.prevent="$emit('click', item.id)">
+
     <h3>{{ item.description }}</h3>
+
+
   </div>
 </template>
 

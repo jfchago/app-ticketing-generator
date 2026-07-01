@@ -9,13 +9,17 @@ import org.springframework.context.ApplicationEvent;
 @Getter
 public class TicketCreadoEvent extends ApplicationEvent {
 
-    private final Ticket entity;
+    private final Ticket oldEntity;
+    private final Ticket newEntity;
+    private final String actor;
 
 
 
-    public TicketCreadoEvent(Object source, Ticket entity) {
+    public TicketCreadoEvent(Object source, Ticket oldEntity, Ticket newEntity, String actor) {
         super(source);
-        this.entity = entity;
+        this.oldEntity = oldEntity;
+        this.newEntity = newEntity;
+        this.actor = actor;
     }
 
 }

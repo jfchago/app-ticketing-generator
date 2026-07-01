@@ -1,16 +1,13 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 
-const props = withDefaults(
-  defineProps<{
-    message: string;
-    errorType?: string;
-    retryFn?: () => void;
-  }>(),
-  {
-    errorType: 'unknown',
-  },
-);
+const props = withDefaults(defineProps<{
+  message: string;
+  errorType?: string;
+  retryFn?: () => void;
+}>(), {
+  errorType: 'unknown',
+});
 
 const emit = defineEmits<{
   retry: [];
@@ -39,9 +36,7 @@ function handleRetry() {
     <div class="error-icon" aria-hidden="true">&#9888;</div>
     <div class="error-type-badge">{{ errorLabel }}</div>
     <p class="error-message">{{ message }}</p>
-    <button v-if="retryFn" class="btn-primary" aria-label="Retry loading" @click="handleRetry">
-      Retry
-    </button>
+    <button v-if="retryFn" class="btn-primary" aria-label="Retry loading" @click="handleRetry">Retry</button>
   </div>
 </template>
 

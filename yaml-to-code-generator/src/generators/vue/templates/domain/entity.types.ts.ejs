@@ -3,6 +3,9 @@
 <% if (gen?.hasCommentSupport && gen?.commentEntity) { -%>
 import type { <%= gen.commentEntity.namePascal %> } from '../<%= gen.commentEntity.nameCamel %>/<%= gen.commentEntity.nameCamel %>.types';
 <% } -%>
+<% if (gen?.hasActivityLog && gen?.activityLogEntity) { -%>
+import type { <%= gen.activityLogEntity.namePascal %> } from '../<%= gen.activityLogEntity.nameCamel %>/<%= gen.activityLogEntity.nameCamel %>.types';
+<% } -%>
 <%
 const entityEnumTypes = ir.enums.filter(enumDef => entity.attributes.some(a => a.isEnum && a.type === enumDef.namePascal));
 for (const enumDef of entityEnumTypes) { -%>

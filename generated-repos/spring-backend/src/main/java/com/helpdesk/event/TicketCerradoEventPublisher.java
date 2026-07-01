@@ -14,8 +14,8 @@ public class TicketCerradoEventPublisher {
     private final ApplicationEventPublisher eventPublisher;
 
 
-    public void publish(Ticket entity) {
-        TicketCerradoEvent event = new TicketCerradoEvent(this, entity);
+    public void publish(Ticket oldEntity, Ticket newEntity, String actor) {
+        TicketCerradoEvent event = new TicketCerradoEvent(this, oldEntity, newEntity, actor);
         eventPublisher.publishEvent(event);
     }
 

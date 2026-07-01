@@ -1,66 +1,94 @@
+
 import { createRouter, createWebHistory } from 'vue-router';
+
 
 import TicketListView from '../../views/TicketListView.vue';
 
+
+
 import UserListView from '../../views/UserListView.vue';
 
+
+
+
+
+
 import AppShell from '../../components/AppShell.vue';
+
 
 const router = createRouter({
   history: createWebHistory(),
   routes: [
     {
       path: '/',
-      redirect: '/tickets',
+      redirect: '/tickets'
     },
     {
       path: '/',
       component: AppShell,
       children: [
+
+
         {
           path: 'tickets',
           name: 'ticket-list',
           component: TicketListView,
-          meta: { breadcrumb: 'Tickets' },
+          meta: { breadcrumb: 'Tickets' }
         },
+
 
         {
           path: 'tickets/new',
           name: 'create-ticket',
           component: () => import('../../views/CreateTicketView.vue'),
-          meta: { breadcrumb: 'Create Ticket' },
+          meta: { breadcrumb: 'Create Ticket' }
         },
+
 
         {
           path: 'tickets/:id',
           name: 'ticket-detail',
           component: () => import('../../views/TicketDetailView.vue'),
-          meta: { breadcrumb: 'Ticket Detail' },
+          meta: { breadcrumb: 'Ticket Detail' }
         },
+
+
 
         {
           path: 'users',
           name: 'user-list',
           component: UserListView,
-          meta: { breadcrumb: 'Users' },
+          meta: { breadcrumb: 'Users' }
         },
+
+
 
         {
           path: 'users/:id',
           name: 'user-detail',
           component: () => import('../../views/UserDetailView.vue'),
-          meta: { breadcrumb: 'User Detail' },
+          meta: { breadcrumb: 'User Detail' }
         },
+
+
+
+
+
+
+
+
 
         {
           path: 'activity-logs/:id',
           name: 'activityLog-detail',
           component: () => import('../../views/ActivityLogDetailView.vue'),
-          meta: { breadcrumb: 'ActivityLog Detail' },
+          meta: { breadcrumb: 'ActivityLog Detail' }
         },
-      ],
-    },
-  ],
+
+
+      ]
+    }
+  ]
 });
 
 export default router;

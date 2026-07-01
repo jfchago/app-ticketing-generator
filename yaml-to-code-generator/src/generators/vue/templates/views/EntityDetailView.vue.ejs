@@ -16,6 +16,9 @@ import Badge from '../components/Badge.vue';
   );
   if (enumBadgeFields.length > 0) {
 %>
+<% if (gen.transitionOptionsExpr) { %>
+import type { <%- enumBadgeFields.filter(f => f.fieldRole === 'status').map(f => f.tsType).join(', ') %> } from '../domain/<%= entity.nameCamel %>/<%= entity.nameCamel %>.types';
+<% } %>
 import { <%- enumBadgeFields.map(f => `${f.tsType}_LABELS`).join(', ') %> } from '../domain/<%= entity.nameCamel %>/<%= entity.nameCamel %>.types';
 <% } %>
 <% } %>
@@ -60,23 +63,26 @@ const newStatus = ref('');
 const transitioning = ref(false);
 
 const availableTransitions = computed(() => {
-  if (!<%= selected %>) return [];
-  const transitions = VALID_TRANSITIONS[<%= selected %>.status] ?? [];
-  return transitions.filter(s => s !== <%= selected %>.status);
+  const current = <%= selected %>;
+  if (!current) return [];
+  const transitions = VALID_TRANSITIONS[current.status] ?? [];
+  return transitions.filter(s => s !== current.status);
 });
 
 <% if (gen.transitionOptionsExpr) { %>
 const transitionOptions = computed(() => {
-  if (!<%= selected %>) return [];
-  return <%- gen.transitionOptionsExpr.replace(/\{STATUS\}/g, `${selected}.status`) %>;
+  const current = <%= selected %>;
+  if (!current) return [];
+  return <%- gen.transitionOptionsExpr.replace(/\{STATUS\}/g, `current.status`) %>;
 });
 <% } %>
 
 async function handleStatusChange() {
-  if (!newStatus.value || !<%= selected %>) return;
+  const current = <%= selected %>;
+  if (!newStatus.value || !current) return;
   transitioning.value = true;
   try {
-    await store.updateStatus(<%= selected %>.id, newStatus.value as any);
+    await store.updateStatus(current.id, newStatus.value as any);
     newStatus.value = '';
   } finally {
     transitioning.value = false;

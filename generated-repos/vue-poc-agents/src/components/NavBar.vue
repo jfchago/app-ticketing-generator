@@ -1,3 +1,4 @@
+
 <script setup lang="ts">
 defineEmits<{
   navigate: [];
@@ -8,6 +9,8 @@ defineEmits<{
   <nav class="navbar" aria-label="Main navigation">
     <h2 class="navbar-title">Mini HelpDesk</h2>
     <ul class="nav-list">
+
+
       <li>
         <router-link
           :to="'/tickets'"
@@ -20,6 +23,8 @@ defineEmits<{
         </router-link>
       </li>
 
+
+
       <li>
         <router-link
           :to="'/users'"
@@ -31,6 +36,12 @@ defineEmits<{
           Users
         </router-link>
       </li>
+
+
+
+
+
+
     </ul>
   </nav>
 </template>

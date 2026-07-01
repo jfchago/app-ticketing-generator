@@ -68,6 +68,16 @@
      bp-lg: 1024px — desktops
    */
 
+  /* Activity Timeline colors */
+  --color-timeline-created: #28a745;
+  --color-timeline-created-bg: #d4edda;
+  --color-timeline-status-changed: #17a2b8;
+  --color-timeline-status-changed-bg: #d1ecf1;
+  --color-timeline-assigned: #e6a700;
+  --color-timeline-assigned-bg: #fef3cd;
+  --color-timeline-priority-changed: #6f42c1;
+  --color-timeline-priority-changed-bg: #e8d5f5;
+
   /* Accessibility */
   --color-focus-ring: #4A90D9;
   --color-primary-text: #0f3b21;
