@@ -213,6 +213,7 @@ function eventASTToIR(ast: EventAST): EventDef {
       required: f.required,
     })),
     handlers: ast.handlers,
+    trackedFields: ast.trackedFields,
   };
 }
 

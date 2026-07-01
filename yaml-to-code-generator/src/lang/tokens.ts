@@ -79,6 +79,10 @@ export const Handlers = createToken({
   name: 'Handlers',
   pattern: new RegExp(wordBoundary('handlers')),
 });
+export const TrackedFields = createToken({
+  name: 'TrackedFields',
+  pattern: new RegExp(wordBoundary('trackedFields')),
+});
 export const Input = createToken({
   name: 'Input',
   pattern: new RegExp(wordBoundary('input')),
@@ -179,6 +183,7 @@ export const allTokens = [
   Source,
   Payload,
   Handlers,
+  TrackedFields,
   Input,
   Time,
   Within,

@@ -363,6 +363,7 @@ events:
     asignadoId: String;
     asignadoNombre: String;
     }
+    trackedFields: [ assigneeId ];
     handlers: [ EmailService ];
     }'
   - 'event TicketCerrado {
@@ -370,7 +371,26 @@ events:
     payload {
     id: String;
     }
+    trackedFields: [ status ];
     handlers: [ DashboardService ];
+    }'
+  - 'event TicketModificado {
+    source: Ticket;
+    payload {
+    id: String;
+    priority: String;
+    }
+    trackedFields: [ priority ];
+    handlers: [ ActivityLogService ];
+    }'
+  - 'event TicketDesasignado {
+    source: Ticket;
+    payload {
+    id: String;
+    previousAssigneeId: String;
+    }
+    trackedFields: [ assigneeId ];
+    handlers: [ ActivityLogService ];
     }'
   - 'event UsuarioResponde {
     source: Ticket;

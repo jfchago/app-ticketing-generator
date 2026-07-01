@@ -86,4 +86,17 @@ public class <%= entity.namePascal %>Service {
         return allowed != null && allowed.contains(to);
     }
 <% } %>
+<% if (gen.emitsEvents) { %>
+    private String resolveActor() {
+        try {
+            var auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+            if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getName())) {
+                return auth.getName();
+            }
+        } catch (Exception e) {
+            // Fall through to system default
+        }
+        return "system";
+    }
+<% } %>
 }

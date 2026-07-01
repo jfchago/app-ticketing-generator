@@ -115,6 +115,8 @@ export interface SpringEventPublisher {
   name: string;
   eventClass: string;
   eventName: string;
+  /** Entity attribute names tracked for change detection (before/after diff) */
+  trackedFields?: string[];
 }
 
 export interface SpringSeedData {

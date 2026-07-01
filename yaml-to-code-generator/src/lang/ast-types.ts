@@ -75,6 +75,7 @@ export interface EventAST extends BehaviorNode {
   source?: string;
   payload: { name: string; type: string; required: boolean }[];
   handlers: string[];
+  trackedFields?: string[];
 }
 
 // ── Decision ─────────────────────────────────────────────────────────

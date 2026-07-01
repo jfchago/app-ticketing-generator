@@ -212,31 +212,31 @@ function buildServiceMethod(
       duplicateCheck += `if (${entity.nameCamel}Repository.existsBy${attr.namePascal}(dto.get${attr.namePascal}())) { throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.CONFLICT, "${entity.namePascal} with this ${attr.name} already exists"); }\n        `;
     }
     const mtoResolution = buildManyToOneResolutionBody(entity, ir, 'dto', entity.nameCamel);
-    body = `${entity.namePascal} ${entity.nameCamel} = ${entity.nameCamel}Mapper.toEntity(dto);\n        ${mtoResolution ? mtoResolution + '\n        ' : ''}${duplicateCheck}${ruleBody}\n        ${entity.nameCamel}Repository.save(${entity.nameCamel});\n        ${buildEventPublishBody(ir, entity, uc.name)}\n        return ${entity.nameCamel}Mapper.toDTO(${entity.nameCamel});`;
+    body = `${entity.namePascal} ${entity.nameCamel} = ${entity.nameCamel}Mapper.toEntity(dto);\n        ${mtoResolution ? mtoResolution + '\n        ' : ''}${duplicateCheck}${ruleBody}\n        ${entity.nameCamel}Repository.save(${entity.nameCamel});\n        ${entity.namePascal} old${entity.namePascal} = null;\n        String actor = resolveActor();\n        ${buildEventPublishBody(ir, entity, uc.name)}\n        return ${entity.nameCamel}Mapper.toDTO(${entity.nameCamel});`;
   } else if (uc.name === 'update_status' && statusAttr) {
     returnType = `${entity.namePascal}DTO`;
     params = `${pkJavaType} id, String status`;
     annotations = ['@Transactional'];
     transitionGuard = buildTransitionGuard(entity);
-    body = `var ${entity.nameCamel} = ${entity.nameCamel}Repository.findById(id).orElseThrow(() -> new RuntimeException("${entity.namePascal} not found: " + id));\n        ${buildRuleCheckBody(ruleChecks, entity, uc.name)}\n        ${transitionGuard}\n        ${entity.nameCamel}.setStatus(${statusAttr.type}.valueOf(status));\n        ${entity.nameCamel}Repository.save(${entity.nameCamel});\n        ${buildEventPublishBody(ir, entity, uc.name)}\n        return ${entity.nameCamel}Mapper.toDTO(${entity.nameCamel});`;
+    body = `var ${entity.nameCamel} = ${entity.nameCamel}Repository.findById(id).orElseThrow(() -> new RuntimeException("${entity.namePascal} not found: " + id));\n        ${entity.namePascal} old${entity.namePascal} = new ${entity.namePascal}();\n        old${entity.namePascal}.setStatus(${entity.nameCamel}.getStatus());\n        ${buildRuleCheckBody(ruleChecks, entity, uc.name)}\n        ${transitionGuard}\n        ${entity.nameCamel}.setStatus(${statusAttr.type}.valueOf(status));\n        ${entity.nameCamel}Repository.save(${entity.nameCamel});\n        String actor = resolveActor();\n        ${buildEventPublishBody(ir, entity, uc.name)}\n        return ${entity.nameCamel}Mapper.toDTO(${entity.nameCamel});`;
   } else if (uc.name === 'update_priority' && priorityAttr) {
     returnType = `${entity.namePascal}DTO`;
     params = `${pkJavaType} id, String priority`;
     annotations = ['@Transactional'];
-    body = `var ${entity.nameCamel} = ${entity.nameCamel}Repository.findById(id).orElseThrow(() -> new RuntimeException("${entity.namePascal} not found: " + id));\n        ${buildRuleCheckBody(ruleChecks, entity, uc.name)}\n        ${entity.nameCamel}.setPriority(${priorityAttr.type}.valueOf(priority));\n        ${entity.nameCamel}Repository.save(${entity.nameCamel});\n        return ${entity.nameCamel}Mapper.toDTO(${entity.nameCamel});`;
+    body = `var ${entity.nameCamel} = ${entity.nameCamel}Repository.findById(id).orElseThrow(() -> new RuntimeException("${entity.namePascal} not found: " + id));\n        ${entity.namePascal} old${entity.namePascal} = new ${entity.namePascal}();\n        old${entity.namePascal}.setPriority(${entity.nameCamel}.getPriority());\n        ${buildRuleCheckBody(ruleChecks, entity, uc.name)}\n        ${entity.nameCamel}.setPriority(${priorityAttr.type}.valueOf(priority));\n        ${entity.nameCamel}Repository.save(${entity.nameCamel});\n        String actor = resolveActor();\n        ${buildEventPublishBody(ir, entity, uc.name)}\n        return ${entity.nameCamel}Mapper.toDTO(${entity.nameCamel});`;
   } else if (uc.name === 'assign_user' && assigneeRel) {
     returnType = `${entity.namePascal}DTO`;
     params = `${pkJavaType} id, String userId`;
     annotations = ['@Transactional'];
     const targetCamel = assigneeRel.target.charAt(0).toLowerCase() + assigneeRel.target.slice(1);
     const assigneeSetter = `set${assigneeRel.namePascal.charAt(0).toUpperCase() + assigneeRel.namePascal.slice(1)}`;
-    body = `var ${entity.nameCamel} = ${entity.nameCamel}Repository.findById(id).orElseThrow(() -> new RuntimeException("${entity.namePascal} not found: " + id));\n        ${entity.nameCamel}.${assigneeSetter}(${targetCamel}Repository.getReferenceById(userId));\n        ${entity.nameCamel}Repository.save(${entity.nameCamel});\n        ${buildEventPublishBody(ir, entity, uc.name)}\n        return ${entity.nameCamel}Mapper.toDTO(${entity.nameCamel});`;
+    body = `var ${entity.nameCamel} = ${entity.nameCamel}Repository.findById(id).orElseThrow(() -> new RuntimeException("${entity.namePascal} not found: " + id));\n        ${entity.namePascal} old${entity.namePascal} = new ${entity.namePascal}();\n        old${entity.namePascal}.setAssigneeId(${entity.nameCamel}.getAssigneeId());\n        ${entity.nameCamel}.${assigneeSetter}(${targetCamel}Repository.getReferenceById(userId));\n        ${entity.nameCamel}Repository.save(${entity.nameCamel});\n        String actor = resolveActor();\n        ${buildEventPublishBody(ir, entity, uc.name)}\n        return ${entity.nameCamel}Mapper.toDTO(${entity.nameCamel});`;
   } else if (uc.name === 'unassign_user' && assigneeRel) {
     returnType = `${entity.namePascal}DTO`;
     params = `${pkJavaType} id`;
     annotations = ['@Transactional'];
     const assigneeSetter = `set${assigneeRel.namePascal.charAt(0).toUpperCase() + assigneeRel.namePascal.slice(1)}`;
-    body = `var ${entity.nameCamel} = ${entity.nameCamel}Repository.findById(id).orElseThrow(() -> new RuntimeException("${entity.namePascal} not found: " + id));\n        ${entity.nameCamel}.${assigneeSetter}(null);\n        ${entity.nameCamel}Repository.save(${entity.nameCamel});\n        return ${entity.nameCamel}Mapper.toDTO(${entity.nameCamel});`;
+    body = `var ${entity.nameCamel} = ${entity.nameCamel}Repository.findById(id).orElseThrow(() -> new RuntimeException("${entity.namePascal} not found: " + id));\n        ${entity.namePascal} old${entity.namePascal} = new ${entity.namePascal}();\n        old${entity.namePascal}.setAssigneeId(${entity.nameCamel}.getAssigneeId());\n        ${entity.nameCamel}.${assigneeSetter}(null);\n        ${entity.nameCamel}Repository.save(${entity.nameCamel});\n        String actor = resolveActor();\n        ${buildEventPublishBody(ir, entity, uc.name)}\n        return ${entity.nameCamel}Mapper.toDTO(${entity.nameCamel});`;
   } else if (uc.name === 'add_comment' && commentEntity && commentRel) {
     const commentPascal = commentEntity.namePascal;
     const commentCamel = commentEntity.nameCamel;
@@ -343,13 +343,15 @@ function buildEventPublishBody(ir: IR, entity: EntityDef, action: string): strin
     create: 'Creado',
     assign_user: 'Asignado',
     update_status: 'Cerrado',
+    update_priority: 'Modificado',
+    unassign_user: 'Desasignado',
   };
   const suffix = actionSuffixMap[action];
   if (!suffix) return '';
   const matching = events.filter((ev) => ev.namePascal.endsWith(suffix));
   if (matching.length === 0) return '';
   return matching
-    .map((ev) => `${ev.nameCamel}EventPublisher.publish(${entity.nameCamel});`)
+    .map((ev) => `${ev.nameCamel}EventPublisher.publish(old${entity.namePascal}, ${entity.nameCamel}, actor);`)
     .join('\n        ');
 }
 
@@ -473,6 +475,7 @@ function buildEventPublishers(ir: IR, entity: EntityDef): SpringEventPublisher[]
       name: ev.name,
       eventClass: `${ev.namePascal}Event`,
       eventName: ev.nameCamel,
+      trackedFields: ev.trackedFields,
     }));
 }
 
