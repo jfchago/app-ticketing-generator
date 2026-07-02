@@ -5,7 +5,7 @@ const detailAction = gen?.storeActions?.find(a => a.actionCategory === 'readById
 const selected = `store.${gen.selectedPropertyName}`;
 %>
 <script setup lang="ts">
-import { onMounted } from 'vue';
+import { onMounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { use<%= entity.namePascal %>Store } from '../stores/<%= entity.nameCamel %>.store';
 <% if (gen.components.hasAnyBadgeField) { %>
@@ -40,22 +40,42 @@ const store = use<%= entity.namePascal %>Store();
 const route = useRoute();
 const router = useRouter();
 
-onMounted(() => {
 <% if (detailAction) { %>
-  store.<%= detailAction.name %>(route.params.id as string);
+const loadEntity = async (id: string) => {
+  await store.<%= detailAction.name %>(id);
+};
 <% } else { %>
-  store.getById(route.params.id as string);
+const loadEntity = async (id: string) => {
+  await store.getById(id);
+};
 <% } %>
+
 <% if (gen?.hasActivityLog) { %>
-  if (<%= selected %>) store.<%= gen.activityLogActionName %>(<%= selected %>.id);
+const loadActivity = async () => {
+  await store.clearHistory();
+  const current = <%= selected %>;
+  if (current) store.<%= gen.activityLogActionName %>(current.id);
+};
+<% } %>
+
+onMounted(async () => {
+  await loadEntity(route.params.id as string);
+<% if (gen?.hasActivityLog) { %>
+  await loadActivity();
 <% } %>
 });
 
-function retryLoad() {
-<% if (detailAction) { %>
-  store.<%= detailAction.name %>(route.params.id as string);
-<% } else { %>
-  store.getById(route.params.id as string);
+watch(() => route.params.id, async (id) => {
+  await loadEntity(id as string);
+<% if (gen?.hasActivityLog) { %>
+  await loadActivity();
+<% } %>
+});
+
+async function retryLoad() {
+  await loadEntity(route.params.id as string);
+<% if (gen?.hasActivityLog) { %>
+  await loadActivity();
 <% } %>
 }
 <% if (gen?.transitions && Object.keys(gen.transitions).length > 0) { %>

@@ -1,7 +1,7 @@
 
 
 <script setup lang="ts">
-import { onMounted } from 'vue';
+import { onMounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useTicketStore } from '../stores/ticket.store';
 
@@ -28,19 +28,32 @@ const store = useTicketStore();
 const route = useRoute();
 const router = useRouter();
 
-onMounted(() => {
 
-  store.getById(route.params.id as string);
+const loadEntity = async (id: string) => {
+  await store.getById(id);
+};
 
 
-  if (store.current) store.getHistory(store.current.id);
+const loadActivity = async () => {
+  await store.clearHistory();
+  const current = store.current;
+  if (current) store.getHistory(current.id);
+};
 
+
+onMounted(async () => {
+  await loadEntity(route.params.id as string);
+  await loadActivity();
 });
 
-function retryLoad() {
+watch(() => route.params.id, async (id) => {
+  await loadEntity(id as string);
+  await loadActivity();
+});
 
-  store.getById(route.params.id as string);
-
+async function retryLoad() {
+  await loadEntity(route.params.id as string);
+  await loadActivity();
 }
 
 const newStatus = ref('');
