@@ -109,6 +109,7 @@ describe('Spring Golden Master', () => {
     expect(content).toContain('private TicketPriority priority');
     expect(content).toContain('private LocalDateTime createdAt');
     expect(content).toContain('private LocalDateTime updatedAt');
+    expect(content).toContain('@OrderBy("createdAt DESC")');
   });
 
   it('Comment DTO and service expose the enriched author payload', () => {

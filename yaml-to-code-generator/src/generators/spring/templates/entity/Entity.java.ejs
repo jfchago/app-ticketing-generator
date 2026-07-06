@@ -79,6 +79,9 @@ public class <%= entity.namePascal %> {
 
 <% } else if (gen.oneToManyRelations.some(r => r.name === rel.name)) { %>
     @OneToMany(mappedBy = "<%= entity.nameCamel %>", cascade = CascadeType.ALL, orphanRemoval = true)
+<% if (rel.targetPascal === 'Comment') { %>
+    @OrderBy("createdAt DESC")
+<% } %>
     @Builder.Default
     private List<<%= rel.targetPascal %>> <%= rel.name %> = new ArrayList<>();
 

@@ -148,6 +148,7 @@ public class Ticket {
 
 
     @OneToMany(mappedBy = "ticket", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("createdAt DESC")
     @Builder.Default
     private List<Comment> comments = new ArrayList<>();
 
