@@ -22,6 +22,9 @@ public class CommentDTO {
     private LocalDateTime createdAt;
 
 
+    private String authorName;
+
+
 
 
 

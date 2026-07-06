@@ -19,6 +19,9 @@ export interface <%= entity.namePascal %> {
 <% for (const attr of entity.attributes) { -%>
   <%= attr.name %>: <%= attr.tsType %>;
 <% } -%>
+<% if (entity.namePascal === 'Comment') { -%>
+  authorName: string;
+<% } -%>
 <% for (const rel of entity.relationships) { -%>
 <% if (rel.type === 'one_to_many') { -%>
   <%= rel.name %>: <%= rel.targetPascal %>[];

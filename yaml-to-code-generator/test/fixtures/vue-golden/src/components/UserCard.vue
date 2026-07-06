@@ -1,6 +1,10 @@
+
+
 <script setup lang="ts">
+import type { User } from '../domain/user/user.types';
+
 defineProps<{
-  item: Record<string, any>;
+  item: User;
 }>();
 
 defineEmits<{
@@ -9,9 +13,11 @@ defineEmits<{
 </script>
 
 <template>
-  <div class="card" @click="$emit('click', item.id)">
-    <h3>{{ item.title ?? item.name ?? item.id }}</h3>
-    <p v-if="item.description">{{ item.description }}</p>
+  <div class="card" role="button" tabindex="0" :aria-label="String(item.id)" @click="$emit('click', item.id)" @keydown.enter="$emit('click', item.id)" @keydown.space.prevent="$emit('click', item.id)">
+
+    <h3>{{ item.id }}</h3>
+
+
   </div>
 </template>
 

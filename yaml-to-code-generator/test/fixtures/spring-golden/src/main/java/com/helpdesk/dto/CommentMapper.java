@@ -4,11 +4,19 @@ package com.helpdesk.dto;
 import com.helpdesk.entity.Comment;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.factory.Mappers;
+import org.mapstruct.ReportingPolicy;
 
-@Mapper
+
+@Mapper(componentModel = "spring", unmappedSourcePolicy = ReportingPolicy.IGNORE)
 public interface CommentMapper {
-    CommentMapper INSTANCE = Mappers.getMapper(CommentMapper.class);
+
+
+    @Mapping(target = "authorName", source = "author.name")
+
+
+    @Mapping(target = "ticketId", source = "ticket.id")
+
+    @Mapping(target = "authorId", source = "author.id")
 
     CommentDTO toDTO(Comment entity);
 

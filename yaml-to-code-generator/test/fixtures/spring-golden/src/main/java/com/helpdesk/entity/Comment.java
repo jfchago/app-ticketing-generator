@@ -32,6 +32,7 @@ public class Comment {
 
 
 
+
     private String id;
 
 
@@ -39,13 +40,6 @@ public class Comment {
 
 
 
-
-
-    @Column(nullable = false, length = 36, insertable = false, updatable = false)
-
-
-
-    private String ticketId;
 
 
 
@@ -67,13 +61,6 @@ public class Comment {
 
 
 
-    @Column(nullable = false, length = 36, insertable = false, updatable = false)
-
-
-
-    private String authorId;
-
-
 
 
 
@@ -85,6 +72,7 @@ public class Comment {
 
 
     private LocalDateTime createdAt;
+
 
 
 

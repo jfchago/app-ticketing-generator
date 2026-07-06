@@ -29,7 +29,10 @@ public class User {
 
 
 
+
     private String id;
+
+
 
 
 
@@ -51,6 +54,8 @@ public class User {
 
 
 
+
+
     @Column(length = 10)
 
 
@@ -64,11 +69,14 @@ public class User {
 
 
 
+
+
     @Column(nullable = false, length = 20)
 
 
 
     private String role;
+
 
 
 

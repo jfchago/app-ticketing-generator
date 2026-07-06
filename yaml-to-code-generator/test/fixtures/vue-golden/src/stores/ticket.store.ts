@@ -8,6 +8,9 @@ import type { TicketPriority } from '../domain/ticket/ticket.types';
 
 import type { Comment } from '../domain/comment/comment.types';
 
+
+import type { ActivityLog } from '../domain/activityLog/activityLog.types';
+
 import { TicketService } from '../domain/ticket/ticket.service';
 import { TicketRepositoryImpl } from '../infrastructure/repositories/ticket.repository.impl';
 
@@ -25,11 +28,25 @@ export const VALID_TRANSITIONS: Record<string, string[]> = {
 
 };
 
+
+interface HistoryState {
+  entries: ActivityLog[];
+  cursor: string | null;
+  hasMore: boolean;
+  loadingInitial: boolean;
+  loadingMore: boolean;
+  error: string | null;
+}
+
+
 interface TicketState {
   tickets: Ticket[];
   current: Ticket | null;
   loading: boolean;
   error: string | null;
+
+  history?: HistoryState;
+
 }
 
 export const useTicketStore = defineStore('ticket', {
@@ -124,7 +141,7 @@ export const useTicketStore = defineStore('ticket', {
         try { const ticket = this.tickets.find(t => t.id === ticketId);
           if (!ticket) { this.error = 'Ticket not found'; return null as unknown as Comment; }
           const createdComment = await service.addComment(ticketId, text);
-          if (this.current?.id === ticketId) this.current.comments.push(createdComment);
+          if (this.current?.id === ticketId) this.current.comments.unshift(createdComment);
           return createdComment;
         } catch (e) { this.error = e instanceof Error ? e.message : 'Error adding comment'; throw e; }
     },
@@ -152,7 +169,7 @@ if (!this.history) this.history = { entries: [], cursor: null, hasMore: false, l
 if (!this.history.hasMore || this.history.loadingMore) return;
 this.history.loadingMore = true;
 try {
-  const page = await service.getHistory(this.entityId, undefined, this.history.cursor ?? undefined);
+  const page = await service.getHistory(entityId);
   this.history.entries.push(...page.items);
   this.history.cursor = page.nextCursor;
   this.history.hasMore = page.hasMore;

@@ -301,7 +301,7 @@ function buildServiceMethod(
     const inverseRelSetter = inverseRel
       ? `set${inverseRel.namePascal.charAt(0).toUpperCase() + inverseRel.namePascal.slice(1)}`
       : '';
-    body = `var ${entity.nameCamel} = ${entity.nameCamel}Repository.findById(id).orElseThrow(() -> new RuntimeException("${entity.namePascal} not found: " + id));\n        ${commentPascal} ${commentCamel} = new ${commentPascal}();\n        ${commentCamel}.${inverseRelSetter}(${entity.nameCamel});\n        ${commentCamel}.setText(text);\n        // TODO: set comment author from authentication context\n        ${commentCamel}Repository.save(${commentCamel});\n        return ${commentCamel}Mapper.toDTO(${commentCamel});`;
+    body = `var ${entity.nameCamel} = ${entity.nameCamel}Repository.findById(id).orElseThrow(() -> new RuntimeException("${entity.namePascal} not found: " + id));\n        ${commentPascal} ${commentCamel} = new ${commentPascal}();\n        ${commentCamel}.${inverseRelSetter}(${entity.nameCamel});\n        ${commentCamel}.setText(text);\n        String actor = resolveActor();\n        var author = userRepository.findById(actor).orElseThrow(() -> new RuntimeException("User not found: " + actor));\n        ${commentCamel}.setAuthor(author);\n        ${commentCamel}Repository.save(${commentCamel});\n        return ${commentCamel}Mapper.toDTO(${commentCamel});`;
   } else if (uc.name === 'add_comment') {
     // Fallback for entity that IS the comment (no foreign entity)
     // NOTE: this path no longer triggers for Comment since `add_comment` was
@@ -309,7 +309,7 @@ function buildServiceMethod(
     returnType = `${entity.namePascal}DTO`;
     params = `${pkJavaType} id, String text`;
     annotations = ['@Transactional'];
-    body = `${entity.namePascal} ${entity.nameCamel} = new ${entity.namePascal}();\n        ${entity.nameCamel}.setText(text);\n        // TODO: set ticket and author via repository lookups (requires repository injection)\n        ${entity.nameCamel}Repository.save(${entity.nameCamel});\n        return ${entity.nameCamel}Mapper.toDTO(${entity.nameCamel});`;
+    body = `${entity.namePascal} ${entity.nameCamel} = new ${entity.namePascal}();\n        ${entity.nameCamel}.setText(text);\n        String actor = resolveActor();\n        var author = userRepository.findById(actor).orElseThrow(() -> new RuntimeException("User not found: " + actor));\n        ${entity.nameCamel}.setAuthor(author);\n        // TODO: set ticket via repository lookup if this fallback path is ever used\n        ${entity.nameCamel}Repository.save(${entity.nameCamel});\n        return ${entity.nameCamel}Mapper.toDTO(${entity.nameCamel});`;
   } else {
     returnType = 'void';
     params = '';

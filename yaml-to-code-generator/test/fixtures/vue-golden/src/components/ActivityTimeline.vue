@@ -7,7 +7,7 @@ import LoaderSpinner from '../components/LoaderSpinner.vue';
 import ErrorState from '../components/ErrorState.vue';
 import EmptyState from '../components/EmptyState.vue';
 
-defineProps<{
+const props = defineProps<{
   entityId: string;
 }>();
 
@@ -20,7 +20,7 @@ onMounted(() => {
   observer = new IntersectionObserver(
     (entries) => {
       if (entries[0]?.isIntersecting && store.history?.hasMore && !store.history?.loadingMore) {
-        store.fetchNextPage(entityId);
+        store.fetchNextPage(props.entityId);
       }
     },
     { rootMargin: '200px' },
@@ -51,7 +51,7 @@ const actionColors: Record<string, { dot: string; bg: string; text: string; labe
   <div class="timeline-container" aria-live="polite">
     <LoaderSpinner v-if="store.history?.loadingInitial && (!store.history?.entries || store.history.entries.length === 0)" />
     <ErrorState v-else-if="store.history?.error && (!store.history?.entries || store.history.entries.length === 0)"
-      :message="store.history.error" :retry-fn="() => store.getHistory(entityId)" />
+      :message="store.history.error" :retry-fn="() => store.getHistory(props.entityId)" />
     <EmptyState v-else-if="!store.history?.loadingInitial && (!store.history?.entries || store.history.entries.length === 0)"
       entity-name="Activity" message="No activity recorded yet" title="No activity recorded yet" />
     <div v-else class="timeline">
@@ -91,7 +91,7 @@ const actionColors: Record<string, { dot: string; bg: string; text: string; labe
       <div ref="sentinel" v-if="store.history?.hasMore" class="scroll-sentinel"></div>
       <div v-if="store.history?.error && store.history?.entries && store.history.entries.length > 0" class="load-more-error">
         <p>{{ store.history.error }}</p>
-        <button @click="store.fetchNextPage(entityId)">Retry</button>
+        <button @click="store.fetchNextPage(props.entityId)">Retry</button>
       </div>
     </div>
   </div>

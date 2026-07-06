@@ -4,11 +4,13 @@ package com.helpdesk.dto;
 import com.helpdesk.entity.User;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.factory.Mappers;
+import org.mapstruct.ReportingPolicy;
 
-@Mapper
+
+@Mapper(componentModel = "spring", unmappedSourcePolicy = ReportingPolicy.IGNORE)
 public interface UserMapper {
-    UserMapper INSTANCE = Mappers.getMapper(UserMapper.class);
+
+
 
     UserDTO toDTO(User entity);
 

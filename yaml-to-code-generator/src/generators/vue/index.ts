@@ -110,6 +110,13 @@ export class VueGenerator extends BaseGenerator {
           ctx,
         );
       }
+      if (genEntity?.hasCommentSupport) {
+        this.renderEjs(
+          'components/CommentSection.vue.ejs',
+          `src/components/CommentSection.vue`,
+          ctx,
+        );
+      }
     }
 
     if (genEntity?.hasGetAll) {

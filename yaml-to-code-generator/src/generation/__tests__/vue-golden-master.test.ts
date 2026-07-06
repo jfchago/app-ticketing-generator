@@ -84,14 +84,16 @@ describe('Vue Golden Master', () => {
   it('generated golden master files match', () => {
     if (!fs.existsSync(GOLDEN_DIR)) return;
     const golden = collectFiles(GOLDEN_DIR);
-    expect(golden.size).toBe(32);
+    expect(golden.size).toBe(52);
     const goldenPaths = [...golden.keys()].sort();
     expect(goldenPaths).toContain('src/stores/ticket.store.ts');
     expect(goldenPaths).toContain('src/domain/ticket/ticket.types.ts');
+    expect(goldenPaths).toContain('src/domain/comment/comment.types.ts');
     expect(goldenPaths).toContain('src/domain/ticket/ticket.repository.ts');
     expect(goldenPaths).toContain('src/domain/ticket/ticket.service.ts');
     expect(goldenPaths).toContain('src/infrastructure/repositories/ticket.repository.impl.ts');
     expect(goldenPaths).toContain('src/components/TicketCard.vue');
+    expect(goldenPaths).toContain('src/components/CommentSection.vue');
     expect(goldenPaths).toContain('src/views/TicketListView.vue');
     expect(goldenPaths).toContain('src/views/TicketDetailView.vue');
     expect(goldenPaths).toContain('src/views/CreateTicketView.vue');
@@ -110,8 +112,29 @@ describe('Vue Golden Master', () => {
     expect(content).toContain('create(');
     expect(content).toContain('tickets');
     expect(content).toContain('current');
+    expect(content).toContain('unshift(createdComment)');
     expect(content).not.toContain('loadTickets');
     expect(content).not.toContain('selectedTicket');
+  });
+
+  it('comments contract includes author display name and comment section', () => {
+    const commentTypesFile = path.join(GOLDEN_DIR, 'src/domain/comment/comment.types.ts');
+    const detailViewFile = path.join(GOLDEN_DIR, 'src/views/TicketDetailView.vue');
+    const commentSectionFile = path.join(GOLDEN_DIR, 'src/components/CommentSection.vue');
+
+    if (!fs.existsSync(commentTypesFile) || !fs.existsSync(detailViewFile) || !fs.existsSync(commentSectionFile)) {
+      return;
+    }
+
+    const commentTypes = fs.readFileSync(commentTypesFile, 'utf-8');
+    const detailView = fs.readFileSync(detailViewFile, 'utf-8');
+    const commentSection = fs.readFileSync(commentSectionFile, 'utf-8');
+
+    expect(commentTypes).toContain('authorName: string');
+    expect(detailView).toContain('CommentSection');
+    expect(detailView).toContain('ActivityTimeline');
+    expect(commentSection).toContain('authorName');
+    expect(commentSection).toContain('formatRelativeTime');
   });
 
   it('golden master files contain no domain conditionals', () => {

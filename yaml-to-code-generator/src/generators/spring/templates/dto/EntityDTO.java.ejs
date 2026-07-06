@@ -17,6 +17,9 @@ public class <%= entity.namePascal %>DTO {
 <% for (const attr of entity.attributes) { %>
     private <%= gen.attributeTypes[attr.name].javaType %> <%= attr.name %>;
 <% } %>
+<% if (entity.namePascal === 'Comment') { %>
+    private String authorName;
+<% } %>
 <% for (const rel of entity.relationships) { %>
 <% if (gen.oneToManyRelations.some(r => r.name === rel.name)) { %>
     private List<<%= rel.targetPascal %>DTO> <%= rel.name %>;

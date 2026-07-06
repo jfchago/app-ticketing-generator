@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import './polyfills.js';
 import { Command } from 'commander';
 import {
   generate,

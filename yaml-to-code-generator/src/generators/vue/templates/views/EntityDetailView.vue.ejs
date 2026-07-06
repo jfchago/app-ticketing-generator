@@ -31,6 +31,9 @@ import EmptyState from '../components/EmptyState.vue';
 <% if (gen?.hasActivityLog) { %>
 import ActivityTimeline from '../components/ActivityTimeline.vue';
 <% } %>
+<% if (gen?.hasCommentSupport) { %>
+import CommentSection from '../components/CommentSection.vue';
+<% } %>
 <% if (gen?.transitions && Object.keys(gen.transitions).length > 0) { %>
 import { computed, ref } from 'vue';
 import { VALID_TRANSITIONS } from '../stores/<%= entity.nameCamel %>.store';
@@ -160,6 +163,11 @@ async function handleStatusChange() {
 <% } %>
 <% } %>
       </div>
+<% } %>
+<% if (gen?.hasCommentSupport) { %>
+      <section class="comments-section">
+        <CommentSection :entity-id="<%= selected %>.id" />
+      </section>
 <% } %>
 <% if (gen?.hasActivityLog && gen?.activityLogEntity) { %>
       <section class="timeline-section">

@@ -1,6 +1,7 @@
 // lang/tokens.ts — Chevrotain lexer token definitions for the behavior DSL
 // Defines tokens for 3 mini-DSLs: workflow, event, decision
 
+import '../polyfills.js';
 import { createToken, Lexer } from 'chevrotain';
 
 // ── Keywords (all use explicit lookahead/lookbehind instead of \b) ────

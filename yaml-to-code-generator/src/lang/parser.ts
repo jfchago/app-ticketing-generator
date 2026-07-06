@@ -1,6 +1,7 @@
 // lang/parser.ts — Chevrotain parser for the behavior mini-DSLs
 // 3 entry rules: workflow, event, decision
 
+import '../polyfills.js';
 import { CstParser } from 'chevrotain';
 import {
   Workflow,

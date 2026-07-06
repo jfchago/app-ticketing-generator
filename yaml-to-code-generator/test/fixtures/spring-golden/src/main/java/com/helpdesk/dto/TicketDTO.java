@@ -37,7 +37,12 @@ public class TicketDTO {
 
 
 
+
     private List<CommentDTO> comments;
+
+
+
+    private List<ActivityLogDTO> activityLogs;
 
 
 }

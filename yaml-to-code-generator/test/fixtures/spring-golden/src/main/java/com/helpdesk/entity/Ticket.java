@@ -38,7 +38,10 @@ public class Ticket {
 
 
 
+
     private String id;
+
+
 
 
 
@@ -60,11 +63,15 @@ public class Ticket {
 
 
 
+
+
     @Column(length = 4000)
 
 
 
     private String description;
+
+
 
 
 
@@ -87,6 +94,8 @@ public class Ticket {
 
 
 
+
+
     @Column(nullable = false)
 
 
@@ -99,13 +108,6 @@ public class Ticket {
 
 
 
-
-
-    @Column(length = 36, insertable = false, updatable = false)
-
-
-
-    private String assigneeId;
 
 
 
@@ -129,7 +131,10 @@ public class Ticket {
 
 
 
+
+
     private LocalDateTime updatedAt;
+
 
 
 
@@ -145,6 +150,13 @@ public class Ticket {
     @OneToMany(mappedBy = "ticket", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<Comment> comments = new ArrayList<>();
+
+
+
+
+    @OneToMany(mappedBy = "ticket", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<ActivityLog> activityLogs = new ArrayList<>();
 
 
 

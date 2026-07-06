@@ -92,6 +92,8 @@ describe('Spring Golden Master', () => {
     expect(goldenPaths).toContain('src/main/java/com/helpdesk/repository/TicketRepository.java');
     expect(goldenPaths).toContain('src/main/java/com/helpdesk/dto/TicketDTO.java');
     expect(goldenPaths).toContain('src/main/java/com/helpdesk/dto/TicketMapper.java');
+    expect(goldenPaths).toContain('src/main/java/com/helpdesk/dto/CommentDTO.java');
+    expect(goldenPaths).toContain('src/main/java/com/helpdesk/dto/CommentMapper.java');
     expect(goldenPaths).toContain('src/main/java/com/helpdesk/entity/TicketStatus.java');
     expect(goldenPaths).toContain('src/main/java/com/helpdesk/entity/TicketPriority.java');
     expect(goldenPaths).toContain('build.gradle');
@@ -107,6 +109,20 @@ describe('Spring Golden Master', () => {
     expect(content).toContain('private TicketPriority priority');
     expect(content).toContain('private LocalDateTime createdAt');
     expect(content).toContain('private LocalDateTime updatedAt');
+  });
+
+  it('Comment DTO and service expose the enriched author payload', () => {
+    const dtoFile = path.join(GOLDEN_DIR, 'src/main/java/com/helpdesk/dto/CommentDTO.java');
+    const serviceFile = path.join(GOLDEN_DIR, 'src/main/java/com/helpdesk/service/TicketService.java');
+    if (!fs.existsSync(dtoFile) || !fs.existsSync(serviceFile)) return;
+
+    const dtoContent = fs.readFileSync(dtoFile, 'utf-8');
+    const serviceContent = fs.readFileSync(serviceFile, 'utf-8');
+
+    expect(dtoContent).toContain('private String authorName');
+    expect(serviceContent).toContain('setAuthor(author)');
+    expect(serviceContent).toContain('setAuthorId(author.getId())');
+    expect(serviceContent).toContain('resolveActor()');
   });
 
   it('golden master files contain no domain conditionals', () => {

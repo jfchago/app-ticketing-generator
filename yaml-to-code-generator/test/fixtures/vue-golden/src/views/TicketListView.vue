@@ -1,15 +1,28 @@
+
+
 <script setup lang="ts">
 import { onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useTicketStore } from '../stores/ticket.store';
 import TicketCard from '../components/TicketCard.vue';
+import LoaderSpinner from '../components/LoaderSpinner.vue';
+import ErrorState from '../components/ErrorState.vue';
+import EmptyState from '../components/EmptyState.vue';
 
 const store = useTicketStore();
 const router = useRouter();
 
 onMounted(() => {
-  store.loadTickets();
+
+  store.getAll();
+
 });
+
+function retryLoad() {
+
+  store.getAll();
+
+}
 
 function goToDetail(id: string) {
   router.push('/tickets/' + id);
@@ -18,6 +31,7 @@ function goToDetail(id: string) {
 function goToCreate() {
   router.push('/tickets/new');
 }
+
 </script>
 
 <template>
@@ -25,38 +39,40 @@ function goToCreate() {
     <header>
       <h1>Tickets</h1>
 
-      <button @click="goToCreate" class="btn-primary">+ New Ticket</button>
+      <button @click="goToCreate" class="btn-primary" aria-label="Create new Ticket">+ New Ticket</button>
+
     </header>
 
-    <div v-if="store.loading">Loading...</div>
-    <div v-else-if="store.error" class="error">{{ store.error }}</div>
-    <div v-else>
-      <TicketCard v-for="item in store.tickets" :key="item.id" :item="item" @click="goToDetail" />
+    <div aria-live="polite">
+    <LoaderSpinner v-if="store.loading" />
+    <ErrorState v-else-if="store.error" :message="store.error" :retry-fn="retryLoad" />
+    <EmptyState v-else-if="store.tickets.length === 0" :entity-name="'Ticket'" />
+    <div v-else class="card-grid">
+      <TicketCard
+        v-for="item in store.tickets"
+        :key="item.id"
+        :item="item"
+        @click="goToDetail"
+      />
+    </div>
     </div>
   </div>
 </template>
 
 <style scoped>
-.list-view {
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 20px;
+.card-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-md, 12px);
 }
-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
+@media (min-width: 768px) {
+  .card-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
-.btn-primary {
-  padding: 8px 16px;
-  background: var(--color-primary, #42b883);
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-.error {
-  color: red;
+@media (min-width: 1024px) {
+  .card-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
 }
 </style>

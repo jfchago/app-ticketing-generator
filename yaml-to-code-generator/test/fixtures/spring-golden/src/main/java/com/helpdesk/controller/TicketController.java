@@ -11,6 +11,16 @@ import com.helpdesk.entity.TicketPriority;
 
 import com.helpdesk.dto.CommentDTO;
 
+
+import com.helpdesk.dto.CursorPageDTO;
+
+
+import com.helpdesk.dto.CommentDTO;
+
+import com.helpdesk.dto.CursorPageDTO;
+
+import com.helpdesk.dto.ActivityLogDTO;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -24,6 +34,10 @@ import java.util.List;
 import java.util.Map;
 
 
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Max;
+
+
 @RestController
 @RequestMapping("/api/tickets")
 @RequiredArgsConstructor
@@ -34,8 +48,8 @@ public class TicketController {
 
 
     @GetMapping
-    public ResponseEntity<List&lt;TicketDTO&gt;> getAll() {
-        return ticketService.getAll();
+    public ResponseEntity<List<TicketDTO>> getAll() {
+        return ResponseEntity.ok(ticketService.getAll());
     }
 
 
@@ -43,7 +57,7 @@ public class TicketController {
 
     @GetMapping("/{id}")
     public ResponseEntity<TicketDTO> getById(@PathVariable String id) {
-        return ticketService.getById(id);
+        return ResponseEntity.ok(ticketService.getById(id));
     }
 
 
@@ -67,8 +81,7 @@ public class TicketController {
 
 
 
-        TicketStatus status = TicketStatus.valueOf(body.get("status"));
-        return ResponseEntity.ok(ticketService.updateStatus(id, status));
+        return ResponseEntity.ok(ticketService.updateStatus(id, body.get("status")));
 
     }
 
@@ -82,8 +95,7 @@ public class TicketController {
 
 
 
-        TicketPriority priority = TicketPriority.valueOf(body.get("priority"));
-        return ResponseEntity.ok(ticketService.updatePriority(id, priority));
+        return ResponseEntity.ok(ticketService.updatePriority(id, body.get("priority")));
 
     }
 
@@ -110,11 +122,19 @@ public class TicketController {
 
 
     @PostMapping("/{id}/comments")
-    public ResponseEntity<TicketDTO> addComment(@PathVariable String id) {
+    public ResponseEntity<CommentDTO> addComment(@PathVariable String id, @RequestBody java.util.Map<String, String> body) {
 
-        TicketDTO created = ticketService.addComment(dto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(created);
+        String bodyValue = body.get("text");
+        return ResponseEntity.status(HttpStatus.CREATED).body(ticketService.addComment(id, bodyValue));
 
+    }
+
+
+
+
+    @GetMapping("/{id}/history")
+    public ResponseEntity<CursorPageDTO<ActivityLogDTO>> getHistory(@PathVariable String id, @RequestParam(defaultValue = "20") @Min(1) @Max(100) int limit, @RequestParam(required = false) String cursor) {
+        return ResponseEntity.ok(ticketService.getHistory(id, limit, cursor));
     }
 
 

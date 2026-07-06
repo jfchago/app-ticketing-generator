@@ -1,0 +1,195 @@
+
+<script setup lang="ts">
+import { computed, ref } from 'vue';
+import { useTicketStore } from '../stores/ticket.store';
+import { formatRelativeTime } from '../shared/date-utils';
+import LoaderSpinner from '../components/LoaderSpinner.vue';
+import ErrorState from '../components/ErrorState.vue';
+import EmptyState from '../components/EmptyState.vue';
+
+const props = defineProps<{
+  entityId: string;
+}>();
+
+const store = useTicketStore();
+const draft = ref('');
+const submitting = ref(false);
+const submitError = ref<string | null>(null);
+
+const comments = computed(() => store.current?.comments ?? []);
+
+async function submitComment() {
+  const text = draft.value.trim();
+  if (!text) {
+    submitError.value = 'Write a comment before posting.';
+    return;
+  }
+
+  submitting.value = true;
+  submitError.value = null;
+  try {
+    await store.addComment(props.entityId, text);
+    draft.value = '';
+  } catch (e) {
+    submitError.value = e instanceof Error ? e.message : 'Error adding comment';
+  } finally {
+    submitting.value = false;
+  }
+}
+</script>
+
+<template>
+  <section class="comment-section" aria-labelledby="comment-section-title">
+    <div class="comment-section__header">
+      <div>
+        <p class="comment-section__eyebrow">Discussion</p>
+        <h2 id="comment-section-title">Comments</h2>
+      </div>
+      <span class="comment-section__count">{{ comments.length }}</span>
+    </div>
+
+    <form class="comment-composer" @submit.prevent="submitComment">
+      <label class="sr-only" for="comment-textarea">Add a comment</label>
+      <textarea
+        id="comment-textarea"
+        v-model="draft"
+        class="comment-composer__input"
+        rows="4"
+        placeholder="Write a comment..."
+        :disabled="submitting"
+      />
+      <div class="comment-composer__actions">
+        <LoaderSpinner v-if="submitting" size="sm" />
+        <button class="comment-composer__button" type="submit" :disabled="submitting || draft.trim().length === 0">
+          {{ submitting ? 'Posting...' : 'Post comment' }}
+        </button>
+      </div>
+      <ErrorState v-if="submitError" :message="submitError" error-type="validation" />
+    </form>
+
+    <EmptyState
+      v-if="comments.length === 0 && !submitting"
+      entity-name="Comment"
+      title="No comments yet"
+      message="Be the first to add context to this ticket."
+    />
+
+    <div v-else class="comment-list" aria-live="polite">
+      <article v-for="comment in comments" :key="comment.id" class="comment-card">
+        <header class="comment-card__meta">
+          <span class="comment-card__author">{{ comment.authorName ?? comment.authorId }}</span>
+          <span class="comment-card__timestamp">{{ formatRelativeTime(comment.createdAt) }}</span>
+        </header>
+        <p class="comment-card__text">{{ comment.text }}</p>
+      </article>
+    </div>
+  </section>
+</template>
+
+<style scoped>
+.comment-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md, 12px);
+  margin-top: var(--space-xl, 20px);
+  padding: var(--space-lg, 16px);
+  border: 1px solid var(--color-border, #ddd);
+  border-radius: var(--radius-lg, 12px);
+  background: var(--color-surface, #fff);
+}
+.comment-section__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-md, 12px);
+}
+.comment-section__eyebrow {
+  margin: 0 0 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: var(--font-size-xs, 0.75rem);
+  color: var(--color-text-secondary, #666);
+}
+.comment-section__header h2 {
+  margin: 0;
+}
+.comment-section__count {
+  min-width: 2rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  background: var(--color-neutral-light, #eef2f6);
+  color: var(--color-text-secondary, #666);
+  font-size: var(--font-size-sm, 0.85rem);
+  text-align: center;
+}
+.comment-composer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm, 8px);
+}
+.comment-composer__input {
+  min-height: 112px;
+  padding: var(--space-sm, 8px);
+  border: 1px solid var(--color-border, #ddd);
+  border-radius: var(--radius-sm, 4px);
+  resize: vertical;
+}
+.comment-composer__actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: var(--space-sm, 8px);
+}
+.comment-composer__button {
+  padding: var(--space-sm, 8px) var(--space-lg, 16px);
+  border: 0;
+  border-radius: var(--radius-sm, 4px);
+  background: var(--color-primary, #42b883);
+  color: #fff;
+  font-weight: var(--font-weight-semibold, 600);
+  cursor: pointer;
+}
+.comment-composer__button:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+.comment-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md, 12px);
+}
+.comment-card {
+  padding: var(--space-md, 12px);
+  border-radius: var(--radius-md, 8px);
+  background: var(--color-neutral-lighter, #f8fafc);
+  border: 1px solid var(--color-border, #e2e8f0);
+}
+.comment-card__meta {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-sm, 8px);
+  margin-bottom: var(--space-xs, 4px);
+  font-size: var(--font-size-sm, 0.85rem);
+}
+.comment-card__author {
+  font-weight: var(--font-weight-semibold, 600);
+}
+.comment-card__timestamp {
+  color: var(--color-text-secondary, #666);
+}
+.comment-card__text {
+  margin: 0;
+  white-space: pre-wrap;
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+</style>

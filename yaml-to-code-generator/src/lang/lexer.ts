@@ -1,6 +1,7 @@
 // lang/lexer.ts — Chevrotain Lexer for the behavior DSL
 // Tokenizes behavior block source text into a stream of tokens
 
+import '../polyfills.js';
 import { Lexer } from 'chevrotain';
 import { allTokens } from './tokens.js';
 

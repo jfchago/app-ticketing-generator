@@ -17,6 +17,9 @@ if (usesList.length > 0) mapperOpts.push('uses = {' + usesList.join(', ') + '}')
 @Mapper(<%- mapperOpts.join(', ') %>)
 public interface <%= entity.namePascal %>Mapper {
 
+<% if (entity.namePascal === 'Comment') { %>
+    @Mapping(target = "authorName", source = "author.name")
+<% } %>
 <% for (const rel of entity.relationships) { if (rel.type === 'many_to_one') { %>
     @Mapping(target = "<%= rel.foreignKey %>", source = "<%= rel.name %>.id")
 <% } } %>

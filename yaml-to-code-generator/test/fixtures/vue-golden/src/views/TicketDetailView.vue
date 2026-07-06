@@ -7,6 +7,9 @@ import { useTicketStore } from '../stores/ticket.store';
 
 import Badge from '../components/Badge.vue';
 
+
+import type { TicketStatus } from '../domain/ticket/ticket.types';
+
 import { TicketStatus_LABELS, TicketPriority_LABELS } from '../domain/ticket/ticket.types';
 
 
@@ -18,6 +21,9 @@ import ErrorState from '../components/ErrorState.vue';
 import EmptyState from '../components/EmptyState.vue';
 
 import ActivityTimeline from '../components/ActivityTimeline.vue';
+
+
+import CommentSection from '../components/CommentSection.vue';
 
 
 import { computed, ref } from 'vue';
@@ -34,6 +40,7 @@ const loadEntity = async (id: string) => {
 };
 
 
+
 const loadActivity = async () => {
   await store.clearHistory();
   const current = store.current;
@@ -43,40 +50,49 @@ const loadActivity = async () => {
 
 onMounted(async () => {
   await loadEntity(route.params.id as string);
+
   await loadActivity();
+
 });
 
 watch(() => route.params.id, async (id) => {
   await loadEntity(id as string);
+
   await loadActivity();
+
 });
 
 async function retryLoad() {
   await loadEntity(route.params.id as string);
+
   await loadActivity();
+
 }
 
 const newStatus = ref('');
 const transitioning = ref(false);
 
 const availableTransitions = computed(() => {
-  if (!store.current) return [];
-  const transitions = VALID_TRANSITIONS[store.current.status] ?? [];
-  return transitions.filter(s => s !== store.current.status);
+  const current = store.current;
+  if (!current) return [];
+  const transitions = VALID_TRANSITIONS[current.status] ?? [];
+  return transitions.filter(s => s !== current.status);
 });
 
 
 const transitionOptions = computed(() => {
-  if (!store.current) return [];
-  return VALID_TRANSITIONS[store.current.status].map(s => ({ value: s, label: TicketStatus_LABELS[s] ?? s }));
+  const current = store.current;
+  if (!current) return [];
+  return VALID_TRANSITIONS[current.status].map(s => ({ value: s, label: TicketStatus_LABELS[s as TicketStatus] ?? s }));
 });
 
 
 async function handleStatusChange() {
-  if (!newStatus.value || !store.current) return;
+  const current = store.current;
+  if (!newStatus.value || !current) return;
   transitioning.value = true;
   try {
-    await store.updateStatus(store.current.id, newStatus.value as any);
+    await store.updateStatus(current.id, newStatus.value as any);
     newStatus.value = '';
   } finally {
     transitioning.value = false;
@@ -120,6 +136,11 @@ async function handleStatusChange() {
 
 
       </div>
+
+
+      <section class="comments-section">
+        <CommentSection :entity-id="store.current.id" />
+      </section>
 
 
       <section class="timeline-section">

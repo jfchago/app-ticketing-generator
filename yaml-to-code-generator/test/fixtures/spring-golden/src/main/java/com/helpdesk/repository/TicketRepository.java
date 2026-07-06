@@ -8,8 +8,10 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 
+
 @Repository
 public interface TicketRepository extends JpaRepository<Ticket, String> {
+
 
     List<Ticket> findAllByOrderByCreatedAtDesc();
 
@@ -17,3 +19,4 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
     boolean existsByTitle(String title);
 
 }
+

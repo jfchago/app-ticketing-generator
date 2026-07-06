@@ -572,7 +572,7 @@ function buildStoreActionBody(
     );
     if (hasCommentSupport) {
       bodyParts.push(
-        `  if (this.current?.id === ${idParam}) this.current.comments.push(createdComment);`,
+        `  if (this.current?.id === ${idParam}) this.current.comments.unshift(createdComment);`,
       );
     }
     bodyParts.push(`  return createdComment;`);

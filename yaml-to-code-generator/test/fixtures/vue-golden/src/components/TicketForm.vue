@@ -1,13 +1,27 @@
+
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
+import FormField from '../components/FormField.vue';
 import type { Ticket } from '../domain/ticket/ticket.types';
 
 import type { TicketStatus, TicketPriority } from '../domain/ticket/ticket.types';
 import { TicketStatus_LABELS, TicketPriority_LABELS } from '../domain/ticket/ticket.types';
 
-const emit = defineEmits<{
-  submit: [data: Partial<Ticket>];
-}>();
+
+import { onMounted } from 'vue';
+
+import { useUserStore } from '../stores/user.store';
+const userStore = useUserStore();
+
+onMounted(() => {
+
+  userStore.loadUsers();
+
+});
+
+
+
+
 
 const title = ref<string>('');
 
@@ -19,103 +33,90 @@ const priority = ref<TicketPriority>('MEDIUM');
 
 const assigneeId = ref<string | null>(null);
 
-const errors = ref<Record<string, string>>({});
 
-function validateAll(): boolean {
-  return Object.values(errors.value).every((e) => !e);
-}
+const emit = defineEmits<{
+  submit: [data: Partial<Ticket>];
+}>();
+
+const refs: Record<string, any> = {
+  title: title,
+  description: description,
+  status: status,
+  priority: priority,
+  assigneeId: assigneeId,
+};
+
+const formFields = computed(() => [
+  {
+    htmlId: 'title',
+    label: 'Title',
+    type: 'text' as const,
+    options: undefined,
+    required: true,
+  },
+  {
+    htmlId: 'description',
+    label: 'Description',
+    type: 'textarea' as const,
+    options: undefined,
+    required: false,
+  },
+  {
+    htmlId: 'status',
+    label: 'Status',
+    type: 'select' as const,
+    options: Object.entries(TicketStatus_LABELS).map(([value, label]) => ({ value, label })),
+    required: true,
+  },
+  {
+    htmlId: 'priority',
+    label: 'Priority',
+    type: 'select' as const,
+    options: Object.entries(TicketPriority_LABELS).map(([value, label]) => ({ value, label })),
+    required: true,
+  },
+  {
+    htmlId: 'assigneeId',
+    label: 'Assignee Id',
+    type: 'fk-select' as const,
+    options: (userStore.users || []).map(item => ({ value: item.id, label: item.name })),
+    required: false,
+  },
+]);
 
 function handleSubmit() {
-  if (!validateAll()) return;
-  emit('submit', {
-    title: title.value,
+  emit('submit', {    title: title.value,
     description: description.value,
     status: status.value,
     priority: priority.value,
-    assigneeId: assigneeId.value,
+    assigneeId: assigneeId.value
   });
 }
 </script>
 
 <template>
   <form @submit.prevent="handleSubmit" class="entity-form">
-    <div class="form-group">
-      <label for="title">Title</label>
-
-      <input id="title" v-model="title" type="text" required />
-    </div>
-
-    <div class="form-group">
-      <label for="description">Description</label>
-
-      <textarea id="description" v-model="description"></textarea>
-    </div>
-
-    <div class="form-group">
-      <label for="status">Status</label>
-
-      <select id="status" v-model="status" required>
-        <option value="" disabled>Select...</option>
-        <option v-for="(label, value) in TicketStatus_LABELS" :key="value" :value="value">
-          {{ label }}
-        </option>
-      </select>
-    </div>
-
-    <div class="form-group">
-      <label for="priority">Priority</label>
-
-      <select id="priority" v-model="priority" required>
-        <option value="" disabled>Select...</option>
-        <option v-for="(label, value) in TicketPriority_LABELS" :key="value" :value="value">
-          {{ label }}
-        </option>
-      </select>
-    </div>
-
-    <div class="form-group">
-      <label for="assigneeId">AssigneeId</label>
-
-      <input id="assigneeId" v-model="assigneeId" type="text" />
-    </div>
-
-    <button type="submit">Save</button>
+    <fieldset>
+      <legend>Ticket Details</legend>
+    <FormField
+      v-for="field in formFields"
+      :key="field.htmlId"
+      v-model="refs[field.htmlId].value"
+      v-bind="field"
+    />
+    </fieldset>
+    <button type="submit" aria-label="Save Ticket">Save</button>
   </form>
 </template>
 
 <style scoped>
-.entity-form {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  max-width: 500px;
+.entity-form { display: flex; flex-direction: column; gap: 12px; max-width: 500px; }
+button { padding: 10px 16px; background: var(--color-primary, #42b883); color: white; border: none; border-radius: 4px; cursor: pointer; }
+@media (min-width: 768px) {
+  .entity-form { max-width: 500px; }
 }
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-.form-group label {
-  font-weight: 600;
-}
-.form-group input,
-.form-group textarea,
-.form-group select {
-  padding: 8px;
-  border: 1px solid var(--color-border, #ddd);
-  border-radius: 4px;
-}
-button {
-  padding: 10px 16px;
-  background: var(--color-primary, #42b883);
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-.error-message {
-  color: #e74c3c;
-  font-size: 0.85em;
-  padding: 4px 0;
+@media (max-width: 576px) {
+  button { width: 100%; min-height: 44px; min-width: 44px; }
+  .form-group input, .form-group textarea, .form-group select { font-size: 16px; }
 }
 </style>
