@@ -2,16 +2,16 @@
   "meta": {
     "tool": "yaml2code-ir",
     "version": 1,
-    "timestamp": "2026-07-01T06:49:42.885Z",
+    "timestamp": "2026-07-07T15:13:54.243Z",
     "specPath": "specs/helpdesk.yaml",
     "semanticHash": "test-fixture"
   },
   "summary": {
     "entities": 4,
-    "enums": 2,
+    "enums": 3,
     "attributes": 27,
     "relationships": 6,
-    "useCases": 12,
+    "useCases": 14,
     "workflows": 0,
     "events": 0,
     "decisions": 0,
@@ -125,18 +125,22 @@
       "attributeFieldRoles": {},
       "relationshipCount": 0,
       "relationships": [],
-      "useCaseCount": 2,
+      "useCaseCount": 4,
       "useCaseNames": [
+        "create",
         "get_by_id",
-        "load_users"
+        "load_users",
+        "update"
       ],
       "useCaseCategories": {
         "load_users": "read",
-        "get_by_id": "read"
+        "get_by_id": "read",
+        "create": "create",
+        "update": "update"
       },
       "flags": {
-        "hasCreate": false,
-        "hasUpdate": false,
+        "hasCreate": true,
+        "hasUpdate": true,
         "hasDelete": false,
         "hasGetAll": true,
         "hasGetById": true
@@ -282,6 +286,20 @@
         {
           "name": "URGENT",
           "label": "Urgente"
+        }
+      ]
+    },
+    {
+      "name": "UserRole",
+      "nameCamel": "userRole",
+      "values": [
+        {
+          "name": "STAFF",
+          "label": "Staff"
+        },
+        {
+          "name": "CUSTOMER",
+          "label": "Customer"
         }
       ]
     }

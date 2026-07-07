@@ -41,10 +41,10 @@ describe('IR Snapshot', () => {
 
   it('has correct summary counts', () => {
     expect(snapshot.summary.entities).toBe(4);
-    expect(snapshot.summary.enums).toBe(2);
+    expect(snapshot.summary.enums).toBe(3);
     expect(snapshot.summary.attributes).toBe(27);
     expect(snapshot.summary.relationships).toBe(6);
-    expect(snapshot.summary.useCases).toBe(12);
+    expect(snapshot.summary.useCases).toBe(14);
     expect(snapshot.summary.flags.hasStateMachine).toBe(true);
     expect(snapshot.summary.flags.hasRules).toBe(true);
     expect(snapshot.summary.flags.hasValidation).toBe(true);
@@ -93,14 +93,15 @@ describe('IR Snapshot', () => {
     const user = snapshot.entities.find((e) => e.name === 'User')!;
     expect(user.attributeCount).toBe(4);
     expect(user.relationshipCount).toBe(0);
-    expect(user.useCaseCount).toBe(2);
-    expect(user.useCaseNames).toEqual(['get_by_id', 'load_users']);
+    expect(user.useCaseCount).toBe(4);
+    expect(user.useCaseNames.sort()).toEqual(['create', 'get_by_id', 'load_users', 'update']);
     expect(user.flags.hasGetAll).toBe(true); // load_users counts as hasGetAll
-    expect(user.flags.hasCreate).toBe(false);
+    expect(user.flags.hasCreate).toBe(true);
+    expect(user.flags.hasUpdate).toBe(true);
   });
 
   it('has correct enums', () => {
-    expect(snapshot.enums.map((e) => e.name).sort()).toEqual(['TicketPriority', 'TicketStatus']);
+    expect(snapshot.enums.map((e) => e.name).sort()).toEqual(['TicketPriority', 'TicketStatus', 'UserRole']);
     const status = snapshot.enums.find((e) => e.name === 'TicketStatus')!;
     expect(status.values.map((v) => v.name)).toEqual(['OPEN', 'IN_PROGRESS', 'RESOLVED', 'CLOSED']);
     const priority = snapshot.enums.find((e) => e.name === 'TicketPriority')!;

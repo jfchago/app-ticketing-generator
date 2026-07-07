@@ -2,15 +2,15 @@
   "meta": {
     "tool": "yaml2code-semantic",
     "version": 1,
-    "timestamp": "2026-07-01T06:49:42.894Z",
+    "timestamp": "2026-07-07T15:13:53.998Z",
     "specName": "Mini HelpDesk"
   },
   "summary": {
     "entities": 4,
-    "enums": 2,
+    "enums": 3,
     "attributes": 27,
     "relationships": 6,
-    "useCases": 12,
+    "useCases": 14,
     "workflows": 0,
     "events": 0,
     "decisions": 0,
@@ -273,10 +273,10 @@
       "pkType": "String",
       "attributeCount": 4,
       "relationshipCount": 0,
-      "useCaseCount": 2,
+      "useCaseCount": 4,
       "flags": {
-        "hasCreate": false,
-        "hasUpdate": false,
+        "hasCreate": true,
+        "hasUpdate": true,
         "hasDelete": false,
         "hasGetAll": true,
         "hasGetById": true,
@@ -319,10 +319,10 @@
         },
         {
           "name": "role",
-          "type": "String",
+          "type": "UserRole",
           "resolvedType": {
-            "kind": "primitive",
-            "ref": "String"
+            "kind": "enum",
+            "ref": "UserRole"
           },
           "fieldRole": "field",
           "required": true,
@@ -346,6 +346,26 @@
           "methodName": "getById",
           "httpMethod": "GET",
           "category": "read",
+          "pathSuffix": "/{id}",
+          "requiresComment": false,
+          "requiresUser": false,
+          "stateMutation": false
+        },
+        {
+          "name": "create",
+          "methodName": "create",
+          "httpMethod": "POST",
+          "category": "create",
+          "pathSuffix": "",
+          "requiresComment": false,
+          "requiresUser": false,
+          "stateMutation": false
+        },
+        {
+          "name": "update",
+          "methodName": "update",
+          "httpMethod": "PUT",
+          "category": "update",
           "pathSuffix": "/{id}",
           "requiresComment": false,
           "requiresUser": false,
@@ -656,6 +676,20 @@
         {
           "name": "URGENT",
           "label": "Urgente"
+        }
+      ]
+    },
+    {
+      "name": "UserRole",
+      "valueCount": 2,
+      "values": [
+        {
+          "name": "STAFF",
+          "label": "Staff"
+        },
+        {
+          "name": "CUSTOMER",
+          "label": "Customer"
         }
       ]
     }
