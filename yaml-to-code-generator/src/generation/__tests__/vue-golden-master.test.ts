@@ -84,7 +84,9 @@ describe('Vue Golden Master', () => {
   it('generated golden master files match', () => {
     if (!fs.existsSync(GOLDEN_DIR)) return;
     const golden = collectFiles(GOLDEN_DIR);
-    expect(golden.size).toBe(32);
+    // 32 baseline + 3 new User form/view fixtures added for the create/update
+    // use cases introduced in GH-3 (UserForm.vue, CreateUserView.vue, UserDetailView.vue).
+    expect(golden.size).toBe(35);
     const goldenPaths = [...golden.keys()].sort();
     expect(goldenPaths).toContain('src/stores/ticket.store.ts');
     expect(goldenPaths).toContain('src/domain/ticket/ticket.types.ts');

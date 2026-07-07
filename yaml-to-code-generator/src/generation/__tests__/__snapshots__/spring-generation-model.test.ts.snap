@@ -213,12 +213,12 @@ exports[`Spring Generation Model > sanitized model matches snapshot 1`] = `
           "javaType": "String",
         },
         "role": {
-          "isEnum": false,
-          "javaType": "String",
+          "isEnum": true,
+          "javaType": "UserRole",
         },
       },
       "emitsEvents": false,
-      "endpointCount": 2,
+      "endpointCount": 4,
       "eventPublisherCount": 0,
       "hasCreatedAt": false,
       "hasUpdatedAt": false,
@@ -227,10 +227,12 @@ exports[`Spring Generation Model > sanitized model matches snapshot 1`] = `
       "pkJavaType": "String",
       "repositoryMethodCount": 0,
       "ruleCheckCount": 0,
-      "serviceMethodCount": 2,
+      "serviceMethodCount": 4,
       "serviceMethodNames": [
         "loadUsers",
         "getById",
+        "create",
+        "update",
       ],
       "transitionKeys": [],
     },
@@ -249,6 +251,10 @@ exports[`Spring Generation Model > sanitized model matches snapshot 1`] = `
     {
       "name": "TicketPriority",
       "valueCount": 4,
+    },
+    {
+      "name": "UserRole",
+      "valueCount": 2,
     },
   ],
   "features": {

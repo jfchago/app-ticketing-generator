@@ -61,7 +61,7 @@ describe('Vue Generation Model', () => {
   });
 
   it('has all enums', () => {
-    expect(model.enums.map((e) => e.name).sort()).toEqual(['TicketPriority', 'TicketStatus']);
+    expect(model.enums.map((e) => e.name).sort()).toEqual(['TicketPriority', 'TicketStatus', 'UserRole']);
   });
 
   it('Ticket entity has correct properties', () => {
@@ -85,7 +85,7 @@ describe('Vue Generation Model', () => {
     expect(user.hasCommentSupport).toBe(false);
     expect(user.hasAssignee).toBe(false);
     expect(user.components.shouldRenderCard).toBe(true);
-    expect(user.components.shouldRenderForm).toBe(false);
+    expect(user.components.shouldRenderForm).toBe(true);
     expect(user.components.shouldRenderStatusBadge).toBe(false);
     expect(user.components.shouldRenderPriorityBadge).toBe(false);
     expect(user.components.shouldRenderAssigneeBadge).toBe(false);
