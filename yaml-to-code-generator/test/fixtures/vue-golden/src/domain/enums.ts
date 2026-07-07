@@ -21,3 +21,11 @@ export const TicketPriority_LABELS: Record<TicketPriority, string> = {
 
   URGENT: 'Urgente',
 };
+
+export type UserRole = 'STAFF' | 'CUSTOMER';
+
+export const UserRole_LABELS: Record<UserRole, string> = {
+  STAFF: 'Staff',
+
+  CUSTOMER: 'Customer',
+};
