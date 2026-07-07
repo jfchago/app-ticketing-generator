@@ -64,11 +64,12 @@ public class User {
 
 
 
-    @Column(nullable = false, length = 20)
+    @Column(nullable = false)
 
 
 
-    private String role;
+    @Enumerated(EnumType.STRING)
+    private UserRole role;
 
 
 

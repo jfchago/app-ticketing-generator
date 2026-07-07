@@ -47,6 +47,14 @@ enums:
       HIGH: { bg: '#fef3cd', text: '#5c4000' }
       URGENT: { bg: '#f8d7da', text: '#7f1d1d' }
 
+  UserRole:
+    values:
+      - STAFF
+      - CUSTOMER
+    labels:
+      STAFF: 'Staff'
+      CUSTOMER: 'Customer'
+
 # ── Entities ───────────────────────────────────────────────────────────
 
 entities:
@@ -160,13 +168,14 @@ entities:
         required: false
         length: 10
       - name: role
-        type: String
+        type: UserRole
         required: true
-        length: 20
     relationships: []
     use_cases:
       - load_users
       - get_by_id
+      - create
+      - update
 
   - name: Comment
     stereotype: entity

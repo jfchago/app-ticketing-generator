@@ -3,6 +3,7 @@ package com.helpdesk.dto;
 
 import lombok.Data;
 
+import com.helpdesk.entity.UserRole;
 
 
 
@@ -15,7 +16,7 @@ public class UserDTO {
 
     private String avatar;
 
-    private String role;
+    private UserRole role;
 
 
 }

@@ -33,9 +33,9 @@ describe('Resolver — Symbol resolution', () => {
   });
 
   it('resolves all enums', () => {
-    expect(domain.enums).toHaveLength(2);
+    expect(domain.enums).toHaveLength(3);
     const names = domain.enums.map((e) => e.name).sort();
-    expect(names).toEqual(['TicketPriority', 'TicketStatus']);
+    expect(names).toEqual(['TicketPriority', 'TicketStatus', 'UserRole']);
   });
 
   it('resolves entity attributes with correct types', () => {
@@ -152,7 +152,7 @@ describe('buildSemanticModel — Integration', () => {
     const spec = validateSpec(raw);
     const model = buildSemanticModel(spec);
     expect(model.domain.entities).toHaveLength(4);
-    expect(model.domain.enums).toHaveLength(2);
+    expect(model.domain.enums).toHaveLength(3);
     expect(model.meta.specName).toBe('Mini HelpDesk');
     expect(hasErrors(model.diagnostics)).toBe(false);
   });
@@ -211,7 +211,7 @@ describe('Semantic Model Snapshot', () => {
 
   it('has correct summary counts', () => {
     expect(snapshot.summary.entities).toBe(4);
-    expect(snapshot.summary.enums).toBe(2);
+    expect(snapshot.summary.enums).toBe(3);
     expect(snapshot.summary.attributes).toBe(27);
     expect(snapshot.summary.relationships).toBe(6);
     expect(snapshot.summary.useCases).toBeGreaterThan(0);
@@ -237,7 +237,7 @@ describe('Semantic Model Snapshot', () => {
   });
 
   it('has enum snapshots', () => {
-    expect(snapshot.enums).toHaveLength(2);
+    expect(snapshot.enums).toHaveLength(3);
     const status = snapshot.enums.find((e) => e.name === 'TicketStatus')!;
     expect(status.values).toHaveLength(4);
   });

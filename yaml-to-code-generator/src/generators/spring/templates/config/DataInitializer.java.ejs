@@ -7,6 +7,7 @@ const commentEntity = mainEntity ? ir.entities.find(e => e.name === mainEntity.r
 
 <% if (userEntity) { %>
 import <%= ir.application.basePackage %>.entity.User;
+import <%= ir.application.basePackage %>.entity.UserRole;
 import <%= ir.application.basePackage %>.repository.UserRepository;
 <% } %>
 <% if (mainEntity) { %>
@@ -54,8 +55,14 @@ public class DataInitializer implements CommandLineRunner {
         User u = new User();
         u.setId("user-1");
         u.setName("Admin");
-		u.setRole("admin");
+        u.setRole(UserRole.STAFF);
         userRepository.save(u);
+
+        User u2 = new User();
+        u2.setId("user-2");
+        u2.setName("Customer Demo");
+        u2.setRole(UserRole.CUSTOMER);
+        userRepository.save(u2);
 <% } %>
     }
 }
